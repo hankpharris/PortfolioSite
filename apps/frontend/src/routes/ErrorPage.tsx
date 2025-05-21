@@ -1,15 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import { Footer } from "@/components/Footer";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
 
 export function ErrorPage() {
     const navigate = useNavigate();
     
     return (
-        <div className="animated-gradient-bg min-h-screen w-full flex flex-col items-center justify-between relative">
-            <div className="animated-shapes">
-                <div className="triangle"></div>
-                <div className="square"></div>
-            </div>
+        <div className="min-h-screen w-full flex flex-col items-center justify-between relative">
+            <AnimatedBackground />
             
             <div className="container mx-auto px-4 py-8 bg-white/30 rounded-xl shadow-lg backdrop-blur-md relative z-10 text-center mt-20">
                 <div className="text-8xl mb-6">🔍</div>

@@ -9,9 +9,12 @@
         "skipLibCheck": true,
         "baseUrl": ".",
         "paths": {
-            "@/*": ["./src/*"]
+            "@/*": ["./src/*"],
+            "database": ["../../packages/database/src"]
         }
     },
     "include": ["src"],
-    "references": [{ "path": "./tsconfig.node.json" }]
+    "references": [
+        { "path": "./tsconfig.node.json" }
+    ]
 }

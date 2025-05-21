@@ -2,7 +2,6 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import eslint from "vite-plugin-eslint";
 import tailwindcss from "@tailwindcss/vite";
-import translatePlugin from "./plugins/translation";
 import * as process from "process";
 import path from "path";
 
@@ -36,6 +35,5 @@ export default defineConfig({
             failOnWarning: false,
             failOnError: false,
         }),
-        translatePlugin(),
     ],
 });

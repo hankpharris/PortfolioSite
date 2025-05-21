@@ -10,6 +10,10 @@ const Projects = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  const formatStatus = (status: string) => {
+    return status.replace(/([A-Z])/g, ' $1').trim();
+  };
+
   useEffect(() => {
     const fetchProjects = async () => {
       try {
@@ -40,9 +44,9 @@ const Projects = () => {
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-between relative">
       <AnimatedBackground />
-      <div className="container mx-auto px-4 py-8 bg-white/30 rounded-xl shadow-lg backdrop-blur-md relative z-10">
+      <div className="container max-w-7xl mx-6 my-4 px-4 py-8 bg-white/30 rounded-xl shadow-lg backdrop-blur-md relative z-10">
         <h1 className="text-4xl font-bold mb-8 text-center text-black drop-shadow-lg">My Projects</h1>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto px-4 py-2">
           <table className="min-w-full bg-white/80 border border-gray-300 rounded-lg overflow-hidden">
             <thead>
               <tr className="bg-gray-100">
@@ -56,7 +60,7 @@ const Projects = () => {
               {projects.map((project) => (
                 <tr key={project.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 border-b">{project.name}</td>
-                  <td className="px-6 py-4 border-b">{project.status}</td>
+                  <td className="px-6 py-4 border-b">{formatStatus(project.status)}</td>
                   <td className="px-6 py-4 border-b">{project.description || "No description"}</td>
                   <td className="px-6 py-4 border-b">
                     <div className="flex gap-2">

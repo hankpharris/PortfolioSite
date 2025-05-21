@@ -1,42 +1,27 @@
-import { Link } from "react-router-dom";
-import { useTranslate } from "i18n";
+import { type MouseEvent } from 'react';
 
 export function Footer() {
-    const handleClick = (e: React.MouseEvent) => {
-        console.log('Button clicked!');
+    const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         window.open('https://github.com/hankpharris', '_blank', 'noopener,noreferrer');
     };
 
     return (
-        <footer className="w-full bg-[#003a96] dark:bg-[#001941] text-white text-sm font-roboto py-6 shadow-lg shadow-black">
+        <footer className="w-full bg-[#003a96] dark:bg-[#001941] text-white text-sm py-6 shadow-lg shadow-black relative z-20">
             <div className="w-full px-4 flex justify-center items-center">
                 <button
                     type="button"
                     onClick={handleClick}
-                    style={{
-                        color: 'white',
-                        textDecoration: 'none',
-                        padding: '8px 16px',
-                        border: '1px solid white',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        background: 'transparent',
-                        fontSize: 'inherit',
-                        fontFamily: 'inherit',
-                        position: 'relative',
-                        zIndex: 50
-                    }}
-                    onMouseOver={(e) => {
-                        console.log('Mouse over button');
-                        e.currentTarget.style.backgroundColor = 'white';
-                        e.currentTarget.style.color = '#003a96';
-                    }}
-                    onMouseOut={(e) => {
-                        console.log('Mouse out of button');
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                        e.currentTarget.style.color = 'white';
-                    }}
+                    className="
+                        px-4 py-2
+                        border border-white rounded
+                        bg-transparent text-white
+                        hover:bg-white hover:text-[#003a96]
+                        transition-colors duration-200
+                        cursor-pointer
+                        text-inherit font-inherit
+                        relative z-50
+                    "
                 >
                     GitHub: @hankpharris
                 </button>

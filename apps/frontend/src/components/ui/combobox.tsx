@@ -14,8 +14,6 @@ import {
     CommandList,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useTranslate } from "i18n";
-import { comboboxes, getLabel } from "../Chatbot";
 
 type ComboboxProps = {
     options: { value: string; label: string }[];
@@ -24,7 +22,6 @@ type ComboboxProps = {
 };
 
 export function Combobox({ options, value, onChange }: ComboboxProps) {
-    const t = useTranslate();
     const [open, setOpen] = React.useState(false);
 
     const selectedOption = options.find(opt => opt.value === value);
@@ -33,22 +30,16 @@ export function Combobox({ options, value, onChange }: ComboboxProps) {
         (el: HTMLButtonElement) => {
             if (!el) return;
             const label =
-                getLabel(el) ||
                 el.closest("label")?.textContent?.trim() ||
                 el.getAttribute("aria-label") ||
                 el.getAttribute("title") ||
                 "";
             if (!label) return;
-            comboboxes.set(label, {
-                options,
-                onChange,
-            });
 
             return () => {
-                comboboxes.delete(label);
             };
         },
-        [options, onChange]
+        []
     );
 
     return (
@@ -61,13 +52,13 @@ export function Combobox({ options, value, onChange }: ComboboxProps) {
                     className="w-full justify-between"
                     ref={triggerRef}
                 >
-                    {selectedOption ? selectedOption.label : t`Select an option...`}
+                    {selectedOption ? selectedOption.label : "Select an option..."}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-full p-0">
                 <Command>
-                    <CommandInput placeholder={t`Search...`} />
+                    <CommandInput placeholder="Search..." />
                     <CommandList>
                         <CommandEmpty>No match found.</CommandEmpty>
                         <CommandGroup>

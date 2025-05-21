@@ -7,12 +7,11 @@
                 "FRONTEND_PORT",
                 "BACKEND_PORT",
                 "BACKEND_SOURCE",
-                "BACKEND_URL",
-                "MAPS_API_KEY"
+                "BACKEND_URL"
             ]
         },
         "deploy": {
-            "env": ["FRONTEND_PORT", "BACKEND_URL", "MAPS_API_KEY"]
+            "env": ["FRONTEND_PORT", "BACKEND_URL"]
         }
     }
 }
