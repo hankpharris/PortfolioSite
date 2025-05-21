@@ -1,0 +1,27 @@
+generator client {
+  provider   = "prisma-client-js"
+  output     = "../.prisma/client"
+  engineType = "binary"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_URL")
+}
+
+enum Status {
+  InProgress
+  CompleteMaintained
+  CompleteUnmaintained
+  Planned
+}
+
+model Project {
+  id          Int      @id @default(autoincrement())
+  name        String
+  status      Status
+  description String?
+  overviewLink String?
+  link        String?
+  gitHubLink  String?
+}
