@@ -7,7 +7,7 @@ import { AboutMe } from "./routes/AboutMe";
 const routes: RouteObject[] = [
     {
         path: "/",
-        element: <Navigate to="/projects" replace />,
+        element: <Navigate to="/projects/1" replace />,
     },
     {
         path: "/projects",

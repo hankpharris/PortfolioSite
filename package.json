@@ -1,9 +1,9 @@
 {
     "private": true,
-    "name": "softeng-startercode-d25",
-    "version": "1.0.1",
+    "name": "portfolio-monorepo",
+    "version": "1.0.0",
     "scripts": {
-        "dev": "dotenv -e .env -- turbo run dev",
+        "dev": "turbo run dev",
         "dev:wpi": "dotenv -e .env.wpi -- turbo run dev",
         "dev:prod": "dotenv -e .env.prod -- turbo run dev",
         "docker": "dotenv -e .env -- docker-compose -f ./docker/docker-compose.yml up --build",
@@ -12,32 +12,36 @@
         "lint": "turbo run lint",
         "lint:fix": "turbo run lint:fix",
         "generate_sdk": "yarn install && yarn dlx @yarnpkg/sdks base",
-        "build": "dotenv -e .env.aws -- turbo run build",
+        "build": "turbo run build",
         "setup": "bash ./scripts/setup.sh",
         "deploy": "bash ./scripts/deploy.sh",
         "prepare": "husky",
         "setup-db": "yarn workspace database push -- --force-reset && yarn workspace backend init-db",
-        "shadcn": "yarn workspace frontend dlx shadcn@latest"
+        "shadcn": "yarn workspace frontend dlx shadcn@latest",
+        "clean": "turbo run clean",
+        "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+        "vercel-build": "yarn install && turbo run build"
     },
     "devDependencies": {
         "@types/cors": "^2",
-        "@types/node": "^22.13.13",
+        "@types/node": "^20.0.0",
         "@types/react-speech-recognition": "^3.9.6",
         "@vitest/ui": "^3.0.9",
         "@yarnpkg/pnpify": "^4.1.4",
         "eslint": "^9.23.0",
         "eslint-config-custom": "workspace:*",
         "husky": "^9.1.7",
-        "prettier": "^3.5.3",
+        "prettier": "^3.1.0",
         "prettier-config-custom": "workspace:*",
         "prisma": "6.5.0",
         "ts-config-custom": "workspace:*",
-        "turbo": "*",
+        "turbo": "latest",
         "typescript": "^5.8.2",
         "vitest": "^3.0.9"
     },
     "dependencies": {
         "@prisma/client": "^6.8.2",
+        "@vercel/node": "^3.0.0",
         "common": "workspace:*",
         "cors": "^2.8.5",
         "dotenv": "^16.4.7",
@@ -58,8 +62,8 @@
     },
     "workspaces": [
         "apps/*",
-        "configs/*",
-        "packages/*"
+        "packages/*",
+        "configs/*"
     ],
-    "packageManager": "yarn@4.7.0+sha512.5a0afa1d4c1d844b3447ee3319633797bcd6385d9a44be07993ae52ff4facabccafb4af5dcd1c2f9a94ac113e5e9ff56f6130431905884414229e284e37bb7c9"
+    "packageManager": "yarn@4.9.1"
 }
