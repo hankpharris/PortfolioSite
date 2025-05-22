@@ -855,22 +855,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/client@npm:6.5.0":
-  version: 6.5.0
-  resolution: "@prisma/client@npm:6.5.0"
-  peerDependencies:
-    prisma: "*"
-    typescript: ">=5.1.0"
-  peerDependenciesMeta:
-    prisma:
-      optional: true
-    typescript:
-      optional: true
-  checksum: 10c0/2bf6a213bd65de20092b2773b9bb105f023558da2214e92542fe745255778dee8386068ec6648d0d651e0af7443ca69ed9278aa505c0342d39a30098fd0090d2
-  languageName: node
-  linkType: hard
-
-"@prisma/client@npm:^6.5.0, @prisma/client@npm:^6.6.0":
+"@prisma/client@npm:^6.5.0, @prisma/client@npm:^6.8.2":
   version: 6.8.2
   resolution: "@prisma/client@npm:6.8.2"
   peerDependencies:
@@ -4281,7 +4266,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "database@workspace:packages/database"
   dependencies:
-    "@prisma/client": "npm:^6.6.0"
+    "@prisma/client": "npm:^6.8.2"
     "@yarnpkg/pnpify": "npm:^4.0.0-rc.45"
     dotenv: "npm:*"
     dotenv-cli: "npm:*"
@@ -8187,7 +8172,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "softeng-startercode-d25@workspace:."
   dependencies:
-    "@prisma/client": "npm:6.5.0"
+    "@prisma/client": "npm:^6.8.2"
     "@types/cors": "npm:^2"
     "@types/node": "npm:^22.13.13"
     "@types/react-speech-recognition": "npm:^3.9.6"

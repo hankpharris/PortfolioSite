@@ -37,7 +37,7 @@
         "vitest": "^3.0.9"
     },
     "dependencies": {
-        "@prisma/client": "6.5.0",
+        "@prisma/client": "^6.8.2",
         "common": "workspace:*",
         "cors": "^2.8.5",
         "dotenv": "^16.4.7",

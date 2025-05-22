@@ -1,6 +1,6 @@
 generator client {
   provider   = "prisma-client-js"
-  output     = "../.prisma/client"
+  output     = "../src/generated/client"
   engineType = "binary"
 }
 
@@ -21,7 +21,10 @@ model Project {
   name        String
   status      Status
   description String?
-  overviewLink String?
+  overviewText String?
+  overviewImage1 String?
+  overviewImage2 String?
+  overviewImage3 String?
   link        String?
   gitHubLink  String?
 }
