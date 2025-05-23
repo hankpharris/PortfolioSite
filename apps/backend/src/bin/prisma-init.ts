@@ -24,10 +24,10 @@ async function main() {
                 gitHubLink: "https://github.com/hankpharris/PortfolioSite",
             },
             {
-                name: "Software Engineering Course Website",
+                name: "SoftwareEng Course Website",
                 status: "CompleteUnmaintained",
                 description:
-                    "This is the website for WPI's Software Engineering course. It was completed by a 10 person team in a single quarter.",
+                    "This is the website for WPI's Software Engineering course it was built by a 10 person team in a single quarter.",
                 overviewText: `
                     This is the overview for the Software Engineering Course Website mentioned in this websites overview. It is a website for WPI's Software Engineering course. It was completed by a 10 person team in a single quarter.
 

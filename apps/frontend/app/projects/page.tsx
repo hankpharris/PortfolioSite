@@ -22,7 +22,7 @@ export default async function ProjectsPage() {
                         <ProjectCard
                             key={project.id}
                             id={project.id}
-                            title={project.title}
+                            title={project.name}
                             overview={project.overviewText}
                             description={project.description}
                             overviewImage1={project.overviewImage1}

@@ -19,6 +19,9 @@ export function Header() {
                         <span className="text-2xl font-bold text-gray-800">Portfolio</span>
                     </Link>
                     <div className="space-x-4">
+                        <Button href="/about" variant="nav">
+                            About Me
+                        </Button>
                         <Button href="/projects" variant="nav">
                             Projects
                         </Button>
