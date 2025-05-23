@@ -15,7 +15,7 @@ async function main() {
                     
                     At the top of the page is a header/navigation bar which allows the user to view this table as well as well as an about/contact me page and a link to my gitbhub which I'm working on getting up to date and professionalizing.
 
-                    This page itsself was built using "PERN stack" (PostgreSQL, Express, React, Node) with NextJS and Typescript and is styled using TailwindCSS. A majority of the boiler-plate and setup is based on what I learned and developped with my team in WPI's software engineering course. The website for this course is the second item listed in the projects table. Documentation of many of our coding tools as well as my teammates themselves can be found there. Of course a huge thanks goes out to both them and professor Wong for there role in my learning of these skills.Aside from existing boiler-plate this website was built to a minimum viable product by myself using cursour IDE in 12-16 work hours.
+                    This page itsself was built using "PERN stack" (PostgreSQL, Express, React, Node) with NextJS and Typescript. It is styled using TailwindCSS. A majority of the boiler-plate and setup is based on what I learned and developped with my team in WPI's software engineering course. The website for this course is the second item listed in the projects table. Documentation of many of our coding tools as well as my teammates themselves can be found there. Of course a huge thanks goes out to both them and professor Wong for there role in my learning of these skills. Aside from existing boiler-plate this website was built to a minimum viable product by myself using cursour IDE in 12-16 work hours.
                 `,
                 overviewImage1: "LogoNoBG.png",
                 overviewImage2: "Projects2.png",
@@ -24,16 +24,14 @@ async function main() {
                 gitHubLink: "https://github.com/hankpharris/PortfolioSite",
             },
             {
-                name: "Software Engineering Course Website",
+                name: "SoftwareEng Course Website",
                 status: "CompleteUnmaintained",
                 description:
-                    "This is the website for WPI's Software Engineering course. It was completed by a 10 person team in a single quarter.",
+                    "This is the website for WPI's Software Engineering course it was built by a 10 person team in a single quarter.",
                 overviewText: `
-                    This is the overview for the Software Engineering Course Website mentioned in this websites overview. It is a website for WPI's Software Engineering course. It was completed by a 10 person team in a single quarter.
+                    This is the overview for the Software Engineering Course Website mentioned in this websites overview. It is a website for WPI's Software Engineering course. It was completed by a 10 person team in a single quarter as a term long projecct and served as our primary grading metric. It operates as a multifunctional web app for Brigham and Womens's hospital employees and patients.
 
-                    It was built using the same PERN stack (PostgreSQL, Express, React, Node) as this website itself and uses the same plugins and tools. This portfolio site uses a similiar color scheme but thats just because I like the color blue.
-
-                    Documentation of all of our coding tools as well as basic information about my teammates can be found on the site itself (credits and about us repectively).
+                    It was built using the same PERN stack (PostgreSQL, Express, React, Node) as this website itself though its uses vite + react architecture (as opposed to NextJS). Documentation of all of our coding tools as well as basic information about my teammates can be found on the site itself (credits and about us repectively).
 
                     This site is currently unmaintained and the repo can not be made public because it is an assigned group project, however I've left the github link attatched for my own organizational purposes.
                 `,
