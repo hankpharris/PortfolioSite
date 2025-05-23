@@ -3,6 +3,7 @@
     "name": "common",
     "version": "1.0.1",
     "scripts": {
+        "build": "tsc",
         "lint": "yarn shared:prettier && yarn shared:eslint && yarn shared:tslint",
         "lint:fix": "yarn shared:prettier:fix && yarn shared:eslint:fix && yarn shared:tslint"
     },

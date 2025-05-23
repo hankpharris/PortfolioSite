@@ -6,7 +6,6 @@
         "dev": "turbo run dev",
         "dev:wpi": "dotenv -e .env.wpi -- turbo run dev",
         "dev:prod": "dotenv -e .env.prod -- turbo run dev",
-        "docker": "dotenv -e .env -- docker-compose -f ./docker/docker-compose.yml up --build",
         "fix": "yarn cache clean && yarn install",
         "test": "yarn run vitest --ui --open=false",
         "lint": "turbo run lint",
@@ -20,7 +19,7 @@
         "shadcn": "yarn workspace frontend dlx shadcn@latest",
         "clean": "turbo run clean",
         "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-        "vercel-build": "yarn install && turbo run build"
+        "vercel-build": "yarn install && yarn workspace common build && yarn workspace frontend build"
     },
     "devDependencies": {
         "@types/cors": "^2",
