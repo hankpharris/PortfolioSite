@@ -5,7 +5,6 @@ export default function AboutMe() {
     return (
         <div className="min-h-screen w-full flex flex-col relative">
             <AnimatedBackground />
-            <Header />
             <div className="flex-grow flex items-center justify-center py-8">
                 <div className="container max-w-3xl mx-auto px-8 py-12 bg-white/90 rounded-2xl shadow-2xl backdrop-blur-md relative z-10">
                     <h1 className="text-4xl font-bold mb-8 text-center text-black drop-shadow-lg">About Me</h1>
