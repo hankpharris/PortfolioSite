@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { getProject } from '@/lib/db';
-import { ProjectCard } from '@/components/ProjectCard';
+import { ProjectOverview } from '@/components/ProjectOverview';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -17,17 +17,9 @@ export default async function ProjectPage({ params }: { params: { id: string } }
         return (
             <main className="min-h-screen">
                 <div className="container mx-auto px-4 py-8">
-                    <ProjectCard
-                        id={project.id.toString()}
-                        title={project.name}
-                        overview={project.overviewText || ''}
-                        description={project.description || ''}
-                        overviewImage1={project.overviewImage1 || ''}
-                        overviewImage2={project.overviewImage2 || ''}
-                        overviewImage3={project.overviewImage3 || ''}
-                        link={project.link || ''}
-                        gitHubLink={project.gitHubLink || ''}
-                    />
+                    <Suspense fallback={<div>Loading project...</div>}>
+                        <ProjectOverview project={project} />
+                    </Suspense>
                 </div>
             </main>
         );
