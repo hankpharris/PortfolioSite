@@ -44,7 +44,7 @@
     "dependencies": {
         "@prisma/client": "^6.8.2",
         "@vercel/node": "^3.0.0",
-        "common": "workspace:*",
+        
         "cors": "^2.8.5",
         "dotenv": "^16.4.7",
         "dotenv-cli": "^7.4.4",
