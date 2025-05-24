@@ -1,5 +1,6 @@
 import { ProjectOverview } from "@/components/ProjectOverview";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
+import { PrismaClient } from '@prisma/client';
 
 type Project = {
     id: number;
@@ -14,57 +15,37 @@ type Project = {
 };
 
 async function getProject(id: string): Promise<Project> {
+    const prisma = new PrismaClient({
+        log: ['query', 'error', 'warn'],
+    });
+
     try {
-        // Ensure we have a valid base URL
-        let baseUrl = 'http://localhost:3000';
-        if (process.env.VERCEL_URL) {
-            baseUrl = `https://${process.env.VERCEL_URL}`;
-        } else if (process.env.NEXT_PUBLIC_API_URL) {
-            baseUrl = process.env.NEXT_PUBLIC_API_URL;
+        const projectId = parseInt(id);
+        if (isNaN(projectId)) {
+            throw new Error('Invalid project ID');
         }
-        
-        // Ensure the URL is properly formatted
-        const apiUrl = new URL(`/api/projects/${id}`, baseUrl).toString();
-        console.log('Fetching project from:', apiUrl);
-        
-        const res = await fetch(apiUrl, {
-            cache: 'no-store',
-            headers: {
-                'Accept': 'application/json'
-            }
+
+        console.log(`Fetching project with ID: ${projectId}`);
+        const project = await prisma.project.findUnique({
+            where: { id: projectId }
         });
-        
-        if (!res.ok) {
-            const errorData = await res.json().catch(() => ({ error: 'Failed to parse error response' }));
-            console.error('API Error:', errorData);
-            throw new Error(errorData.error || 'Failed to fetch project');
+
+        if (!project) {
+            throw new Error('Project not found');
         }
-        
-        const data = await res.json();
-        if (!data || typeof data !== 'object') {
-            console.error('Unexpected response format:', data);
-            throw new Error('Invalid response format');
-        }
-        
-        return data;
+
+        return project;
     } catch (error) {
-        console.error('Error in getProject:', error);
+        console.error('Error fetching project:', error);
         throw error;
+    } finally {
+        await prisma.$disconnect();
     }
 }
 
 export default async function ProjectPage({ params }: { params: { id: string } }) {
     try {
-        const id = parseInt(params.id);
-        if (isNaN(id)) {
-            throw new Error('Invalid project ID');
-        }
-
         const project = await getProject(params.id);
-
-        if (!project) {
-            throw new Error('Project not found');
-        }
 
         // Map API response to component props
         const formattedData = {

@@ -1,4 +1,5 @@
 import { ProjectCard } from "@/components/ProjectCard";
+import { PrismaClient } from '@prisma/client';
 
 type Project = {
     id: number;
@@ -13,42 +14,20 @@ type Project = {
 };
 
 async function getProjects(): Promise<Project[]> {
+    const prisma = new PrismaClient({
+        log: ['query', 'error', 'warn'],
+    });
+
     try {
-        // Ensure we have a valid base URL
-        let baseUrl = 'http://localhost:3000';
-        if (process.env.VERCEL_URL) {
-            baseUrl = `https://${process.env.VERCEL_URL}`;
-        } else if (process.env.NEXT_PUBLIC_API_URL) {
-            baseUrl = process.env.NEXT_PUBLIC_API_URL;
-        }
-        
-        // Ensure the URL is properly formatted
-        const apiUrl = new URL('/api/projects', baseUrl).toString();
-        console.log('Fetching from:', apiUrl);
-        
-        const res = await fetch(apiUrl, {
-            cache: 'no-store',
-            headers: {
-                'Accept': 'application/json'
-            }
-        });
-        
-        if (!res.ok) {
-            const errorData = await res.json().catch(() => ({ error: 'Failed to parse error response' }));
-            console.error('API Error:', errorData);
-            throw new Error(errorData.error || 'Failed to fetch projects');
-        }
-        
-        const data = await res.json();
-        if (!Array.isArray(data)) {
-            console.error('Unexpected response format:', data);
-            throw new Error('Invalid response format');
-        }
-        
-        return data;
+        console.log('Fetching all projects...');
+        const projects = await prisma.project.findMany();
+        console.log(`Found ${projects.length} projects`);
+        return projects;
     } catch (error) {
-        console.error('Error in getProjects:', error);
+        console.error('Error fetching projects:', error);
         throw error;
+    } finally {
+        await prisma.$disconnect();
     }
 }
 
