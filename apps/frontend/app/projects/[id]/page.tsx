@@ -1,59 +1,48 @@
+import { PrismaClient } from 'database';
+import { config } from 'dotenv';
+import { resolve } from 'path';
 import { ProjectOverview } from "@/components/ProjectOverview";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 
-async function getProject(id: string) {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-    try {
-        const res = await fetch(`${baseUrl}/api/projects/${id}`, { 
-            cache: 'no-store',
-            headers: {
-                'Accept': 'application/json',
-            }
-        });
-        
-        if (!res.ok) {
-            throw new Error(`Failed to fetch project: ${res.status}`);
-        }
-        
-        const data = await res.json();
-        
-        // Map API fields to component props
-        const formattedData = {
-            title: data.name,
-            overview: data.overviewText,
-            description: data.description,
-            overviewImage1: data.overviewImage1,
-            overviewImage2: data.overviewImage2,
-            overviewImage3: data.overviewImage3,
-            link: data.link,
-            gitHubLink: data.gitHubLink
-        };
-        
-        return formattedData;
-    } catch (error) {
-        console.error('Error fetching project:', error);
-        throw error;
-    }
-}
+// Load environment variables from root .env
+config({ path: resolve(process.cwd(), '../../.env') });
+
+const prisma = new PrismaClient({
+    log: ['query', 'error', 'warn'],
+});
 
 export default async function ProjectPage({ params }: { params: { id: string } }) {
-    const project = await getProject(params.id);
+    const id = parseInt(params.id);
+    if (isNaN(id)) {
+        throw new Error('Invalid project ID');
+    }
+
+    const project = await prisma.project.findUnique({
+        where: { id }
+    });
+
+    if (!project) {
+        throw new Error('Project not found');
+    }
+
+    // Map Prisma fields to component props
+    const formattedData = {
+        title: project.name,
+        overview: project.overviewText || '',
+        description: project.description || '',
+        overviewImage1: project.overviewImage1 || '',
+        overviewImage2: project.overviewImage2 || '',
+        overviewImage3: project.overviewImage3 || '',
+        link: project.link || '',
+        gitHubLink: project.gitHubLink || ''
+    };
 
     return (
-        <main className="min-h-screen">
+        <div className="relative min-h-screen">
             <AnimatedBackground />
-            <div className="container mx-auto px-4 py-8">
-                <ProjectOverview
-                    title={project.title}
-                    overview={project.overview}
-                    description={project.description}
-                    overviewImage1={project.overviewImage1}
-                    overviewImage2={project.overviewImage2}
-                    overviewImage3={project.overviewImage3}
-                    link={project.link}
-                    gitHubLink={project.gitHubLink}
-                />
+            <div className="relative z-10 container mx-auto px-16 py-8">
+                <ProjectOverview {...formattedData} />
             </div>
-        </main>
+        </div>
     );
 } 

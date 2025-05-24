@@ -1,35 +1,34 @@
+import { PrismaClient } from 'database';
+import { config } from 'dotenv';
+import { resolve } from 'path';
 import { ProjectCard } from "@/components/ProjectCard";
 
-async function getProjects() {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-    const res = await fetch(`${baseUrl}/api/projects`, { cache: 'no-store' });
-    if (!res.ok) {
-        throw new Error('Failed to fetch projects');
-    }
-    const data = await res.json();
-    //console.log('Project data:', data); // Debug log
-    return data;
-}
+// Load environment variables from root .env
+config({ path: resolve(process.cwd(), '../../.env') });
+
+const prisma = new PrismaClient({
+    log: ['query', 'error', 'warn'],
+});
 
 export default async function ProjectsPage() {
-    const projects = await getProjects();
+    const projects = await prisma.project.findMany();
 
     return (
         <main className="min-h-screen">
             <div className="container mx-auto px-4 py-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {projects.map((project: any) => (
+                    {projects.map((project) => (
                         <ProjectCard
                             key={project.id}
-                            id={project.id}
+                            id={project.id.toString()}
                             title={project.name}
-                            overview={project.overviewText}
-                            description={project.description}
-                            overviewImage1={project.overviewImage1}
-                            overviewImage2={project.overviewImage2}
-                            overviewImage3={project.overviewImage3}
-                            link={project.link}
-                            gitHubLink={project.gitHubLink}
+                            overview={project.overviewText || ''}
+                            description={project.description || ''}
+                            overviewImage1={project.overviewImage1 || ''}
+                            overviewImage2={project.overviewImage2 || ''}
+                            overviewImage3={project.overviewImage3 || ''}
+                            link={project.link || ''}
+                            gitHubLink={project.gitHubLink || ''}
                         />
                     ))}
                 </div>

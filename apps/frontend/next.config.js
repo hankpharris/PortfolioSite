@@ -3,9 +3,8 @@ const nextConfig = {
     images: {
         remotePatterns: [
             {
-                protocol: 'http',
-                hostname: 'localhost',
-                port: '3001',
+                protocol: 'https',
+                hostname: process.env.NEXT_PUBLIC_API_URL?.replace('https://', '') || 'localhost',
                 pathname: '/api/**',
             },
         ],
@@ -15,9 +14,20 @@ const nextConfig = {
         return [
             {
                 source: '/api/:path*',
-                destination: 'http://localhost:3001/api/:path*', // Default to local backend
+                destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/:path*`,
             },
         ];
+    },
+    webpack: (config, { isServer }) => {
+        if (!isServer) {
+            config.resolve.fallback = {
+                ...config.resolve.fallback,
+                fs: false,
+                net: false,
+                tls: false,
+            };
+        }
+        return config;
     },
 };
 
