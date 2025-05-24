@@ -4792,6 +4792,7 @@ __metadata:
     next: "npm:14.1.3"
     next-themes: "npm:^0.4.6"
     postcss: "npm:^8.4.35"
+    postcss-import: "npm:^16.0.1"
     postcss-nesting: "npm:^12.0.2"
     prettier: "npm:*"
     prisma: "npm:^6.8.2"
@@ -6304,6 +6305,7 @@ __metadata:
     typescript: "npm:^5.8.2"
     vitest: "npm:^3.0.9"
     workspace: "npm:^0.0.1-preview.2"
+    zod: "npm:^3.25.28"
   languageName: unknown
   linkType: soft
 
@@ -6317,6 +6319,19 @@ __metadata:
   peerDependencies:
     postcss: ^8.0.0
   checksum: 10c0/518aee5c83ea6940e890b0be675a2588db68b2582319f48c3b4e06535a50ea6ee45f7e63e4309f8754473245c47a0372632378d1d73d901310f295a92f26f17b
+  languageName: node
+  linkType: hard
+
+"postcss-import@npm:^16.0.1":
+  version: 16.1.0
+  resolution: "postcss-import@npm:16.1.0"
+  dependencies:
+    postcss-value-parser: "npm:^4.0.0"
+    read-cache: "npm:^1.0.0"
+    resolve: "npm:^1.1.7"
+  peerDependencies:
+    postcss: ^8.0.0
+  checksum: 10c0/60e6499354079a3f46242b861412a40c54be7ab99f4ad55096a07ffe5e57fcc01c2c626b5d1fbc7a18cd23adc82b320c205059d0c7ab09e91baba8dc45c88e29
   languageName: node
   linkType: hard
 
@@ -8095,10 +8110,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.24.2":
-  version: 3.25.17
-  resolution: "zod@npm:3.25.17"
-  checksum: 10c0/c330707d3e11c6e9ff9ab08d03b38612f8e6ee64b3fc5df003bada1c194f60f5aaffd67d727c73935c8c5507190d5de7b97c52f49b4798cd920ff7cba1a9961c
+"zod@npm:^3.24.2, zod@npm:^3.25.28":
+  version: 3.25.28
+  resolution: "zod@npm:3.25.28"
+  checksum: 10c0/557fb621813d128f8090c43de65f9e8661ce9bd8bd29d7adc6b38b0a79e14729a8926e28a2e6eee2fa0ec0ea390cc549363f50235e8f45d2e4771906d1f87b20
   languageName: node
   linkType: hard
 

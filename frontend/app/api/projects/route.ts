@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { projectSchema } from '@/lib/validation';
 
 // Initialize Prisma client
 const prisma = new PrismaClient({
@@ -27,8 +28,18 @@ export async function GET() {
         const projects = await prisma.project.findMany();
         console.log(`Found ${projects.length} projects`);
 
+        // Validate each project
+        const validatedProjects = projects.map(project => {
+            try {
+                return projectSchema.parse(project);
+            } catch (error) {
+                console.error('Project validation error:', error);
+                return null;
+            }
+        }).filter(Boolean);
+
         return new NextResponse(
-            JSON.stringify(projects),
+            JSON.stringify(validatedProjects),
             {
                 status: 200,
                 headers: {

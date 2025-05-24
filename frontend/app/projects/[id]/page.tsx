@@ -1,45 +1,38 @@
 import { ProjectOverview } from "@/components/ProjectOverview";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
-import { PrismaClient } from '@prisma/client';
-
-type Project = {
-    id: number;
-    name: string;
-    overviewText: string | null;
-    description: string | null;
-    overviewImage1: string | null;
-    overviewImage2: string | null;
-    overviewImage3: string | null;
-    link: string | null;
-    gitHubLink: string | null;
-};
+import { Project } from '@/lib/validation';
 
 async function getProject(id: string): Promise<Project> {
-    const prisma = new PrismaClient({
-        log: ['query', 'error', 'warn'],
-    });
-
     try {
-        const projectId = parseInt(id);
-        if (isNaN(projectId)) {
-            throw new Error('Invalid project ID');
-        }
-
-        console.log(`Fetching project with ID: ${projectId}`);
-        const project = await prisma.project.findUnique({
-            where: { id: projectId }
+        const baseUrl = process.env.VERCEL_URL 
+            ? `https://${process.env.VERCEL_URL}`
+            : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+            
+        console.log('Fetching project from:', `${baseUrl}/api/projects/${id}`);
+        
+        const res = await fetch(`${baseUrl}/api/projects/${id}`, {
+            cache: 'no-store',
+            headers: {
+                'Accept': 'application/json'
+            }
         });
-
-        if (!project) {
-            throw new Error('Project not found');
+        
+        if (!res.ok) {
+            const errorData = await res.json().catch(() => ({ error: 'Failed to parse error response' }));
+            console.error('API Error:', errorData);
+            throw new Error(errorData.error || 'Failed to fetch project');
         }
-
-        return project;
+        
+        const data = await res.json();
+        if (!data || typeof data !== 'object') {
+            console.error('Unexpected response format:', data);
+            throw new Error('Invalid response format');
+        }
+        
+        return data;
     } catch (error) {
-        console.error('Error fetching project:', error);
+        console.error('Error in getProject:', error);
         throw error;
-    } finally {
-        await prisma.$disconnect();
     }
 }
 

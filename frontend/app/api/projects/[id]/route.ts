@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { projectSchema, projectIdSchema } from '@/lib/validation';
 
 // Initialize Prisma client
 const prisma = new PrismaClient({
@@ -26,8 +27,9 @@ export async function GET(
             );
         }
 
-        const id = parseInt(params.id);
-        if (isNaN(id)) {
+        // Validate project ID
+        const id = projectIdSchema.safeParse(params.id);
+        if (!id.success) {
             return new NextResponse(
                 JSON.stringify({ error: 'Invalid project ID' }),
                 {
@@ -39,9 +41,9 @@ export async function GET(
             );
         }
 
-        console.log(`Fetching project with ID: ${id}`);
+        console.log(`Fetching project with ID: ${id.data}`);
         const project = await prisma.project.findUnique({
-            where: { id }
+            where: { id: id.data }
         });
 
         if (!project) {
@@ -56,8 +58,23 @@ export async function GET(
             );
         }
 
+        // Validate project data
+        const validatedProject = projectSchema.safeParse(project);
+        if (!validatedProject.success) {
+            console.error('Project validation error:', validatedProject.error);
+            return new NextResponse(
+                JSON.stringify({ error: 'Invalid project data' }),
+                {
+                    status: 500,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+        }
+
         return new NextResponse(
-            JSON.stringify(project),
+            JSON.stringify(validatedProject.data),
             {
                 status: 200,
                 headers: {
