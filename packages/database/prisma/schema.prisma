@@ -1,7 +1,7 @@
 generator client {
   provider   = "prisma-client-js"
   output     = "../src/generated/client"
-  engineType = "binary"
+  engineType = "library"
 }
 
 datasource db {
@@ -17,14 +17,14 @@ enum Status {
 }
 
 model Project {
-  id          Int      @id @default(autoincrement())
-  name        String
-  status      Status
-  description String?
-  overviewText String?
+  id            Int      @id @default(autoincrement())
+  name          String
+  status        Status
+  description   String?
+  overviewText  String?
   overviewImage1 String?
   overviewImage2 String?
   overviewImage3 String?
-  link        String?
-  gitHubLink  String?
-}
+  link          String?
+  gitHubLink    String?
+} 

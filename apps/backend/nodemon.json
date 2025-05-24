@@ -1,9 +1,0 @@
-{
-    "legacyWatch": true,
-    "watch": ["../../packages", "./"],
-    "ext": "cjs,mjs,js,cts,mts,ts,json,prisma",
-    "exec": "(yarn -T run turbo run build:dev) && (tsx --inspect=0.0.0.0 src/bin/www.ts)",
-    "events": {
-        "restart": "yarn run lint:fix"
-    }
-}

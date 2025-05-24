@@ -26,7 +26,7 @@ const {
   Public,
   getRuntime,
   createParam,
-} = require('./runtime/binary.js')
+} = require('./runtime/library.js')
 
 
 const Prisma = {}
@@ -145,7 +145,7 @@ const config = {
       "fromEnvVar": null
     },
     "config": {
-      "engineType": "binary"
+      "engineType": "library"
     },
     "binaryTargets": [
       {
@@ -176,8 +176,8 @@ const config = {
       }
     }
   },
-  "inlineSchema": "generator client {\n  provider   = \"prisma-client-js\"\n  output     = \"../src/generated/client\"\n  engineType = \"binary\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"POSTGRES_URL\")\n}\n\nenum Status {\n  InProgress\n  CompleteMaintained\n  CompleteUnmaintained\n  Planned\n}\n\nmodel Project {\n  id             Int     @id @default(autoincrement())\n  name           String\n  status         Status\n  description    String?\n  overviewText   String?\n  overviewImage1 String?\n  overviewImage2 String?\n  overviewImage3 String?\n  link           String?\n  gitHubLink     String?\n}\n",
-  "inlineSchemaHash": "2dc437281e9752048949bf099a6e48fa14e9a6567e1baad2f9d479abe3f90051",
+  "inlineSchema": "generator client {\n  provider   = \"prisma-client-js\"\n  output     = \"../src/generated/client\"\n  engineType = \"library\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"POSTGRES_URL\")\n}\n\nenum Status {\n  InProgress\n  CompleteMaintained\n  CompleteUnmaintained\n  Planned\n}\n\nmodel Project {\n  id             Int     @id @default(autoincrement())\n  name           String\n  status         Status\n  description    String?\n  overviewText   String?\n  overviewImage1 String?\n  overviewImage2 String?\n  overviewImage3 String?\n  link           String?\n  gitHubLink     String?\n}\n",
+  "inlineSchemaHash": "eb0e8496e451ac142513c691eff780f8b08ab0ab276a4ce22d7b96bd86902c83",
   "copyEngine": true
 }
 
@@ -204,7 +204,7 @@ config.engineWasm = undefined
 config.compilerWasm = undefined
 
 
-const { warnEnvConflicts } = require('./runtime/binary.js')
+const { warnEnvConflicts } = require('./runtime/library.js')
 
 warnEnvConflicts({
     rootEnvPath: config.relativeEnvPaths.rootEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.rootEnvPath),
@@ -216,8 +216,8 @@ exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)
 
 // file annotations for bundling tools to include these files
-path.join(__dirname, "query-engine-windows");
-path.join(process.cwd(), "src/generated/client/query-engine-windows")
+path.join(__dirname, "query_engine-windows.dll.node");
+path.join(process.cwd(), "src/generated/client/query_engine-windows.dll.node")
 // file annotations for bundling tools to include these files
 path.join(__dirname, "schema.prisma");
 path.join(process.cwd(), "src/generated/client/schema.prisma")
