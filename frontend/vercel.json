@@ -35,6 +35,12 @@
             "main": true
         }
     },
+    "rewrites": [
+        {
+            "source": "/api/:path*",
+            "destination": "/api/:path*"
+        }
+    ],
     "functions": {
         "app/api/**/*.ts": {
             "memory": 1024,
