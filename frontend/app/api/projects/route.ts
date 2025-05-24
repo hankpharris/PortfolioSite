@@ -5,8 +5,8 @@ import { projectSchema } from '@/lib/validation';
 // Initialize Prisma client
 const prisma = new PrismaClient();
 
-// Use Edge Runtime
-export const runtime = 'edge';
+// Use Node.js runtime
+export const runtime = 'nodejs';
 
 export async function GET() {
     try {
@@ -50,6 +50,8 @@ export async function GET() {
                 },
             }
         );
+    } finally {
+        await prisma.$disconnect();
     }
 }
 

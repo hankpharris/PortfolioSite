@@ -17,7 +17,11 @@
                 },
                 {
                     "key": "Access-Control-Allow-Headers",
-                    "value": "X-Requested-With, Content-Type, Accept"
+                    "value": "X-Requested-With, Content-Type, Accept, Authorization"
+                },
+                {
+                    "key": "Access-Control-Allow-Credentials",
+                    "value": "true"
                 }
             ]
         }
@@ -29,6 +33,12 @@
     "git": {
         "deploymentEnabled": {
             "main": true
+        }
+    },
+    "functions": {
+        "api/**/*.ts": {
+            "memory": 1024,
+            "maxDuration": 10
         }
     }
 } 

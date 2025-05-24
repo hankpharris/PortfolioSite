@@ -5,8 +5,8 @@ import { projectSchema, projectIdSchema } from '@/lib/validation';
 // Initialize Prisma client
 const prisma = new PrismaClient();
 
-// Use Edge Runtime
-export const runtime = 'edge';
+// Use Node.js runtime
+export const runtime = 'nodejs';
 
 export async function GET(
     request: Request,
@@ -40,7 +40,6 @@ export async function GET(
             );
         }
 
-        console.log(`Fetching project with ID: ${id.data}`);
         const project = await prisma.project.findUnique({
             where: { id: id.data }
         });
@@ -100,5 +99,7 @@ export async function GET(
                 },
             }
         );
+    } finally {
+        await prisma.$disconnect();
     }
 } 
