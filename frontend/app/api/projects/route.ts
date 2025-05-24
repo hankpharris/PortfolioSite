@@ -9,10 +9,8 @@ const prisma = new PrismaClient({
 
 export async function GET() {
     try {
-        // Log the database URL (with sensitive parts redacted)
-        const dbUrl = process.env.DATABASE_URL;
-        if (!dbUrl) {
-            console.error('DATABASE_URL is not set');
+        if (!process.env.DATABASE_URL) {
+            console.error('Database configuration error');
             return new NextResponse(
                 JSON.stringify({ error: 'Database configuration error' }), 
                 { 
