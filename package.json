@@ -19,7 +19,10 @@
         "shadcn": "yarn workspace frontend dlx shadcn@latest",
         "clean": "turbo run clean",
         "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-        "vercel-build": "yarn install && yarn workspace common build && yarn workspace frontend build"
+        "vercel-build": "yarn install && yarn workspace common build && yarn workspace frontend build",
+        "db:generate": "turbo run db:generate",
+        "db:push": "turbo run db:push",
+        "db:seed": "turbo run db:seed"
     },
     "devDependencies": {
         "@types/cors": "^2",
@@ -60,7 +63,7 @@
         "vitest": "^3.0.9"
     },
     "workspaces": [
-        "apps/*",
+        "frontend",
         "packages/*",
         "configs/*"
     ],
