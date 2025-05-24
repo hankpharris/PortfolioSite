@@ -12,11 +12,30 @@ export async function GET() {
         const dbUrl = process.env.DATABASE_URL;
         if (!dbUrl) {
             console.error('DATABASE_URL is not set');
-            return NextResponse.json({ error: 'Database configuration error' }, { status: 500 });
+            return new NextResponse(
+                JSON.stringify({ error: 'Database configuration error' }), 
+                { 
+                    status: 500,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
         }
 
+        console.log('Fetching all projects...');
         const projects = await prisma.project.findMany();
-        return NextResponse.json(projects);
+        console.log(`Found ${projects.length} projects`);
+
+        return new NextResponse(
+            JSON.stringify(projects),
+            {
+                status: 200,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
     } catch (error) {
         console.error('Error fetching projects:', error);
         // Log more details about the error
@@ -25,7 +44,15 @@ export async function GET() {
             console.error('Error message:', error.message);
             console.error('Error stack:', error.stack);
         }
-        return NextResponse.json({ error: 'Failed to fetch projects' }, { status: 500 });
+        return new NextResponse(
+            JSON.stringify({ error: 'Failed to fetch projects' }),
+            {
+                status: 500,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
     } finally {
         await prisma.$disconnect();
     }
