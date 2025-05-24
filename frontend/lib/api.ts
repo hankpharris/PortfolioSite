@@ -1,19 +1,30 @@
 import { Project } from './validation';
 
+function getBaseUrl() {
+    if (typeof window !== 'undefined') {
+        // Browser should use relative path
+        return '';
+    }
+    
+    // Server should use absolute URL
+    if (process.env.VERCEL_URL) {
+        return `https://${process.env.VERCEL_URL}`;
+    }
+    
+    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+}
+
 export async function getProject(id: string): Promise<Project | null> {
     try {
-        // Use absolute URL in production
-        const baseUrl = typeof window !== 'undefined' 
-            ? window.location.origin
-            : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-            
+        const baseUrl = getBaseUrl();
         const url = `${baseUrl}/api/projects/${id}`;
         console.log('Fetching project with ID:', id, 'from:', url);
         
         const res = await fetch(url, {
             cache: 'no-store',
             headers: {
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
             }
         });
         
@@ -36,18 +47,15 @@ export async function getProject(id: string): Promise<Project | null> {
 
 export async function getProjects(): Promise<Project[]> {
     try {
-        // Use absolute URL in production
-        const baseUrl = typeof window !== 'undefined'
-            ? window.location.origin
-            : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-            
+        const baseUrl = getBaseUrl();
         const url = `${baseUrl}/api/projects`;
         console.log('Fetching from:', url);
         
         const res = await fetch(url, {
             cache: 'no-store',
             headers: {
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
             }
         });
         
