@@ -1,15 +1,29 @@
-import { PrismaClient } from '@prisma/client';
-import { config } from 'dotenv';
-import { resolve } from 'path';
 import { ProjectOverview } from "@/components/ProjectOverview";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 
-// Load environment variables from root .env
-config({ path: resolve(process.cwd(), '../../.env') });
+type Project = {
+    id: number;
+    name: string;
+    overviewText: string | null;
+    description: string | null;
+    overviewImage1: string | null;
+    overviewImage2: string | null;
+    overviewImage3: string | null;
+    link: string | null;
+    gitHubLink: string | null;
+};
 
-const prisma = new PrismaClient({
-    log: ['query', 'error', 'warn'],
-});
+async function getProject(id: string): Promise<Project> {
+    const res = await fetch(`/api/projects/${id}`, {
+        cache: 'no-store'
+    });
+    
+    if (!res.ok) {
+        throw new Error('Failed to fetch project');
+    }
+    
+    return res.json();
+}
 
 export default async function ProjectPage({ params }: { params: { id: string } }) {
     const id = parseInt(params.id);
@@ -17,15 +31,13 @@ export default async function ProjectPage({ params }: { params: { id: string } }
         throw new Error('Invalid project ID');
     }
 
-    const project = await prisma.project.findUnique({
-        where: { id }
-    });
+    const project = await getProject(params.id);
 
     if (!project) {
         throw new Error('Project not found');
     }
 
-    // Map Prisma fields to component props
+    // Map API response to component props
     const formattedData = {
         title: project.name,
         overview: project.overviewText || '',

@@ -1,14 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-import { config } from 'dotenv';
-import { resolve } from 'path';
 import { ProjectCard } from "@/components/ProjectCard";
-
-// Load environment variables from root .env
-config({ path: resolve(process.cwd(), '../../.env') });
-
-const prisma = new PrismaClient({
-    log: ['query', 'error', 'warn'],
-});
 
 type Project = {
     id: number;
@@ -22,8 +12,20 @@ type Project = {
     gitHubLink: string | null;
 };
 
+async function getProjects(): Promise<Project[]> {
+    const res = await fetch('/api/projects', {
+        cache: 'no-store'
+    });
+    
+    if (!res.ok) {
+        throw new Error('Failed to fetch projects');
+    }
+    
+    return res.json();
+}
+
 export default async function ProjectsPage() {
-    const projects = await prisma.project.findMany();
+    const projects = await getProjects();
 
     return (
         <main className="min-h-screen">
