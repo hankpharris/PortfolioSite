@@ -15,6 +15,13 @@ export async function GET(
     { params }: { params: { id: string } }
 ) {
     try {
+        // Log the database URL (with sensitive parts redacted)
+        const dbUrl = process.env.DATABASE_URL;
+        if (!dbUrl) {
+            console.error('DATABASE_URL is not set');
+            return NextResponse.json({ error: 'Database configuration error' }, { status: 500 });
+        }
+
         const id = parseInt(params.id);
         if (isNaN(id)) {
             return NextResponse.json({ error: 'Invalid project ID' }, { status: 400 });
@@ -31,6 +38,12 @@ export async function GET(
         return NextResponse.json(project);
     } catch (error) {
         console.error('Error fetching project:', error);
+        // Log more details about the error
+        if (error instanceof Error) {
+            console.error('Error name:', error.name);
+            console.error('Error message:', error.message);
+            console.error('Error stack:', error.stack);
+        }
         return NextResponse.json({ error: 'Failed to fetch project' }, { status: 500 });
     } finally {
         await prisma.$disconnect();
