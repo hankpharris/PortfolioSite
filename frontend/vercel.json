@@ -8,25 +8,24 @@
             "source": "/api/(.*)",
             "headers": [
                 {
+                    "key": "Access-Control-Allow-Credentials",
+                    "value": "true"
+                },
+                {
                     "key": "Access-Control-Allow-Origin",
                     "value": "*"
                 },
                 {
                     "key": "Access-Control-Allow-Methods",
-                    "value": "GET, POST, PUT, DELETE, OPTIONS"
+                    "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT"
                 },
                 {
                     "key": "Access-Control-Allow-Headers",
-                    "value": "X-Requested-With, Content-Type, Accept, Authorization"
-                },
-                {
-                    "key": "Access-Control-Allow-Credentials",
-                    "value": "true"
+                    "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version"
                 }
             ]
         }
     ],
-    "public": true,
     "github": {
         "silent": true
     },
@@ -35,12 +34,6 @@
             "main": true
         }
     },
-    "rewrites": [
-        {
-            "source": "/api/:path*",
-            "destination": "/api/:path*"
-        }
-    ],
     "functions": {
         "app/api/**/*.ts": {
             "memory": 1024,
