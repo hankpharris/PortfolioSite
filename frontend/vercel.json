@@ -22,5 +22,13 @@
             ]
         }
     ],
-    "public": true
+    "public": true,
+    "github": {
+        "silent": true
+    },
+    "git": {
+        "deploymentEnabled": {
+            "main": true
+        }
+    }
 } 
