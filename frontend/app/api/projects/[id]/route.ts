@@ -3,9 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { projectSchema, projectIdSchema } from '@/lib/validation';
 
 // Initialize Prisma client
-const prisma = new PrismaClient({
-    log: ['query', 'error', 'warn'],
-});
+const prisma = new PrismaClient();
 
 export async function GET(
     request: Request,
@@ -33,7 +31,6 @@ export async function GET(
                     status: 400,
                     headers: {
                         'Content-Type': 'application/json',
-                        'Access-Control-Allow-Origin': '*',
                     },
                 }
             );
@@ -51,7 +48,6 @@ export async function GET(
                     status: 404,
                     headers: {
                         'Content-Type': 'application/json',
-                        'Access-Control-Allow-Origin': '*',
                     },
                 }
             );
@@ -61,13 +57,16 @@ export async function GET(
         const validatedProject = projectSchema.safeParse(project);
         if (!validatedProject.success) {
             console.error('Project validation error:', validatedProject.error);
+            // Return the project data anyway, but with a warning
             return new NextResponse(
-                JSON.stringify({ error: 'Invalid project data' }),
+                JSON.stringify({
+                    ...project,
+                    validationWarning: 'Project data may not meet all validation requirements'
+                }),
                 {
-                    status: 500,
+                    status: 200,
                     headers: {
                         'Content-Type': 'application/json',
-                        'Access-Control-Allow-Origin': '*',
                     },
                 }
             );
@@ -79,7 +78,6 @@ export async function GET(
                 status: 200,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*',
                 },
             }
         );
@@ -91,7 +89,6 @@ export async function GET(
                 status: 500,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*',
                 },
             }
         );
