@@ -1,26 +1,46 @@
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
-import { ProjectOverview } from '@/components/ProjectOverview';
 import { getProject } from '@/lib/db';
+import { ProjectCard } from '@/components/ProjectCard';
 
-// Make the page dynamic
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export default async function ProjectPage({ params }: { params: { id: string } }) {
-    const project = await getProject(params.id);
+    try {
+        const project = await getProject(params.id);
 
-    if (!project) {
-        notFound();
+        if (!project) {
+            notFound();
+        }
+
+        return (
+            <main className="min-h-screen">
+                <div className="container mx-auto px-4 py-8">
+                    <ProjectCard
+                        id={project.id.toString()}
+                        title={project.name}
+                        overview={project.overviewText || ''}
+                        description={project.description || ''}
+                        overviewImage1={project.overviewImage1 || ''}
+                        overviewImage2={project.overviewImage2 || ''}
+                        overviewImage3={project.overviewImage3 || ''}
+                        link={project.link || ''}
+                        gitHubLink={project.gitHubLink || ''}
+                    />
+                </div>
+            </main>
+        );
+    } catch (error) {
+        console.error('Error rendering ProjectPage:', error);
+        return (
+            <main className="min-h-screen">
+                <div className="container mx-auto px-4 py-8">
+                    <div className="text-red-500">
+                        Error loading project. Please try again later.
+                    </div>
+                </div>
+            </main>
+        );
     }
-
-    return (
-        <main className="min-h-screen bg-gray-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <Suspense fallback={<div>Loading...</div>}>
-                    <ProjectOverview project={project} />
-                </Suspense>
-            </div>
-        </main>
-    );
 } 

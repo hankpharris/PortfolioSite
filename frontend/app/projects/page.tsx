@@ -1,27 +1,47 @@
 import { Suspense } from 'react';
-import { ProjectOverview } from '@/components/ProjectOverview';
 import { getProjects } from '@/lib/db';
 import type { Project } from '@/lib/validation';
+import { ProjectCard } from '@/components/ProjectCard';
 
-// Make the page dynamic
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export default async function ProjectsPage() {
-    const projects = await getProjects();
+    try {
+        const projects = await getProjects();
 
-    return (
-        <main className="min-h-screen bg-gray-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <h1 className="text-3xl font-bold text-gray-900 mb-8">Projects</h1>
-                <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-                    <Suspense fallback={<div>Loading projects...</div>}>
+        return (
+            <main className="min-h-screen">
+                <div className="container mx-auto px-4 py-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {projects.map((project: Project & { validationWarning?: boolean }) => (
-                            <ProjectOverview key={project.id} project={project} />
+                            <ProjectCard
+                                key={project.id}
+                                id={project.id.toString()}
+                                title={project.name}
+                                overview={project.overviewText || ''}
+                                description={project.description || ''}
+                                overviewImage1={project.overviewImage1 || ''}
+                                overviewImage2={project.overviewImage2 || ''}
+                                overviewImage3={project.overviewImage3 || ''}
+                                link={project.link || ''}
+                                gitHubLink={project.gitHubLink || ''}
+                            />
                         ))}
-                    </Suspense>
+                    </div>
                 </div>
-            </div>
-        </main>
-    );
+            </main>
+        );
+    } catch (error) {
+        console.error('Error rendering ProjectsPage:', error);
+        return (
+            <main className="min-h-screen">
+                <div className="container mx-auto px-4 py-8">
+                    <div className="text-red-500">
+                        Error loading projects. Please try again later.
+                    </div>
+                </div>
+            </main>
+        );
+    }
 } 
