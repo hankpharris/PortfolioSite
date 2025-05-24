@@ -1,86 +1,43 @@
-import { ProjectOverview } from "@/components/ProjectOverview";
-import { AnimatedBackground } from "@/components/AnimatedBackground";
-import { Project } from '@/lib/validation';
+import { Suspense } from 'react';
+import { notFound } from 'next/navigation';
+import { ProjectOverview } from '@/components/ProjectOverview';
+import { getProject } from '@/lib/api';
 
-async function getProject(id: string): Promise<Project> {
-    try {
-        const baseUrl = process.env.VERCEL_URL 
-            ? `https://${process.env.VERCEL_URL}`
-            : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-            
-        const url = `${baseUrl}/api/projects/${id}`;
-        console.log('Fetching project from:', url);
-        
-        const res = await fetch(url, {
-            cache: 'no-store',
-            headers: {
-                'Accept': 'application/json'
-            }
-        });
-        
-        if (!res.ok) {
-            let errorMessage = 'Failed to fetch project';
-            try {
-                const text = await res.text();
-                console.log('Error response text:', text);
-                if (text.startsWith('<!DOCTYPE')) {
-                    errorMessage = `Server returned HTML instead of JSON (Status: ${res.status})`;
-                } else {
-                    const errorData = JSON.parse(text);
-                    errorMessage = errorData.error || errorMessage;
-                }
-            } catch (e) {
-                console.error('Failed to parse error response:', e);
-                errorMessage = `Failed to parse error response (Status: ${res.status})`;
-            }
-            throw new Error(errorMessage);
-        }
-        
-        const data = await res.json();
-        
-        if (!data || typeof data !== 'object') {
-            console.error('Unexpected response format:', data);
-            throw new Error('Invalid response format');
-        }
-        
-        return data;
-    } catch (error) {
-        console.error('Error in getProject:', error);
-        throw error;
-    }
+// Make the page dynamic
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+interface ProjectPageProps {
+    params: {
+        id: string;
+    };
 }
 
-export default async function ProjectPage({ params }: { params: { id: string } }) {
+export default async function ProjectPage({ params }: ProjectPageProps) {
     try {
         const project = await getProject(params.id);
-
-        // Map API response to component props
-        const formattedData = {
-            title: project.name,
-            overview: project.overviewText || '',
-            description: project.description || '',
-            overviewImage1: project.overviewImage1 || '',
-            overviewImage2: project.overviewImage2 || '',
-            overviewImage3: project.overviewImage3 || '',
-            link: project.link || '',
-            gitHubLink: project.gitHubLink || ''
-        };
+        
+        if (!project) {
+            notFound();
+        }
 
         return (
-            <div className="relative min-h-screen">
-                <AnimatedBackground />
-                <div className="relative z-10 container mx-auto px-16 py-8">
-                    <ProjectOverview {...formattedData} />
+            <main className="min-h-screen bg-gray-50">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                    <Suspense fallback={<div>Loading project...</div>}>
+                        <ProjectOverview project={project} />
+                    </Suspense>
                 </div>
-            </div>
+            </main>
         );
     } catch (error) {
         console.error('Error rendering ProjectPage:', error);
         return (
-            <main className="min-h-screen">
-                <div className="container mx-auto px-4 py-8">
-                    <div className="text-red-500">
-                        {error instanceof Error ? error.message : 'Error loading project. Please try again later.'}
+            <main className="min-h-screen bg-gray-50">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                    <div className="text-center">
+                        <h1 className="text-2xl font-semibold text-gray-900">Error Loading Project</h1>
+                        <p className="mt-2 text-gray-600">Please try again later.</p>
                     </div>
                 </div>
             </main>

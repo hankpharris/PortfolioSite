@@ -1,115 +1,76 @@
 import Image from 'next/image';
 import { Button } from './buttons/Button';
+import { Project } from '@/lib/validation';
 
-interface ProjectOverviewProps {
-    title: string;
-    overview: string;
-    description: string;
-    overviewImage1: string;
-    overviewImage2: string;
-    overviewImage3: string;
-    link?: string | null;
-    gitHubLink?: string | null;
+export interface ProjectOverviewProps {
+    project: Project;
 }
 
-export function ProjectOverview({
-    title,
-    overview,
-    description,
-    overviewImage1,
-    overviewImage2,
-    overviewImage3,
-    link,
-    gitHubLink,
-}: ProjectOverviewProps) {
-    // Split overview text into paragraphs
-    const paragraphs = overview.split('\n\n').filter(p => p.trim());
-
+export function ProjectOverview({ project }: ProjectOverviewProps) {
     return (
-        <div className="bg-white/30 backdrop-blur-md rounded-xl shadow-lg overflow-hidden">
+        <div className="bg-white shadow-lg rounded-lg overflow-hidden">
             <div className="p-6">
-                {/* Header section with title and buttons */}
-                <div className="flex justify-between items-center mb-1">
-                    <h1 className="text-4xl font-bold text-gray-800">{title}</h1>
-                    <div className="flex gap-4 justify-start">
-                        {link && (
-                            <Button href={link} variant="project" isExternal>
-                                View Project
-                            </Button>
-                        )}
-                        {gitHubLink && (
-                            <Button href={gitHubLink} variant="github" isExternal>
-                                GitHub
-                            </Button>
-                        )}
+                <h1 className="text-3xl font-bold text-gray-900 mb-4">{project.name}</h1>
+                
+                {project.overviewText && (
+                    <div className="mb-6">
+                        <h2 className="text-xl font-semibold text-gray-800 mb-2">Overview</h2>
+                        <p className="text-gray-600">{project.overviewText}</p>
                     </div>
+                )}
+
+                {project.description && (
+                    <div className="mb-6">
+                        <h2 className="text-xl font-semibold text-gray-800 mb-2">Description</h2>
+                        <p className="text-gray-600 whitespace-pre-wrap">{project.description}</p>
+                    </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    {project.overviewImage1 && (
+                        <img 
+                            src={project.overviewImage1} 
+                            alt="Project overview 1" 
+                            className="w-full h-48 object-cover rounded-lg"
+                        />
+                    )}
+                    {project.overviewImage2 && (
+                        <img 
+                            src={project.overviewImage2} 
+                            alt="Project overview 2" 
+                            className="w-full h-48 object-cover rounded-lg"
+                        />
+                    )}
+                    {project.overviewImage3 && (
+                        <img 
+                            src={project.overviewImage3} 
+                            alt="Project overview 3" 
+                            className="w-full h-48 object-cover rounded-lg"
+                        />
+                    )}
                 </div>
 
-                {/* Main content area */}
-                <div className="space-y-8">
-                    {/* First image and first paragraph */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
-                        {overviewImage1 && (
-                            <div className="relative h-[400px] overflow-hidden">
-                                <Image
-                                    src={`/${overviewImage1}`}
-                                    alt={`${title} overview`}
-                                    fill
-                                    className="object-contain"
-                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                    priority
-                                />
-                            </div>
-                        )}
-                        {paragraphs[0] && (
-                            <div className="prose max-w-none">
-                                <p className="text-lg text-gray-900">{paragraphs[0]}</p>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Second image and second paragraph */}
-                    {overviewImage2 && paragraphs[1] && (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
-                            <div className="relative h-[400px] overflow-hidden">
-                                <Image
-                                    src={`/${overviewImage2}`}
-                                    alt={`${title} overview 2`}
-                                    fill
-                                    className="object-contain"
-                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                />
-                            </div>
-                            <div className="prose max-w-none">
-                                <p className="text-lg text-gray-900">{paragraphs[1]}</p>
-                            </div>
-                        </div>
+                <div className="flex flex-wrap gap-4">
+                    {project.link && (
+                        <a 
+                            href={project.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                            View Project
+                        </a>
                     )}
-
-                    {/* Third image and third paragraph */}
-                    {overviewImage3 && paragraphs[2] && (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
-                            <div className="relative h-[400px] overflow-hidden">
-                                <Image
-                                    src={`/${overviewImage3}`}
-                                    alt={`${title} overview 3`}
-                                    fill
-                                    className="object-contain"
-                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                />
-                            </div>
-                            <div className="prose max-w-none">
-                                <p className="text-lg text-gray-900">{paragraphs[2]}</p>
-                            </div>
-                        </div>
+                    {project.gitHubLink && (
+                        <a 
+                            href={project.gitHubLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                            View on GitHub
+                        </a>
                     )}
-
-                    {/* Any remaining paragraphs */}
-                    {paragraphs.slice(3).map((paragraph, index) => (
-                        <div key={index} className="prose max-w-none">
-                            <p className="text-lg text-gray-900">{paragraph}</p>
-                        </div>
-                    ))}
                 </div>
             </div>
         </div>
