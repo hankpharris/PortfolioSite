@@ -15,9 +15,14 @@ export async function GET(
         // Validate project ID
         const id = projectIdSchema.safeParse(params.id);
         if (!id.success) {
-            return NextResponse.json(
-                { error: 'Invalid project ID' },
-                { status: 400 }
+            return new NextResponse(
+                JSON.stringify({ error: 'Invalid project ID' }),
+                {
+                    status: 400,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
             );
         }
 
@@ -27,9 +32,14 @@ export async function GET(
         });
 
         if (!project) {
-            return NextResponse.json(
-                { error: 'Project not found' },
-                { status: 404 }
+            return new NextResponse(
+                JSON.stringify({ error: 'Project not found' }),
+                {
+                    status: 404,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
             );
         }
 
@@ -37,26 +47,36 @@ export async function GET(
         const validatedProject = projectSchema.safeParse(project);
         if (!validatedProject.success) {
             console.error('Project validation error:', validatedProject.error);
-            return NextResponse.json(
-                { error: 'Invalid project data' },
-                { status: 500 }
+            return new NextResponse(
+                JSON.stringify({ error: 'Invalid project data' }),
+                {
+                    status: 500,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
             );
         }
 
-        return NextResponse.json(validatedProject.data);
+        return new NextResponse(
+            JSON.stringify(validatedProject.data),
+            {
+                status: 200,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
     } catch (error) {
         console.error('Error fetching project:', error);
-        // Log more details about the error
-        if (error instanceof Error) {
-            console.error('Error name:', error.name);
-            console.error('Error message:', error.message);
-            console.error('Error stack:', error.stack);
-        }
-        return NextResponse.json(
-            { error: 'Failed to fetch project' },
-            { status: 500 }
+        return new NextResponse(
+            JSON.stringify({ error: 'Internal server error' }),
+            {
+                status: 500,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
         );
-    } finally {
-        await prisma.$disconnect();
     }
 } 

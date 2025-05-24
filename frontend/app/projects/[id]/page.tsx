@@ -18,10 +18,6 @@ async function getProject(id: string): Promise<Project> {
             }
         });
         
-        // Log response details for debugging
-        console.log('Response status:', res.status);
-        console.log('Response headers:', Object.fromEntries(res.headers.entries()));
-        
         if (!res.ok) {
             let errorMessage = 'Failed to fetch project';
             try {
@@ -40,16 +36,7 @@ async function getProject(id: string): Promise<Project> {
             throw new Error(errorMessage);
         }
         
-        const text = await res.text();
-        console.log('Response text:', text);
-        
-        let data;
-        try {
-            data = JSON.parse(text);
-        } catch (e) {
-            console.error('Failed to parse JSON response:', e);
-            throw new Error('Invalid JSON response from server');
-        }
+        const data = await res.json();
         
         if (!data || typeof data !== 'object') {
             console.error('Unexpected response format:', data);
