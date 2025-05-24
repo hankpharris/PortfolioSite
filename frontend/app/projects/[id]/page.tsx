@@ -15,23 +15,38 @@ type Project = {
 
 async function getProject(id: string): Promise<Project> {
     try {
-        const baseUrl = process.env.VERCEL_URL 
-            ? `https://${process.env.VERCEL_URL}`
-            : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-            
-        console.log('Fetching project from:', `${baseUrl}/api/projects/${id}`);
+        // Ensure we have a valid base URL
+        let baseUrl = 'http://localhost:3000';
+        if (process.env.VERCEL_URL) {
+            baseUrl = `https://${process.env.VERCEL_URL}`;
+        } else if (process.env.NEXT_PUBLIC_API_URL) {
+            baseUrl = process.env.NEXT_PUBLIC_API_URL;
+        }
         
-        const res = await fetch(`${baseUrl}/api/projects/${id}`, {
-            cache: 'no-store'
+        // Ensure the URL is properly formatted
+        const apiUrl = new URL(`/api/projects/${id}`, baseUrl).toString();
+        console.log('Fetching project from:', apiUrl);
+        
+        const res = await fetch(apiUrl, {
+            cache: 'no-store',
+            headers: {
+                'Accept': 'application/json'
+            }
         });
         
         if (!res.ok) {
-            const errorData = await res.json();
+            const errorData = await res.json().catch(() => ({ error: 'Failed to parse error response' }));
             console.error('API Error:', errorData);
             throw new Error(errorData.error || 'Failed to fetch project');
         }
         
-        return res.json();
+        const data = await res.json();
+        if (!data || typeof data !== 'object') {
+            console.error('Unexpected response format:', data);
+            throw new Error('Invalid response format');
+        }
+        
+        return data;
     } catch (error) {
         console.error('Error in getProject:', error);
         throw error;

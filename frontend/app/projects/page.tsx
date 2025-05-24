@@ -14,13 +14,19 @@ type Project = {
 
 async function getProjects(): Promise<Project[]> {
     try {
-        const baseUrl = process.env.VERCEL_URL 
-            ? `https://${process.env.VERCEL_URL}`
-            : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-            
-        console.log('Fetching from:', `${baseUrl}/api/projects`);
+        // Ensure we have a valid base URL
+        let baseUrl = 'http://localhost:3000';
+        if (process.env.VERCEL_URL) {
+            baseUrl = `https://${process.env.VERCEL_URL}`;
+        } else if (process.env.NEXT_PUBLIC_API_URL) {
+            baseUrl = process.env.NEXT_PUBLIC_API_URL;
+        }
         
-        const res = await fetch(`${baseUrl}/api/projects`, {
+        // Ensure the URL is properly formatted
+        const apiUrl = new URL('/api/projects', baseUrl).toString();
+        console.log('Fetching from:', apiUrl);
+        
+        const res = await fetch(apiUrl, {
             cache: 'no-store',
             headers: {
                 'Accept': 'application/json'
