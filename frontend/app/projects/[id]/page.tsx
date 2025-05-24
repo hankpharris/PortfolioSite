@@ -14,7 +14,11 @@ type Project = {
 };
 
 async function getProject(id: string): Promise<Project> {
-    const res = await fetch(`/api/projects/${id}`, {
+    const baseUrl = process.env.VERCEL_URL 
+        ? `https://${process.env.VERCEL_URL}`
+        : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+        
+    const res = await fetch(`${baseUrl}/api/projects/${id}`, {
         cache: 'no-store'
     });
     
