@@ -2,12 +2,13 @@ import { Project } from './validation';
 
 export async function getProject(id: string): Promise<Project | null> {
     try {
-        const baseUrl = process.env.VERCEL_URL 
-            ? `https://${process.env.VERCEL_URL}`
+        // Use absolute URL in production
+        const baseUrl = typeof window !== 'undefined' 
+            ? window.location.origin
             : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
             
         const url = `${baseUrl}/api/projects/${id}`;
-        console.log('Fetching project with ID:', id);
+        console.log('Fetching project with ID:', id, 'from:', url);
         
         const res = await fetch(url, {
             cache: 'no-store',
@@ -20,7 +21,9 @@ export async function getProject(id: string): Promise<Project | null> {
             if (res.status === 404) {
                 return null;
             }
-            throw new Error(`Failed to fetch project: ${res.status}`);
+            const errorText = await res.text();
+            console.error('API Error Response:', errorText);
+            throw new Error(`Failed to fetch project: ${res.status} - ${errorText}`);
         }
         
         const data = await res.json();
@@ -33,8 +36,9 @@ export async function getProject(id: string): Promise<Project | null> {
 
 export async function getProjects(): Promise<Project[]> {
     try {
-        const baseUrl = process.env.VERCEL_URL 
-            ? `https://${process.env.VERCEL_URL}`
+        // Use absolute URL in production
+        const baseUrl = typeof window !== 'undefined'
+            ? window.location.origin
             : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
             
         const url = `${baseUrl}/api/projects`;
@@ -48,7 +52,9 @@ export async function getProjects(): Promise<Project[]> {
         });
         
         if (!res.ok) {
-            throw new Error(`Failed to fetch projects: ${res.status}`);
+            const errorText = await res.text();
+            console.error('API Error Response:', errorText);
+            throw new Error(`Failed to fetch projects: ${res.status} - ${errorText}`);
         }
         
         const data = await res.json();
