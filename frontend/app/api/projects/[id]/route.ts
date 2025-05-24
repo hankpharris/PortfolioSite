@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from 'database';
+import { PrismaClient } from '@prisma/client';
 import { config } from 'dotenv';
 import { resolve } from 'path';
 
 // Load environment variables from root .env
-config({ path: resolve(process.cwd(), '../../.env') });
+config({ path: resolve(process.cwd(), '../../../.env') });
 
 const prisma = new PrismaClient({
     log: ['query', 'error', 'warn'],
