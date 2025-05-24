@@ -5,43 +5,52 @@ import { projectSchema } from '@/lib/validation';
 // Initialize Prisma client
 const prisma = new PrismaClient();
 
-// Use Node.js runtime
+// Set runtime to Node.js
 export const runtime = 'nodejs';
 
-export async function GET() {
+export async function GET(request: Request) {
     try {
+        // Handle CORS preflight
+        if (request.method === 'OPTIONS') {
+            return new NextResponse(null, {
+                status: 204,
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+                    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+                },
+            });
+        }
+
         console.log('Fetching all projects...');
         const projects = await prisma.project.findMany();
-        console.log(`Found ${projects.length} projects`);
+        console.log('Found', projects.length, 'projects');
 
         // Validate each project
         const validatedProjects = projects.map(project => {
-            const result = projectSchema.safeParse(project);
-            if (!result.success) {
-                console.error('Project validation error:', result.error);
-                // Return the project data anyway, but with a warning
+            const validationResult = projectSchema.safeParse(project);
+            if (!validationResult.success) {
+                console.warn('Project validation failed:', validationResult.error);
                 return {
                     ...project,
-                    validationWarning: 'Project data may not meet all validation requirements'
+                    validationWarning: true,
+                    validationErrors: validationResult.error.errors,
                 };
             }
-            return result.data;
+            return project;
         });
 
-        return new NextResponse(
-            JSON.stringify(validatedProjects),
-            {
-                status: 200,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*',
-                },
-            }
-        );
+        return new NextResponse(JSON.stringify(validatedProjects), {
+            status: 200,
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+            },
+        });
     } catch (error) {
-        console.error('Error fetching projects:', error);
+        console.error('Error in GET /api/projects:', error);
         return new NextResponse(
-            JSON.stringify({ error: 'Internal server error' }),
+            JSON.stringify({ error: 'Internal Server Error' }),
             {
                 status: 500,
                 headers: {

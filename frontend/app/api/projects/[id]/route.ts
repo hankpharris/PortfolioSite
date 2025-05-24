@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { projectSchema, projectIdSchema } from '@/lib/validation';
+import { projectSchema } from '@/lib/validation';
 
 // Initialize Prisma client
 const prisma = new PrismaClient();
 
-// Use Node.js runtime
+// Set runtime to Node.js
 export const runtime = 'nodejs';
 
 export async function GET(
@@ -19,29 +19,17 @@ export async function GET(
                 status: 204,
                 headers: {
                     'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                    'Access-Control-Allow-Methods': 'GET, OPTIONS',
                     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
                 },
             });
         }
 
-        // Validate project ID
-        const id = projectIdSchema.safeParse(params.id);
-        if (!id.success) {
-            return new NextResponse(
-                JSON.stringify({ error: 'Invalid project ID' }),
-                {
-                    status: 400,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Access-Control-Allow-Origin': '*',
-                    },
-                }
-            );
-        }
+        const id = params.id;
+        console.log('Fetching project with ID:', id);
 
         const project = await prisma.project.findUnique({
-            where: { id: id.data }
+            where: { id },
         });
 
         if (!project) {
@@ -58,14 +46,14 @@ export async function GET(
         }
 
         // Validate project data
-        const validatedProject = projectSchema.safeParse(project);
-        if (!validatedProject.success) {
-            console.error('Project validation error:', validatedProject.error);
-            // Return the project data anyway, but with a warning
+        const validationResult = projectSchema.safeParse(project);
+        if (!validationResult.success) {
+            console.warn('Project validation failed:', validationResult.error);
             return new NextResponse(
                 JSON.stringify({
                     ...project,
-                    validationWarning: 'Project data may not meet all validation requirements'
+                    validationWarning: true,
+                    validationErrors: validationResult.error.errors,
                 }),
                 {
                     status: 200,
@@ -77,20 +65,17 @@ export async function GET(
             );
         }
 
-        return new NextResponse(
-            JSON.stringify(validatedProject.data),
-            {
-                status: 200,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*',
-                },
-            }
-        );
+        return new NextResponse(JSON.stringify(project), {
+            status: 200,
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+            },
+        });
     } catch (error) {
-        console.error('Error fetching project:', error);
+        console.error('Error in GET /api/projects/[id]:', error);
         return new NextResponse(
-            JSON.stringify({ error: 'Internal server error' }),
+            JSON.stringify({ error: 'Internal Server Error' }),
             {
                 status: 500,
                 headers: {
