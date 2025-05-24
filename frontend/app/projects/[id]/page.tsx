@@ -18,9 +18,14 @@ async function getProject(id: string): Promise<Project> {
         });
         
         if (!res.ok) {
-            const errorData = await res.json().catch(() => ({ error: 'Failed to parse error response' }));
-            console.error('API Error:', errorData);
-            throw new Error(errorData.error || 'Failed to fetch project');
+            let errorMessage = 'Failed to fetch project';
+            try {
+                const errorData = await res.json();
+                errorMessage = errorData.error || errorMessage;
+            } catch (e) {
+                console.error('Failed to parse error response:', e);
+            }
+            throw new Error(errorMessage);
         }
         
         const data = await res.json();
@@ -66,7 +71,7 @@ export default async function ProjectPage({ params }: { params: { id: string } }
             <main className="min-h-screen">
                 <div className="container mx-auto px-4 py-8">
                     <div className="text-red-500">
-                        Error loading project. Please try again later.
+                        {error instanceof Error ? error.message : 'Error loading project. Please try again later.'}
                     </div>
                 </div>
             </main>
