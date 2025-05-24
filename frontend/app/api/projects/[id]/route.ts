@@ -5,6 +5,9 @@ import { projectSchema, projectIdSchema } from '@/lib/validation';
 // Initialize Prisma client
 const prisma = new PrismaClient();
 
+// Use Edge Runtime
+export const runtime = 'edge';
+
 export async function GET(
     request: Request,
     { params }: { params: { id: string } }
@@ -31,6 +34,7 @@ export async function GET(
                     status: 400,
                     headers: {
                         'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*',
                     },
                 }
             );
@@ -48,6 +52,7 @@ export async function GET(
                     status: 404,
                     headers: {
                         'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*',
                     },
                 }
             );
@@ -67,6 +72,7 @@ export async function GET(
                     status: 200,
                     headers: {
                         'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*',
                     },
                 }
             );
@@ -78,6 +84,7 @@ export async function GET(
                 status: 200,
                 headers: {
                     'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',
                 },
             }
         );
@@ -89,6 +96,7 @@ export async function GET(
                 status: 500,
                 headers: {
                     'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',
                 },
             }
         );
