@@ -25,7 +25,20 @@ export async function GET(
             });
         }
 
-        const id = params.id;
+        const id = parseInt(params.id, 10);
+        if (isNaN(id)) {
+            return new NextResponse(
+                JSON.stringify({ error: 'Invalid project ID' }),
+                {
+                    status: 400,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*',
+                    },
+                }
+            );
+        }
+
         console.log('Fetching project with ID:', id);
 
         const project = await prisma.project.findUnique({
