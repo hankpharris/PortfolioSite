@@ -8,27 +8,49 @@ async function getProject(id: string): Promise<Project> {
             ? `https://${process.env.VERCEL_URL}`
             : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
             
-        console.log('Fetching project from:', `${baseUrl}/api/projects/${id}`);
+        const url = `${baseUrl}/api/projects/${id}`;
+        console.log('Fetching project from:', url);
         
-        const res = await fetch(`${baseUrl}/api/projects/${id}`, {
+        const res = await fetch(url, {
             cache: 'no-store',
             headers: {
                 'Accept': 'application/json'
             }
         });
         
+        // Log response details for debugging
+        console.log('Response status:', res.status);
+        console.log('Response headers:', Object.fromEntries(res.headers.entries()));
+        
         if (!res.ok) {
             let errorMessage = 'Failed to fetch project';
             try {
-                const errorData = await res.json();
-                errorMessage = errorData.error || errorMessage;
+                const text = await res.text();
+                console.log('Error response text:', text);
+                if (text.startsWith('<!DOCTYPE')) {
+                    errorMessage = `Server returned HTML instead of JSON (Status: ${res.status})`;
+                } else {
+                    const errorData = JSON.parse(text);
+                    errorMessage = errorData.error || errorMessage;
+                }
             } catch (e) {
                 console.error('Failed to parse error response:', e);
+                errorMessage = `Failed to parse error response (Status: ${res.status})`;
             }
             throw new Error(errorMessage);
         }
         
-        const data = await res.json();
+        const text = await res.text();
+        console.log('Response text:', text);
+        
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            console.error('Failed to parse JSON response:', e);
+            throw new Error('Invalid JSON response from server');
+        }
+        
         if (!data || typeof data !== 'object') {
             console.error('Unexpected response format:', data);
             throw new Error('Invalid response format');
