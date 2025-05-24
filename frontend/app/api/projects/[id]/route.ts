@@ -12,6 +12,18 @@ export async function GET(
     { params }: { params: { id: string } }
 ) {
     try {
+        // Handle CORS preflight
+        if (request.method === 'OPTIONS') {
+            return new NextResponse(null, {
+                status: 204,
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+                },
+            });
+        }
+
         // Validate project ID
         const id = projectIdSchema.safeParse(params.id);
         if (!id.success) {
@@ -21,6 +33,7 @@ export async function GET(
                     status: 400,
                     headers: {
                         'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*',
                     },
                 }
             );
@@ -38,6 +51,7 @@ export async function GET(
                     status: 404,
                     headers: {
                         'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*',
                     },
                 }
             );
@@ -53,6 +67,7 @@ export async function GET(
                     status: 500,
                     headers: {
                         'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*',
                     },
                 }
             );
@@ -64,6 +79,7 @@ export async function GET(
                 status: 200,
                 headers: {
                     'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',
                 },
             }
         );
@@ -75,6 +91,7 @@ export async function GET(
                 status: 500,
                 headers: {
                     'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',
                 },
             }
         );
