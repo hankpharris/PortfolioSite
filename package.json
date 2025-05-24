@@ -47,7 +47,6 @@
         "cors": "^2.8.5",
         "dotenv": "^16.4.7",
         "dotenv-cli": "^7.4.4",
-        "frontend": "workspace:^",
         "react-speech-recognition": "^4.0.0",
         "workspace": "^0.0.1-preview.2"
     },
