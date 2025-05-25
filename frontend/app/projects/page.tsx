@@ -1,10 +1,8 @@
-'use client';
 import { getProjects } from '@/lib/db';
 import type { Project } from '@/lib/validation';
 import { ProjectCard } from '@/components/ProjectCard';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
 export default async function ProjectsPage() {
     try {
@@ -27,26 +25,23 @@ export default async function ProjectsPage() {
         return (
             <main className="min-h-screen">
                 <div className="container mx-auto px-4 py-8">
-                    <h1 className="text-3xl font-bold mb-4" >Projects</h1>
+                    <h1 className="text-3xl font-bold mb-4">Projects</h1>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {projects.map((project) => {
-                            console.log('Rendering project:', project);
-                            return (
-                                <ProjectCard
-                                    key={project.id}
-                                    id={project.id.toString()}
-                                    title={project.name}
-                                    status={project.status}
-                                    overview={project.overviewText || ''}
-                                    description={project.description || ''}
-                                    overviewImage1={project.overviewImage1 || ''}
-                                    overviewImage2={project.overviewImage2 || ''}
-                                    overviewImage3={project.overviewImage3 || ''}
-                                    link={project.link || ''}
-                                    gitHubLink={project.gitHubLink || ''}
-                                />
-                            );
-                        })}
+                        {projects.map((project) => (
+                            <ProjectCard
+                                key={project.id}
+                                id={project.id.toString()}
+                                title={project.name}
+                                status={project.status}
+                                overview={project.overviewText || ''}
+                                description={project.description || ''}
+                                overviewImage1={project.overviewImage1 || ''}
+                                overviewImage2={project.overviewImage2 || ''}
+                                overviewImage3={project.overviewImage3 || ''}
+                                link={project.link || ''}
+                                gitHubLink={project.gitHubLink || ''}
+                            />
+                        ))}
                     </div>
                 </div>
             </main>
