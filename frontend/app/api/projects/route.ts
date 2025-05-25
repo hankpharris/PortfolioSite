@@ -1,75 +1,66 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { projectSchema } from '@/lib/validation';
+import { neon } from '@neondatabase/serverless';
+import { projectSchema, type Project } from '@/lib/validation';
 
-// Initialize Prisma client
-const prisma = new PrismaClient();
+if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not defined');
+}
+
+const sql = neon(process.env.DATABASE_URL);
 
 // Set runtime to Node.js
 export const runtime = 'nodejs';
 
-export async function GET(request: Request) {
+export async function GET() {
     try {
-        // Handle CORS preflight
-        if (request.method === 'OPTIONS') {
-            return new NextResponse(null, {
-                status: 204,
-                headers: {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Methods': 'GET, OPTIONS',
-                    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-                },
-            });
+        const projects = await sql`
+            SELECT 
+                id,
+                name,
+                status,
+                "overviewText",
+                description,
+                "overviewImage1",
+                "overviewImage2",
+                "overviewImage3",
+                link,
+                "gitHubLink"
+            FROM "Project" 
+            ORDER BY id DESC
+        `;
+
+        if (!projects || projects.length === 0) {
+            return NextResponse.json({ projects: [] });
         }
 
-        console.log('Fetching all projects...');
-        const projects = await prisma.project.findMany();
-        console.log('Found', projects.length, 'projects');
-
         // Validate each project
-        const validatedProjects = projects.map(project => {
+        const validatedProjects = projects.map((project: unknown) => {
             const validationResult = projectSchema.safeParse(project);
             if (!validationResult.success) {
                 console.warn('Project validation failed:', validationResult.error);
-                return {
-                    ...project,
-                    validationWarning: true,
-                    validationErrors: validationResult.error.errors,
-                };
+                return null;
             }
-            return project;
-        });
+            return validationResult.data;
+        }).filter((project): project is Project => project !== null);
 
-        return new NextResponse(JSON.stringify(validatedProjects), {
-            status: 200,
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-            },
-        });
+        return NextResponse.json({ projects: validatedProjects });
     } catch (error) {
-        console.error('Error in GET /api/projects:', error);
-        return new NextResponse(
-            JSON.stringify({ error: 'Internal Server Error' }),
-            {
-                status: 500,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*',
-                },
-            }
+        console.error('Error fetching projects:', error);
+        return NextResponse.json(
+            { error: 'Failed to fetch projects' },
+            { status: 500 }
         );
-    } finally {
-        await prisma.$disconnect();
     }
 }
 
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const project = await prisma.project.create({
-            data: body
-        });
+        const project = await sql`
+            INSERT INTO "Project" (name, status, "overviewText", description, "overviewImage1", "overviewImage2", "overviewImage3", link, "gitHubLink")
+            VALUES (${body.name}, ${body.status}, ${body.overviewText}, ${body.description}, ${body.overviewImage1}, ${body.overviewImage2}, ${body.overviewImage3}, ${body.link}, ${body.gitHubLink})
+            RETURNING id, name, status, "overviewText", description, "overviewImage1", "overviewImage2", "overviewImage3", link, "gitHubLink"
+        `;
         return NextResponse.json(project);
     } catch (error) {
         console.error('Error creating project:', error);
@@ -79,7 +70,5 @@ export async function POST(request: Request) {
             console.error('Error stack:', error.stack);
         }
         return NextResponse.json({ error: 'Failed to create project' }, { status: 500 });
-    } finally {
-        await prisma.$disconnect();
     }
 }
