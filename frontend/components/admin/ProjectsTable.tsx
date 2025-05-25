@@ -262,16 +262,16 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
                             </td>
                             <td className="px-4 py-2">
                                 {editingId === project.id ? (
-                                    <div className="space-x-2">
+                                    <div className="flex flex-col space-y-2">
                                         <button
                                             onClick={() => handleSave(project.id)}
-                                            className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                                            className="w-full px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
                                         >
                                             Save
                                         </button>
                                         <button
                                             onClick={handleCancel}
-                                            className="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700"
+                                            className="w-full px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700"
                                         >
                                             Cancel
                                         </button>
