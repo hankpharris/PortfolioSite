@@ -1,10 +1,13 @@
 import Link from 'next/link';
 import { Button } from './buttons/Button';
 import { ProjectCardImage } from './ProjectCardImage';
+import { StatusEnum } from '@/lib/validation';
+import { z } from 'zod';
 
 interface ProjectCardProps {
     id: string;
     title: string;
+    status: z.infer<typeof StatusEnum>;
     overview: string;
     description: string;
     overviewImage1: string;
@@ -17,6 +20,7 @@ interface ProjectCardProps {
 export function ProjectCard({
     id,
     title,
+    status,
     overview,
     description,
     overviewImage1,
@@ -29,7 +33,12 @@ export function ProjectCard({
         <div className="bg-white/30 backdrop-blur-md rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col h-[500px]">
             <Link href={`/projects/${id}`} className="block flex-grow">
                 <ProjectCardImage src={overviewImage1} alt={`${title} overview`} />
-                <h3 className="text-xl font-bold text-gray-800 p-6 pb-2">{title}</h3>
+                <div className="p-6 pb-2">
+                    <h3 className="text-xl font-bold text-gray-800">{title}</h3>
+                    <span className="inline-block px-2 py-1 text-sm font-medium rounded-full bg-blue-100 text-blue-800 mt-2">
+                        {status}
+                    </span>
+                </div>
                 <div className="px-6 flex-grow">
                     <p className="text-base text-gray-900 whitespace-pre-wrap line-clamp-4 min-h-[80px]">{description}</p>
                 </div>

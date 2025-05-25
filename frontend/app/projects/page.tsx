@@ -36,6 +36,7 @@ export default async function ProjectsPage() {
                                     key={project.id}
                                     id={project.id.toString()}
                                     title={project.name}
+                                    status={project.status}
                                     overview={project.overviewText || ''}
                                     description={project.description || ''}
                                     overviewImage1={project.overviewImage1 || ''}
