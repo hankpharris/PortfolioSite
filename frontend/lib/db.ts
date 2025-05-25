@@ -79,7 +79,7 @@ export async function getProjects(): Promise<Project[]> {
                 link,
                 "gitHubLink"
             FROM "Project" 
-            ORDER BY id DESC
+            ORDER BY id ASC
         `;
         
         console.log('Query result:', result);

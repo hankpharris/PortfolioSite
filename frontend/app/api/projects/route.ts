@@ -26,7 +26,7 @@ export async function GET() {
                 link,
                 "gitHubLink"
             FROM "Project" 
-            ORDER BY id DESC
+            ORDER BY id ASC
         `;
 
         if (!projects || projects.length === 0) {
