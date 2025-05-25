@@ -22,9 +22,7 @@ export async function getProject(id: string): Promise<Project | null> {
                 "overviewImage2",
                 "overviewImage3",
                 link,
-                "gitHubLink",
-                "createdAt",
-                "updatedAt"
+                "gitHubLink"
             FROM "Project" 
             WHERE id = ${parseInt(id)}
         `;
@@ -65,9 +63,7 @@ export async function getProjects(): Promise<Project[]> {
                 "overviewImage2",
                 "overviewImage3",
                 link,
-                "gitHubLink",
-                "createdAt",
-                "updatedAt"
+                "gitHubLink"
             FROM "Project" 
             ORDER BY id DESC
         `;
