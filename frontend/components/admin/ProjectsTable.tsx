@@ -24,6 +24,7 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
     const [projects, setProjects] = useState<Project[]>(initialProjects);
     const [editingId, setEditingId] = useState<number | null>(null);
     const [editedProject, setEditedProject] = useState<Project | null>(null);
+    const [uploadingImage, setUploadingImage] = useState<string | null>(null);
 
     const handleEdit = (project: Project) => {
         setEditingId(project.id);
@@ -63,6 +64,31 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
     const handleChange = (field: keyof Project, value: string) => {
         if (!editedProject) return;
         setEditedProject({ ...editedProject, [field]: value });
+    };
+
+    const handleImageUpload = async (field: 'overviewImage1' | 'overviewImage2' | 'overviewImage3', file: File) => {
+        if (!editedProject) return;
+        
+        setUploadingImage(field);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) throw new Error('Failed to upload image');
+
+            const { url } = await response.json();
+            handleChange(field, url);
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            // TODO: Add error handling UI
+        } finally {
+            setUploadingImage(null);
+        }
     };
 
     return (
@@ -137,33 +163,68 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
                             <td className="px-4 py-2">
                                 {editingId === project.id ? (
                                     <div className="space-y-2">
-                                        <input
-                                            type="text"
-                                            value={editedProject?.overviewImage1 || ''}
-                                            onChange={(e) => handleChange('overviewImage1', e.target.value)}
-                                            placeholder="Image 1 URL"
-                                            className="w-full p-1 border rounded dark:bg-gray-700 dark:border-gray-600"
-                                        />
-                                        <input
-                                            type="text"
-                                            value={editedProject?.overviewImage2 || ''}
-                                            onChange={(e) => handleChange('overviewImage2', e.target.value)}
-                                            placeholder="Image 2 URL"
-                                            className="w-full p-1 border rounded dark:bg-gray-700 dark:border-gray-600"
-                                        />
-                                        <input
-                                            type="text"
-                                            value={editedProject?.overviewImage3 || ''}
-                                            onChange={(e) => handleChange('overviewImage3', e.target.value)}
-                                            placeholder="Image 3 URL"
-                                            className="w-full p-1 border rounded dark:bg-gray-700 dark:border-gray-600"
-                                        />
+                                        {(['overviewImage1', 'overviewImage2', 'overviewImage3'] as const).map((field) => (
+                                            <div key={field} className="space-y-1">
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={(e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (file) handleImageUpload(field, file);
+                                                    }}
+                                                    className="hidden"
+                                                    id={`${field}-${project.id}`}
+                                                />
+                                                <label
+                                                    htmlFor={`${field}-${project.id}`}
+                                                    className={`block px-3 py-1 text-sm text-center rounded cursor-pointer
+                                                        ${uploadingImage === field
+                                                            ? 'bg-gray-400 cursor-not-allowed'
+                                                            : 'bg-blue-600 hover:bg-blue-700'
+                                                        } text-white`}
+                                                >
+                                                    {uploadingImage === field
+                                                        ? 'Uploading...'
+                                                        : 'Upload Image'
+                                                    }
+                                                </label>
+                                                {editedProject && editedProject[field] && (
+                                                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                                                        Current: {editedProject[field]}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
                                     </div>
                                 ) : (
                                     <div className="space-y-1">
-                                        {project.overviewImage1 && <div className="truncate">Image 1: ✓</div>}
-                                        {project.overviewImage2 && <div className="truncate">Image 2: ✓</div>}
-                                        {project.overviewImage3 && <div className="truncate">Image 3: ✓</div>}
+                                        {project.overviewImage1 && (
+                                            <div className="truncate">
+                                                <img
+                                                    src={project.overviewImage1}
+                                                    alt="Overview 1"
+                                                    className="w-16 h-16 object-cover rounded"
+                                                />
+                                            </div>
+                                        )}
+                                        {project.overviewImage2 && (
+                                            <div className="truncate">
+                                                <img
+                                                    src={project.overviewImage2}
+                                                    alt="Overview 2"
+                                                    className="w-16 h-16 object-cover rounded"
+                                                />
+                                            </div>
+                                        )}
+                                        {project.overviewImage3 && (
+                                            <div className="truncate">
+                                                <img
+                                                    src={project.overviewImage3}
+                                                    alt="Overview 3"
+                                                    className="w-16 h-16 object-cover rounded"
+                                                />
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </td>

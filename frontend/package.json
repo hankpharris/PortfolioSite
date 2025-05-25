@@ -31,6 +31,7 @@
         "@types/node": "*",
         "@types/react": "^18.2.0",
         "@types/react-dom": "^18.2.0",
+        "@vercel/blob": "^1.1.1",
         "@vis.gl/react-google-maps": "^1.5.2",
         "autoprefixer": "^10.4.17",
         "axios": "^1.7.4",
