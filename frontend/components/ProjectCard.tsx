@@ -31,7 +31,7 @@ export function ProjectCard({
     gitHubLink,
 }: ProjectCardProps) {
     return (
-        <div className="bg-white/30 backdrop-blur-md rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col h-[500px]">
+        <div className="bg-white/30 backdrop-blur-md rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col h-[600px]">
             <Link href={`/projects/${id}`} className="block flex-grow">
                 <ProjectCardImage src={overviewImage1} alt={`${title} overview`} />
                 <div className="p-6 pb-2">
