@@ -5,11 +5,12 @@ if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL is not defined');
 }
 
-const sql = neon(process.env.DATABASE_URL);
+const DATABASE_URL = process.env.DATABASE_URL as string;
 
 export async function getProject(id: string): Promise<Project | null> {
     try {
         console.log('Fetching project with ID:', id);
+        const sql = neon(DATABASE_URL);
         const result = await sql`
             SELECT 
                 id,
@@ -52,6 +53,7 @@ export async function getProject(id: string): Promise<Project | null> {
 export async function getProjects(): Promise<Project[]> {
     try {
         console.log('Fetching all projects');
+        const sql = neon(DATABASE_URL);
         const result = await sql`
             SELECT 
                 id,
