@@ -107,4 +107,37 @@ export async function getProjects(): Promise<Project[]> {
         console.error('Error in getProjects:', error);
         return [];
     }
+}
+
+export async function updateProject(id: number, data: Partial<Project>) {
+    const sql = neon(DATABASE_URL);
+    const projects = await sql`
+        UPDATE "Project"
+        SET 
+            name = ${data.name},
+            status = ${data.status},
+            "overviewText" = ${data.overviewText},
+            description = ${data.description},
+            "overviewImage1" = ${data.overviewImage1},
+            "overviewImage2" = ${data.overviewImage2},
+            "overviewImage3" = ${data.overviewImage3},
+            link = ${data.link},
+            "gitHubLink" = ${data.gitHubLink}
+        WHERE id = ${id}
+        RETURNING id, name, status, "overviewText", description, "overviewImage1", "overviewImage2", "overviewImage3", link, "gitHubLink"
+    `;
+
+    if (!projects || projects.length === 0) {
+        throw new Error('Project not found');
+    }
+
+    const project = projects[0];
+    const validationResult = projectSchema.safeParse(project);
+    
+    if (!validationResult.success) {
+        console.warn('Project validation failed:', validationResult.error);
+        throw new Error('Invalid project data');
+    }
+
+    return validationResult.data;
 } 

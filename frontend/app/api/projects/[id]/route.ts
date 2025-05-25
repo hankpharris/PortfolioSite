@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { projectSchema, type Project } from '@/lib/validation';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../../auth/[...nextauth]/auth';
+import { updateProject } from '@/lib/db';
 
 if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL is not defined');
@@ -72,57 +75,19 @@ export async function PUT(
     request: Request,
     { params }: { params: { id: string } }
 ) {
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+        return new NextResponse('Unauthorized', { status: 401 });
+    }
+
     try {
-        const id = parseInt(params.id);
-        if (isNaN(id)) {
-            return NextResponse.json(
-                { error: 'Invalid project ID' },
-                { status: 400 }
-            );
-        }
-
         const body = await request.json();
-        const projects = await sql`
-            UPDATE "Project"
-            SET 
-                name = ${body.name},
-                status = ${body.status},
-                "overviewText" = ${body.overviewText},
-                description = ${body.description},
-                "overviewImage1" = ${body.overviewImage1},
-                "overviewImage2" = ${body.overviewImage2},
-                "overviewImage3" = ${body.overviewImage3},
-                link = ${body.link},
-                "gitHubLink" = ${body.gitHubLink}
-            WHERE id = ${id}
-            RETURNING id, name, status, "overviewText", description, "overviewImage1", "overviewImage2", "overviewImage3", link, "gitHubLink"
-        `;
-
-        if (!projects || projects.length === 0) {
-            return NextResponse.json(
-                { error: 'Project not found' },
-                { status: 404 }
-            );
-        }
-
-        const project = projects[0];
-        const validationResult = projectSchema.safeParse(project);
-        
-        if (!validationResult.success) {
-            console.warn('Project validation failed:', validationResult.error);
-            return NextResponse.json(
-                { error: 'Invalid project data' },
-                { status: 500 }
-            );
-        }
-
-        return NextResponse.json(validationResult.data);
+        const updatedProject = await updateProject(parseInt(params.id), body);
+        return NextResponse.json(updatedProject);
     } catch (error) {
         console.error('Error updating project:', error);
-        return NextResponse.json(
-            { error: 'Failed to update project' },
-            { status: 500 }
-        );
+        return new NextResponse('Internal Server Error', { status: 500 });
     }
 }
 
