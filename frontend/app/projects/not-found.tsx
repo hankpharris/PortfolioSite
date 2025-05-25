@@ -1,22 +1,20 @@
-import { AnimatedBackground } from "@/components/AnimatedBackground";
-import Link from "next/link";
+import Link from 'next/link';
+import { AnimatedBackground } from '@/components/AnimatedBackground';
+import { Button } from '@/components/buttons/Button';
 
 export default function ProjectNotFound() {
     return (
-        <div className="relative min-h-screen">
+        <div className="min-h-screen relative">
             <AnimatedBackground />
-            <div className="relative z-10 container mx-auto px-16 py-8">
-                <div className="bg-white/30 backdrop-blur-md rounded-xl shadow-lg overflow-hidden p-8 text-center">
-                    <h1 className="text-4xl font-bold text-gray-800 mb-4">Project Not Found</h1>
-                    <p className="text-lg text-gray-700 mb-8">
-                        The project you're looking for doesn't exist or has been removed.
-                    </p>
-                    <Link 
-                        href="/projects" 
-                        className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded"
-                    >
-                        Back to Projects
-                    </Link>
+            <div className="relative z-10 flex items-center justify-center min-h-screen">
+                <div className="text-center space-y-6">
+                    <h1 className="text-4xl font-bold text-gray-800">Project Not Found</h1>
+                    <p className="text-lg text-gray-600">The project you're looking for doesn't exist.</p>
+                    <div className="mt-8">
+                        <Button href="/projects" variant="project">
+                            Back to Projects
+                        </Button>
+                    </div>
                 </div>
             </div>
         </div>

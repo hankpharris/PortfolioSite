@@ -1,6 +1,13 @@
 import { z } from 'zod';
 
-export const StatusEnum = z.enum(['InProgress', 'CompleteMaintained', 'CompleteUnmaintained', 'Planned']);
+export const StatusEnum = z.enum([
+    'InProgress',
+    'CompleteMaintained',
+    'CompleteUnmaintained',
+    'Planned'
+]);
+
+export type Status = z.infer<typeof StatusEnum>;
 
 export const projectSchema = z.object({
     id: z.number().int().positive(),
@@ -13,6 +20,8 @@ export const projectSchema = z.object({
     overviewImage3: z.string().nullable(),
     link: z.string().nullable(),
     gitHubLink: z.string().nullable(),
+    createdAt: z.date(),
+    updatedAt: z.date()
 });
 
 export const projectIdSchema = z.string().regex(/^\d+$/).transform(Number);

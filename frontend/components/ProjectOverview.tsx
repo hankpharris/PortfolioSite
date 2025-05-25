@@ -1,8 +1,10 @@
 import Image from 'next/image';
 import { Button } from './buttons/Button';
+import { StatusBadge } from './StatusBadge';
 
 interface ProjectOverviewProps {
     title: string;
+    status: string;
     overview: string;
     description: string;
     overviewImage1: string;
@@ -14,6 +16,7 @@ interface ProjectOverviewProps {
 
 export function ProjectOverview({
     title,
+    status,
     overview,
     description,
     overviewImage1,
@@ -30,7 +33,10 @@ export function ProjectOverview({
             <div className="p-6">
                 {/* Header section with title and buttons */}
                 <div className="flex justify-between items-center mb-1">
-                    <h1 className="text-4xl font-bold text-gray-800">{title}</h1>
+                    <div className="flex items-center gap-4">
+                        <h1 className="text-4xl font-bold text-gray-800">{title}</h1>
+                        <StatusBadge status={status} />
+                    </div>
                     <div className="flex gap-4 justify-start">
                         {link && (
                             <Button href={link} variant="project" isExternal>
