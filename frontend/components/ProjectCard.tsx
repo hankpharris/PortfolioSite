@@ -4,7 +4,6 @@ import { ProjectCardImage } from './ProjectCardImage';
 import { StatusEnum } from '@/lib/validation';
 import { StatusBadge } from './StatusBadge';
 import { z } from 'zod';
-import Image from 'next/image';
 
 interface ProjectCardProps {
     id: string;
@@ -32,27 +31,19 @@ export function ProjectCard({
     gitHubLink,
 }: ProjectCardProps) {
     return (
-        <Link href={`/projects/${id}`} className="group">
-            <div className="bg-white/30 backdrop-blur-md rounded-xl shadow-lg overflow-hidden transition-transform duration-300 group-hover:scale-105">
-                {overviewImage1 && (
-                    <div className="relative h-48 w-full">
-                        <Image
-                            src={`/${overviewImage1}`}
-                            alt={title}
-                            fill
-                            className="object-cover"
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        />
-                    </div>
-                )}
-                <div className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-xl font-semibold text-gray-800">{title}</h3>
+        <div className="bg-white/30 backdrop-blur-md rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col h-[500px]">
+            <Link href={`/projects/${id}`} className="block flex-grow">
+                <ProjectCardImage src={overviewImage1} alt={`${title} overview`} />
+                <div className="p-6 pb-2">
+                    <h3 className="text-xl font-bold text-gray-800">{title}</h3>
+                    <div className="mt-2">
                         <StatusBadge status={status} />
                     </div>
-                    <p className="text-gray-600 line-clamp-2">{overview}</p>
                 </div>
-            </div>
+                <div className="px-6 flex-grow">
+                    <p className="text-base text-gray-900 whitespace-pre-wrap line-clamp-4 min-h-[80px]">{description}</p>
+                </div>
+            </Link>
             <div className="px-6 pb-6 mt-auto">
                 <div className="flex gap-4 justify-start">
                     {link && (
@@ -67,6 +58,6 @@ export function ProjectCard({
                     )}
                 </div>
             </div>
-        </Link>
+        </div>
     );
 } 
