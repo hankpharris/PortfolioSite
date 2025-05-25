@@ -91,6 +91,27 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
         }
     };
 
+    const handleDeleteImage = async (field: 'overviewImage1' | 'overviewImage2' | 'overviewImage3') => {
+        if (!editedProject || !editedProject[field]) return;
+
+        try {
+            const response = await fetch('/api/upload', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ url: editedProject[field] }),
+            });
+
+            if (!response.ok) throw new Error('Failed to delete image');
+
+            handleChange(field, '');
+        } catch (error) {
+            console.error('Error deleting image:', error);
+            // TODO: Add error handling UI
+        }
+    };
+
     return (
         <div className="overflow-x-auto">
             <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg shadow">
@@ -175,19 +196,29 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
                                                     className="hidden"
                                                     id={`${field}-${project.id}`}
                                                 />
-                                                <label
-                                                    htmlFor={`${field}-${project.id}`}
-                                                    className={`block px-3 py-1 text-sm text-center rounded cursor-pointer
-                                                        ${uploadingImage === field
-                                                            ? 'bg-gray-400 cursor-not-allowed'
-                                                            : 'bg-blue-600 hover:bg-blue-700'
-                                                        } text-white`}
-                                                >
-                                                    {uploadingImage === field
-                                                        ? 'Uploading...'
-                                                        : 'Upload Image'
-                                                    }
-                                                </label>
+                                                <div className="flex items-center space-x-2">
+                                                    <label
+                                                        htmlFor={`${field}-${project.id}`}
+                                                        className={`block px-3 py-1 text-sm text-center rounded cursor-pointer
+                                                            ${uploadingImage === field
+                                                                ? 'bg-gray-400 cursor-not-allowed'
+                                                                : 'bg-blue-600 hover:bg-blue-700'
+                                                            } text-white`}
+                                                    >
+                                                        {uploadingImage === field
+                                                            ? 'Uploading...'
+                                                            : 'Upload Image'
+                                                        }
+                                                    </label>
+                                                    {editedProject && editedProject[field] && (
+                                                        <button
+                                                            onClick={() => handleDeleteImage(field)}
+                                                            className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    )}
+                                                </div>
                                                 {editedProject && editedProject[field] && (
                                                     <div className="text-sm text-gray-600 dark:text-gray-400">
                                                         Current: {editedProject[field]}
@@ -198,33 +229,9 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
                                     </div>
                                 ) : (
                                     <div className="space-y-1">
-                                        {project.overviewImage1 && (
-                                            <div className="truncate">
-                                                <img
-                                                    src={project.overviewImage1}
-                                                    alt="Overview 1"
-                                                    className="w-16 h-16 object-cover rounded"
-                                                />
-                                            </div>
-                                        )}
-                                        {project.overviewImage2 && (
-                                            <div className="truncate">
-                                                <img
-                                                    src={project.overviewImage2}
-                                                    alt="Overview 2"
-                                                    className="w-16 h-16 object-cover rounded"
-                                                />
-                                            </div>
-                                        )}
-                                        {project.overviewImage3 && (
-                                            <div className="truncate">
-                                                <img
-                                                    src={project.overviewImage3}
-                                                    alt="Overview 3"
-                                                    className="w-16 h-16 object-cover rounded"
-                                                />
-                                            </div>
-                                        )}
+                                        {project.overviewImage1 && <div className="truncate">Image 1: ✓</div>}
+                                        {project.overviewImage2 && <div className="truncate">Image 2: ✓</div>}
+                                        {project.overviewImage3 && <div className="truncate">Image 3: ✓</div>}
                                     </div>
                                 )}
                             </td>

@@ -29,6 +29,16 @@ export function ProjectOverview({
     // Split overview text into paragraphs
     const paragraphs = overview.split('\n\n').filter(p => p.trim());
 
+    // Helper function to get image src
+    const getImageSrc = (src: string) => {
+        // If it's a full URL (starts with http), use it as is
+        if (src.startsWith('http')) {
+            return src;
+        }
+        // Otherwise, treat it as a local path
+        return `/${src}`;
+    };
+
     return (
         <div className="bg-white/30 backdrop-blur-md rounded-xl shadow-lg overflow-hidden">
             <div className="p-6">
@@ -59,7 +69,7 @@ export function ProjectOverview({
                         {overviewImage1 && (
                             <div className="relative h-[400px] overflow-hidden">
                                 <Image
-                                    src={`/${overviewImage1}`}
+                                    src={getImageSrc(overviewImage1)}
                                     alt={`${title} overview`}
                                     fill
                                     className="object-contain"
@@ -80,7 +90,7 @@ export function ProjectOverview({
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
                             <div className="relative h-[400px] overflow-hidden">
                                 <Image
-                                    src={`/${overviewImage2}`}
+                                    src={getImageSrc(overviewImage2)}
                                     alt={`${title} overview 2`}
                                     fill
                                     className="object-contain"
@@ -98,7 +108,7 @@ export function ProjectOverview({
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
                             <div className="relative h-[400px] overflow-hidden">
                                 <Image
-                                    src={`/${overviewImage3}`}
+                                    src={getImageSrc(overviewImage3)}
                                     alt={`${title} overview 3`}
                                     fill
                                     className="object-contain"
