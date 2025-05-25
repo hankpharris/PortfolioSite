@@ -8,7 +8,7 @@ export default function ProjectNotFound() {
             <div className="relative z-10 container mx-auto px-16 py-8">
                 <div className="bg-white/30 backdrop-blur-md rounded-xl shadow-lg overflow-hidden p-8 text-center">
                     <h1 className="text-4xl font-bold text-gray-800 mb-4">Project Not Found</h1>
-                    <p className="text-lg text-gray-600 mb-8">
+                    <p className="text-lg text-gray-700 mb-8">
                         The project you're looking for doesn't exist or has been removed.
                     </p>
                     <Link 
