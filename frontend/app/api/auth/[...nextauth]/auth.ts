@@ -20,10 +20,19 @@ export const authOptions: NextAuthOptions = {
     ],
     callbacks: {
         async signIn({ user, account }) {
-            // You can restrict access to specific GitHub accounts here
-            // For example, only allow your GitHub account:
-            // return user.email === "your-github-email@example.com";
-            return true;
+            if (account?.provider === "github") {
+                const response = await fetch("https://api.github.com/user", {
+                    headers: {
+                        Authorization: `token ${account.access_token}`,
+                    },
+                });
+                const githubUser = await response.json();
+                // Get the list of allowed users from env and split by comma
+                const allowedUsers = process.env.ALLOWED_GITHUB_USERS?.split(',') || [];
+                // Trim whitespace from each username and check if current user is allowed
+                return allowedUsers.map(user => user.trim()).includes(githubUser.login);
+            }
+            return false;
         },
         async jwt({ token, user, account }) {
             if (user) {
