@@ -38,7 +38,7 @@ export async function getProjects(): Promise<(Project & { validationWarning?: bo
         console.log('Fetching all projects');
         const result = await sql`
             SELECT * FROM "Project"
-            ORDER BY "createdAt" DESC
+            ORDER BY id DESC
         `;
 
         console.log('Raw projects result:', result);
