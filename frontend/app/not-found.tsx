@@ -6,7 +6,6 @@ export default function NotFound() {
     return (
         <div className="min-h-screen w-full flex flex-col relative">
             <AnimatedBackground />
-            <Header />
             <div className="flex-grow flex items-center justify-center">
                 <div className="container mx-auto px-4 py-8 bg-white/30 rounded-xl shadow-lg backdrop-blur-md relative z-10 text-center">
                     <div className="text-8xl mb-6">🔍</div>

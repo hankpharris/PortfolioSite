@@ -15,7 +15,7 @@ export async function getProject(id: string): Promise<Project | null> {
         console.log('Raw project result:', result);
         
         if (!result || result.length === 0) {
-            console.log('No project found');
+            console.log('No project found with ID:', id);
             return null;
         }
 

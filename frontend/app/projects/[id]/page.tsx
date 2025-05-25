@@ -1,6 +1,7 @@
 import { ProjectOverview } from "@/components/ProjectOverview";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { getProject } from '@/lib/db';
+import { notFound } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -8,8 +9,10 @@ export const revalidate = 0;
 export default async function ProjectPage({ params }: { params: { id: string } }) {
     try {
         const project = await getProject(params.id);
+        
+        // If no project is found, show 404
         if (!project) {
-            throw new Error('Project not found');
+            notFound();
         }
 
         // Map API response to component props
