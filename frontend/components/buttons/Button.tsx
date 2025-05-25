@@ -3,10 +3,11 @@ import Link from 'next/link';
 type ButtonVariant = 'nav' | 'project' | 'github';
 
 interface ButtonProps {
-    href: string;
+    href?: string;
     children: React.ReactNode;
     variant?: ButtonVariant;
     isExternal?: boolean;
+    onClick?: () => void;
 }
 
 const baseButtonStyles = "inline-flex items-center px-4 py-2 text-white rounded transition-colors duration-200";
@@ -17,8 +18,16 @@ const variantStyles: Record<ButtonVariant, string> = {
     github: "bg-green-600 hover:bg-green-700"
 };
 
-export function Button({ href, children, variant = 'project', isExternal = false }: ButtonProps) {
+export function Button({ href, children, variant = 'project', isExternal = false, onClick }: ButtonProps) {
     const className = `${baseButtonStyles} ${variantStyles[variant]}`;
+
+    if (onClick) {
+        return (
+            <button onClick={onClick} className={className}>
+                {children}
+            </button>
+        );
+    }
 
     if (isExternal) {
         return (
@@ -34,7 +43,7 @@ export function Button({ href, children, variant = 'project', isExternal = false
     }
 
     return (
-        <Link href={href} className={className}>
+        <Link href={href || '#'} className={className}>
             {children}
         </Link>
     );
