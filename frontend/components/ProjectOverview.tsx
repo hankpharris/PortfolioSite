@@ -1,10 +1,11 @@
 import Image from 'next/image';
 import { Button } from './buttons/Button';
 import { StatusBadge } from './StatusBadge';
+import { Status } from '@/lib/validation';
 
 interface ProjectOverviewProps {
     title: string;
-    status: string;
+    status: Status;
     overview: string;
     description: string;
     overviewImage1: string;
