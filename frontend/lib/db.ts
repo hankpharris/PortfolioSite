@@ -1,13 +1,30 @@
 import { neon } from '@neondatabase/serverless';
 import { StatusEnum, projectSchema, Project } from './validation';
 
-const sql = neon(process.env.DATABASE_URL!);
+if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not defined');
+}
+
+const sql = neon(process.env.DATABASE_URL);
 
 export async function getProject(id: string): Promise<Project | null> {
     try {
         console.log('Fetching project with ID:', id);
         const result = await sql`
-            SELECT * FROM "Project" 
+            SELECT 
+                id,
+                name,
+                status,
+                "overviewText",
+                description,
+                "overviewImage1",
+                "overviewImage2",
+                "overviewImage3",
+                link,
+                "gitHubLink",
+                "createdAt",
+                "updatedAt"
+            FROM "Project" 
             WHERE id = ${parseInt(id)}
         `;
         
@@ -36,7 +53,20 @@ export async function getProjects(): Promise<Project[]> {
     try {
         console.log('Fetching all projects');
         const result = await sql`
-            SELECT * FROM "Project" 
+            SELECT 
+                id,
+                name,
+                status,
+                "overviewText",
+                description,
+                "overviewImage1",
+                "overviewImage2",
+                "overviewImage3",
+                link,
+                "gitHubLink",
+                "createdAt",
+                "updatedAt"
+            FROM "Project" 
             ORDER BY id DESC
         `;
         
