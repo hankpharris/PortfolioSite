@@ -117,6 +117,7 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
             <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg shadow">
                 <thead>
                     <tr className="bg-gray-100 dark:bg-gray-700">
+                        <th className="px-4 py-2">ID</th>
                         <th className="px-4 py-2">Name</th>
                         <th className="px-4 py-2">Status</th>
                         <th className="px-4 py-2">Overview</th>
@@ -129,6 +130,9 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
                 <tbody>
                     {projects.map((project) => (
                         <tr key={project.id} className="border-t dark:border-gray-700">
+                            <td className="px-4 py-2 text-gray-600 dark:text-gray-400">
+                                {project.id}
+                            </td>
                             <td className="px-4 py-2">
                                 {editingId === project.id ? (
                                     <input
