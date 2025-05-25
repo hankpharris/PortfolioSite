@@ -1,11 +1,25 @@
 import { neon } from '@neondatabase/serverless';
 import { StatusEnum, projectSchema, Project } from './validation';
 
-if (!process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL is not defined');
+// Validate required environment variables
+const requiredEnvVars = {
+    DATABASE_URL: process.env.DATABASE_URL
+} as const;
+
+// Check for missing environment variables
+const missingEnvVars = Object.entries(requiredEnvVars)
+    .filter(([_, value]) => !value)
+    .map(([key]) => key);
+
+if (missingEnvVars.length > 0) {
+    throw new Error(
+        `Missing required environment variables: ${missingEnvVars.join(', ')}. ` +
+        'Please check your .env file and ensure all required variables are set.'
+    );
 }
 
-const DATABASE_URL = process.env.DATABASE_URL as string;
+// Type assertion after validation
+const DATABASE_URL = requiredEnvVars.DATABASE_URL as string;
 
 export async function getProject(id: string): Promise<Project | null> {
     try {
