@@ -1,5 +1,5 @@
 import { neon } from '@neondatabase/serverless';
-import { projectSchema, type Project } from './validation';
+import { StatusEnum, projectSchema, Project } from './validation';
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -9,53 +9,60 @@ export async function getProject(id: string): Promise<Project | null> {
         const result = await sql`
             SELECT * FROM "Project" 
             WHERE id = ${parseInt(id)}
-            LIMIT 1
         `;
         
-        console.log('Raw project result:', result);
+        console.log('Query result:', result);
         
         if (!result || result.length === 0) {
             console.log('No project found with ID:', id);
             return null;
         }
 
-        const validation = projectSchema.safeParse(result[0]);
-        if (!validation.success) {
-            console.error('Project validation failed:', validation.error);
-            return null;
-        }
+        const project = result[0];
+        console.log('Raw project data:', project);
 
-        console.log('Validated project:', validation.data);
-        return validation.data;
+        // Validate the project data
+        const validatedProject = projectSchema.parse(project);
+        console.log('Validated project:', validatedProject);
+
+        return validatedProject;
     } catch (error) {
-        console.error('Error fetching project:', error);
+        console.error('Error in getProject:', error);
         return null;
     }
 }
 
-export async function getProjects(): Promise<(Project & { validationWarning?: boolean })[]> {
+export async function getProjects(): Promise<Project[]> {
     try {
         console.log('Fetching all projects');
         const result = await sql`
-            SELECT * FROM "Project"
+            SELECT * FROM "Project" 
             ORDER BY id DESC
         `;
+        
+        console.log('Query result:', result);
+        
+        if (!result || result.length === 0) {
+            console.log('No projects found');
+            return [];
+        }
 
-        console.log('Raw projects result:', result);
-
-        const validatedProjects = result.map((project: any) => {
-            const validation = projectSchema.safeParse(project);
-            if (!validation.success) {
-                console.error('Project validation failed:', validation.error);
-                return { ...project, validationWarning: true };
-            }
-            return validation.data;
-        });
+        // Validate each project
+        const validatedProjects = result
+            .map(project => {
+                try {
+                    return projectSchema.parse(project);
+                } catch (error) {
+                    console.error('Error validating project:', project, error);
+                    return null;
+                }
+            })
+            .filter((project): project is Project => project !== null);
 
         console.log('Validated projects:', validatedProjects);
         return validatedProjects;
     } catch (error) {
-        console.error('Error fetching projects:', error);
+        console.error('Error in getProjects:', error);
         return [];
     }
 } 

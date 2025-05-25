@@ -9,7 +9,8 @@ export function StatusBadge({ status }: StatusBadgeProps) {
     const formatStatus = (status: string) => {
         return status
             .replace(/([A-Z])/g, ' $1')
-            .replace(/^./, str => str.toUpperCase());
+            .replace(/^./, str => str.toUpperCase())
+            .trim();
     };
 
     return (
