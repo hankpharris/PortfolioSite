@@ -160,6 +160,46 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
         }
     };
 
+    const handleDeleteProject = async (projectId: number) => {
+        if (!confirm('Are you sure you want to delete this project?')) return;
+
+        try {
+            const response = await fetch(`/api/projects/${projectId}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) throw new Error('Failed to delete project');
+
+            setProjects(projects.filter(p => p.id !== projectId));
+        } catch (error) {
+            console.error('Error deleting project:', error);
+            // TODO: Add error handling UI
+        }
+    };
+
+    const handleNewImageUpload = async (field: 'overviewImage1' | 'overviewImage2' | 'overviewImage3', file: File) => {
+        setUploadingImage(field);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) throw new Error('Failed to upload image');
+
+            const { url } = await response.json();
+            setNewProject(prev => ({ ...prev, [field]: url }));
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            // TODO: Add error handling UI
+        } finally {
+            setUploadingImage(null);
+        }
+    };
+
     return (
         <div className="space-y-4">
             <div className="flex justify-end">
@@ -255,7 +295,7 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
                                                     accept="image/*"
                                                     onChange={(e) => {
                                                         const file = e.target.files?.[0];
-                                                        if (file) handleImageUpload(field, file);
+                                                        if (file) handleNewImageUpload(field, file);
                                                     }}
                                                     className="hidden"
                                                     id={`new-${field}`}
@@ -273,6 +313,11 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
                                                         : 'Upload Image'
                                                     }
                                                 </label>
+                                                {newProject[field] && (
+                                                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                                                        Current: {newProject[field]}
+                                                    </div>
+                                                )}
                                             </div>
                                         ))}
                                     </div>
@@ -450,6 +495,12 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
                                                 className="w-full px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700"
                                             >
                                                 Cancel
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteProject(project.id)}
+                                                className="w-full px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                                            >
+                                                Delete
                                             </button>
                                         </div>
                                     ) : (
