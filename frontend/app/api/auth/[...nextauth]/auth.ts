@@ -11,9 +11,16 @@ declare module "next-auth" {
     }
 }
 
+// Helper function to ensure proper URL construction
+const getCallbackUrl = (baseUrl: string, provider: string) => {
+    // Remove trailing slash from base URL if it exists
+    const cleanBaseUrl = baseUrl.replace(/\/$/, '');
+    return `${cleanBaseUrl}/api/auth/callback/${provider}`;
+};
+
 // Log the callback URLs for debugging
-console.log('Vercel callback URL:', `${process.env.NEXTAUTH_URL_INTERNAL}/api/auth/callback/github-vercel`);
-console.log('Personal callback URL:', `${process.env.NEXTAUTH_URL}/api/auth/callback/github-personal`);
+console.log('Vercel callback URL:', getCallbackUrl(process.env.NEXTAUTH_URL_INTERNAL!, 'github-vercel'));
+console.log('Personal callback URL:', getCallbackUrl(process.env.NEXTAUTH_URL!, 'github-personal'));
 
 export const authOptions: NextAuthOptions = {
     providers: [
@@ -24,8 +31,7 @@ export const authOptions: NextAuthOptions = {
             clientSecret: process.env.GITHUB_SECRET!,
             authorization: {
                 params: {
-                    // Use the full URL for the Vercel domain
-                    redirect_uri: `${process.env.NEXTAUTH_URL_INTERNAL}/api/auth/callback/github-vercel`
+                    redirect_uri: getCallbackUrl(process.env.NEXTAUTH_URL_INTERNAL!, 'github-vercel')
                 }
             }
         }),
@@ -36,8 +42,7 @@ export const authOptions: NextAuthOptions = {
             clientSecret: process.env.GITHUB_SECRET_PERSONAL!,
             authorization: {
                 params: {
-                    // Use the full URL for the personal domain
-                    redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/callback/github-personal`
+                    redirect_uri: getCallbackUrl(process.env.NEXTAUTH_URL!, 'github-personal')
                 }
             }
         }),
