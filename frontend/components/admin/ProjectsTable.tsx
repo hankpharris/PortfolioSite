@@ -25,6 +25,18 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
     const [editingId, setEditingId] = useState<number | null>(null);
     const [editedProject, setEditedProject] = useState<Project | null>(null);
     const [uploadingImage, setUploadingImage] = useState<string | null>(null);
+    const [isCreating, setIsCreating] = useState(false);
+    const [newProject, setNewProject] = useState<Partial<Project>>({
+        name: '',
+        status: 'Planned' as Status,
+        overviewText: '',
+        description: '',
+        overviewImage1: null,
+        overviewImage2: null,
+        overviewImage3: null,
+        link: null,
+        gitHubLink: null
+    });
 
     const handleEdit = (project: Project) => {
         setEditingId(project.id);
@@ -64,6 +76,42 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
     const handleChange = (field: keyof Project, value: string) => {
         if (!editedProject) return;
         setEditedProject({ ...editedProject, [field]: value });
+    };
+
+    const handleNewProjectChange = (field: keyof Project, value: string) => {
+        setNewProject(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleCreateProject = async () => {
+        try {
+            const response = await fetch('/api/projects', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(newProject),
+            });
+
+            if (!response.ok) throw new Error('Failed to create project');
+
+            const createdProject = await response.json();
+            setProjects([...projects, createdProject]);
+            setIsCreating(false);
+            setNewProject({
+                name: '',
+                status: 'Planned' as Status,
+                overviewText: '',
+                description: '',
+                overviewImage1: null,
+                overviewImage2: null,
+                overviewImage3: null,
+                link: null,
+                gitHubLink: null
+            });
+        } catch (error) {
+            console.error('Error creating project:', error);
+            // TODO: Add error handling UI
+        }
     };
 
     const handleImageUpload = async (field: 'overviewImage1' | 'overviewImage2' | 'overviewImage3', file: File) => {
@@ -113,43 +161,65 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
     };
 
     return (
-        <div className="overflow-x-auto">
-            <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg shadow">
-                <thead>
-                    <tr className="bg-gray-100 dark:bg-gray-700">
-                        <th className="px-4 py-2">ID</th>
-                        <th className="px-4 py-2">Name</th>
-                        <th className="px-4 py-2">Status</th>
-                        <th className="px-4 py-2">Overview</th>
-                        <th className="px-4 py-2">Description</th>
-                        <th className="px-4 py-2">Images</th>
-                        <th className="px-4 py-2">Links</th>
-                        <th className="px-4 py-2">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {projects.map((project) => (
-                        <tr key={project.id} className="border-t dark:border-gray-700">
-                            <td className="px-4 py-2 text-gray-600 dark:text-gray-400">
-                                {project.id}
-                            </td>
-                            <td className="px-4 py-2">
-                                {editingId === project.id ? (
+        <div className="space-y-4">
+            <div className="flex justify-end">
+                {!isCreating ? (
+                    <button
+                        onClick={() => setIsCreating(true)}
+                        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                    >
+                        New Project
+                    </button>
+                ) : (
+                    <div className="flex space-x-2">
+                        <button
+                            onClick={handleCreateProject}
+                            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                        >
+                            Create
+                        </button>
+                        <button
+                            onClick={() => setIsCreating(false)}
+                            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                )}
+            </div>
+            <div className="overflow-x-auto">
+                <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg shadow">
+                    <thead>
+                        <tr className="bg-gray-100 dark:bg-gray-700">
+                            <th className="px-4 py-2">ID</th>
+                            <th className="px-4 py-2">Name</th>
+                            <th className="px-4 py-2">Status</th>
+                            <th className="px-4 py-2">Overview</th>
+                            <th className="px-4 py-2">Description</th>
+                            <th className="px-4 py-2">Images</th>
+                            <th className="px-4 py-2">Links</th>
+                            <th className="px-4 py-2">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {isCreating && (
+                            <tr className="border-t dark:border-gray-700">
+                                <td className="px-4 py-2 text-gray-600 dark:text-gray-400">
+                                    New
+                                </td>
+                                <td className="px-4 py-2">
                                     <input
                                         type="text"
-                                        value={editedProject?.name || ''}
-                                        onChange={(e) => handleChange('name', e.target.value)}
+                                        value={newProject.name}
+                                        onChange={(e) => handleNewProjectChange('name', e.target.value)}
                                         className="w-full p-1 border rounded dark:bg-gray-700 dark:border-gray-600"
+                                        placeholder="Project Name"
                                     />
-                                ) : (
-                                    project.name
-                                )}
-                            </td>
-                            <td className="px-4 py-2">
-                                {editingId === project.id ? (
+                                </td>
+                                <td className="px-4 py-2">
                                     <select
-                                        value={editedProject?.status || ''}
-                                        onChange={(e) => handleChange('status', e.target.value)}
+                                        value={newProject.status}
+                                        onChange={(e) => handleNewProjectChange('status', e.target.value)}
                                         className="w-full p-1 border rounded dark:bg-gray-700 dark:border-gray-600"
                                     >
                                         <option value="InProgress">In Progress</option>
@@ -157,36 +227,26 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
                                         <option value="CompleteUnmaintained">Complete (Unmaintained)</option>
                                         <option value="Planned">Planned</option>
                                     </select>
-                                ) : (
-                                    project.status
-                                )}
-                            </td>
-                            <td className="px-4 py-2 max-w-xs">
-                                {editingId === project.id ? (
+                                </td>
+                                <td className="px-4 py-2">
                                     <textarea
-                                        value={editedProject?.overviewText || ''}
-                                        onChange={(e) => handleChange('overviewText', e.target.value)}
+                                        value={newProject.overviewText || ''}
+                                        onChange={(e) => handleNewProjectChange('overviewText', e.target.value)}
                                         className="w-full p-1 border rounded dark:bg-gray-700 dark:border-gray-600"
                                         rows={3}
+                                        placeholder="Overview"
                                     />
-                                ) : (
-                                    <div className="truncate">{project.overviewText}</div>
-                                )}
-                            </td>
-                            <td className="px-4 py-2 max-w-xs">
-                                {editingId === project.id ? (
+                                </td>
+                                <td className="px-4 py-2">
                                     <textarea
-                                        value={editedProject?.description || ''}
-                                        onChange={(e) => handleChange('description', e.target.value)}
+                                        value={newProject.description || ''}
+                                        onChange={(e) => handleNewProjectChange('description', e.target.value)}
                                         className="w-full p-1 border rounded dark:bg-gray-700 dark:border-gray-600"
                                         rows={3}
+                                        placeholder="Description"
                                     />
-                                ) : (
-                                    <div className="truncate">{project.description}</div>
-                                )}
-                            </td>
-                            <td className="px-4 py-2">
-                                {editingId === project.id ? (
+                                </td>
+                                <td className="px-4 py-2">
                                     <div className="space-y-2">
                                         {(['overviewImage1', 'overviewImage2', 'overviewImage3'] as const).map((field) => (
                                             <div key={field} className="space-y-1">
@@ -198,101 +258,214 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
                                                         if (file) handleImageUpload(field, file);
                                                     }}
                                                     className="hidden"
-                                                    id={`${field}-${project.id}`}
+                                                    id={`new-${field}`}
                                                 />
-                                                <div className="flex items-center space-x-2">
-                                                    <label
-                                                        htmlFor={`${field}-${project.id}`}
-                                                        className={`block px-3 py-1 text-sm text-center rounded cursor-pointer
-                                                            ${uploadingImage === field
-                                                                ? 'bg-gray-400 cursor-not-allowed'
-                                                                : 'bg-blue-600 hover:bg-blue-700'
-                                                            } text-white`}
-                                                    >
-                                                        {uploadingImage === field
-                                                            ? 'Uploading...'
-                                                            : 'Upload Image'
-                                                        }
-                                                    </label>
-                                                    {editedProject && editedProject[field] && (
-                                                        <button
-                                                            onClick={() => handleDeleteImage(field)}
-                                                            className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
-                                                        >
-                                                            Delete
-                                                        </button>
-                                                    )}
-                                                </div>
-                                                {editedProject && editedProject[field] && (
-                                                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                                                        Current: {editedProject[field]}
-                                                    </div>
-                                                )}
+                                                <label
+                                                    htmlFor={`new-${field}`}
+                                                    className={`block px-3 py-1 text-sm text-center rounded cursor-pointer
+                                                        ${uploadingImage === field
+                                                            ? 'bg-gray-400 cursor-not-allowed'
+                                                            : 'bg-blue-600 hover:bg-blue-700'
+                                                        } text-white`}
+                                                >
+                                                    {uploadingImage === field
+                                                        ? 'Uploading...'
+                                                        : 'Upload Image'
+                                                    }
+                                                </label>
                                             </div>
                                         ))}
                                     </div>
-                                ) : (
-                                    <div className="space-y-1">
-                                        {project.overviewImage1 && <div className="truncate">Image 1: ✓</div>}
-                                        {project.overviewImage2 && <div className="truncate">Image 2: ✓</div>}
-                                        {project.overviewImage3 && <div className="truncate">Image 3: ✓</div>}
-                                    </div>
-                                )}
-                            </td>
-                            <td className="px-4 py-2">
-                                {editingId === project.id ? (
+                                </td>
+                                <td className="px-4 py-2">
                                     <div className="space-y-2">
                                         <input
                                             type="text"
-                                            value={editedProject?.link || ''}
-                                            onChange={(e) => handleChange('link', e.target.value)}
+                                            value={newProject.link || ''}
+                                            onChange={(e) => handleNewProjectChange('link', e.target.value)}
                                             placeholder="Project URL"
                                             className="w-full p-1 border rounded dark:bg-gray-700 dark:border-gray-600"
                                         />
                                         <input
                                             type="text"
-                                            value={editedProject?.gitHubLink || ''}
-                                            onChange={(e) => handleChange('gitHubLink', e.target.value)}
+                                            value={newProject.gitHubLink || ''}
+                                            onChange={(e) => handleNewProjectChange('gitHubLink', e.target.value)}
                                             placeholder="GitHub URL"
                                             className="w-full p-1 border rounded dark:bg-gray-700 dark:border-gray-600"
                                         />
                                     </div>
-                                ) : (
-                                    <div className="space-y-1">
-                                        {project.link && <div className="truncate">Project: ✓</div>}
-                                        {project.gitHubLink && <div className="truncate">GitHub: ✓</div>}
-                                    </div>
-                                )}
-                            </td>
-                            <td className="px-4 py-2">
-                                {editingId === project.id ? (
-                                    <div className="flex flex-col space-y-2">
-                                        <button
-                                            onClick={() => handleSave(project.id)}
-                                            className="w-full px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                                </td>
+                                <td className="px-4 py-2">
+                                    {/* Actions are handled by the buttons above the table */}
+                                </td>
+                            </tr>
+                        )}
+                        {projects.map((project) => (
+                            <tr key={project.id} className="border-t dark:border-gray-700">
+                                <td className="px-4 py-2 text-gray-600 dark:text-gray-400">
+                                    {project.id}
+                                </td>
+                                <td className="px-4 py-2">
+                                    {editingId === project.id ? (
+                                        <input
+                                            type="text"
+                                            value={editedProject?.name || ''}
+                                            onChange={(e) => handleChange('name', e.target.value)}
+                                            className="w-full p-1 border rounded dark:bg-gray-700 dark:border-gray-600"
+                                        />
+                                    ) : (
+                                        project.name
+                                    )}
+                                </td>
+                                <td className="px-4 py-2">
+                                    {editingId === project.id ? (
+                                        <select
+                                            value={editedProject?.status || ''}
+                                            onChange={(e) => handleChange('status', e.target.value)}
+                                            className="w-full p-1 border rounded dark:bg-gray-700 dark:border-gray-600"
                                         >
-                                            Save
-                                        </button>
+                                            <option value="InProgress">In Progress</option>
+                                            <option value="CompleteMaintained">Complete (Maintained)</option>
+                                            <option value="CompleteUnmaintained">Complete (Unmaintained)</option>
+                                            <option value="Planned">Planned</option>
+                                        </select>
+                                    ) : (
+                                        project.status
+                                    )}
+                                </td>
+                                <td className="px-4 py-2 max-w-xs">
+                                    {editingId === project.id ? (
+                                        <textarea
+                                            value={editedProject?.overviewText || ''}
+                                            onChange={(e) => handleChange('overviewText', e.target.value)}
+                                            className="w-full p-1 border rounded dark:bg-gray-700 dark:border-gray-600"
+                                            rows={3}
+                                        />
+                                    ) : (
+                                        <div className="truncate">{project.overviewText}</div>
+                                    )}
+                                </td>
+                                <td className="px-4 py-2 max-w-xs">
+                                    {editingId === project.id ? (
+                                        <textarea
+                                            value={editedProject?.description || ''}
+                                            onChange={(e) => handleChange('description', e.target.value)}
+                                            className="w-full p-1 border rounded dark:bg-gray-700 dark:border-gray-600"
+                                            rows={3}
+                                        />
+                                    ) : (
+                                        <div className="truncate">{project.description}</div>
+                                    )}
+                                </td>
+                                <td className="px-4 py-2">
+                                    {editingId === project.id ? (
+                                        <div className="space-y-2">
+                                            {(['overviewImage1', 'overviewImage2', 'overviewImage3'] as const).map((field) => (
+                                                <div key={field} className="space-y-1">
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        onChange={(e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (file) handleImageUpload(field, file);
+                                                        }}
+                                                        className="hidden"
+                                                        id={`${field}-${project.id}`}
+                                                    />
+                                                    <div className="flex items-center space-x-2">
+                                                        <label
+                                                            htmlFor={`${field}-${project.id}`}
+                                                            className={`block px-3 py-1 text-sm text-center rounded cursor-pointer
+                                                                ${uploadingImage === field
+                                                                    ? 'bg-gray-400 cursor-not-allowed'
+                                                                    : 'bg-blue-600 hover:bg-blue-700'
+                                                                } text-white`}
+                                                        >
+                                                            {uploadingImage === field
+                                                                ? 'Uploading...'
+                                                                : 'Upload Image'
+                                                            }
+                                                        </label>
+                                                        {editedProject && editedProject[field] && (
+                                                            <button
+                                                                onClick={() => handleDeleteImage(field)}
+                                                                className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+                                                            >
+                                                                Delete
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                    {editedProject && editedProject[field] && (
+                                                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                                                            Current: {editedProject[field]}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-1">
+                                            {project.overviewImage1 && <div className="truncate">Image 1: ✓</div>}
+                                            {project.overviewImage2 && <div className="truncate">Image 2: ✓</div>}
+                                            {project.overviewImage3 && <div className="truncate">Image 3: ✓</div>}
+                                        </div>
+                                    )}
+                                </td>
+                                <td className="px-4 py-2">
+                                    {editingId === project.id ? (
+                                        <div className="space-y-2">
+                                            <input
+                                                type="text"
+                                                value={editedProject?.link || ''}
+                                                onChange={(e) => handleChange('link', e.target.value)}
+                                                placeholder="Project URL"
+                                                className="w-full p-1 border rounded dark:bg-gray-700 dark:border-gray-600"
+                                            />
+                                            <input
+                                                type="text"
+                                                value={editedProject?.gitHubLink || ''}
+                                                onChange={(e) => handleChange('gitHubLink', e.target.value)}
+                                                placeholder="GitHub URL"
+                                                className="w-full p-1 border rounded dark:bg-gray-700 dark:border-gray-600"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-1">
+                                            {project.link && <div className="truncate">Project: ✓</div>}
+                                            {project.gitHubLink && <div className="truncate">GitHub: ✓</div>}
+                                        </div>
+                                    )}
+                                </td>
+                                <td className="px-4 py-2">
+                                    {editingId === project.id ? (
+                                        <div className="flex flex-col space-y-2">
+                                            <button
+                                                onClick={() => handleSave(project.id)}
+                                                className="w-full px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                                            >
+                                                Save
+                                            </button>
+                                            <button
+                                                onClick={handleCancel}
+                                                className="w-full px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    ) : (
                                         <button
-                                            onClick={handleCancel}
-                                            className="w-full px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700"
+                                            onClick={() => handleEdit(project)}
+                                            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
                                         >
-                                            Cancel
+                                            Edit
                                         </button>
-                                    </div>
-                                ) : (
-                                    <button
-                                        onClick={() => handleEdit(project)}
-                                        className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-                                    >
-                                        Edit
-                                    </button>
-                                )}
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+                                    )}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 } 
