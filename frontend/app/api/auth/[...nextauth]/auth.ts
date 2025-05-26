@@ -50,4 +50,18 @@ export const authOptions: NextAuthOptions = {
     pages: {
         signIn: "/auth/signin",
     },
+    // Add support for multiple domains
+    cookies: {
+        sessionToken: {
+            name: `__Secure-next-auth.session-token`,
+            options: {
+                httpOnly: true,
+                sameSite: 'lax',
+                path: '/',
+                secure: true,
+                // Remove domain setting to allow cookies to work across both domains
+                // The domain will be automatically set based on the request origin
+            }
+        }
+    }
 }; 
