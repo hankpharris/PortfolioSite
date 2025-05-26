@@ -13,6 +13,13 @@ export default function SignIn() {
             // Determine which provider to use based on the current URL
             const isPersonalDomain = window.location.hostname === process.env.NEXT_PUBLIC_PERSONAL_DOMAIN;
             const provider = isPersonalDomain ? 'github-personal' : 'github-vercel';
+            
+            console.log('Current hostname:', window.location.hostname);
+            console.log('Using provider:', provider);
+            console.log('Expected callback URL:', isPersonalDomain 
+                ? `${process.env.NEXT_PUBLIC_PERSONAL_DOMAIN}/api/auth/callback/github-personal`
+                : `${process.env.NEXT_PUBLIC_VERCEL_URL}/api/auth/callback/github-vercel`
+            );
 
             const res = await signIn(provider, {
                 callbackUrl: "/admin",
@@ -20,12 +27,14 @@ export default function SignIn() {
             });
 
             if (res?.error) {
-                setError("Failed to sign in with GitHub");
+                console.error('Sign in error:', res.error);
+                setError(`Failed to sign in with GitHub: ${res.error}`);
             } else if (res?.url) {
                 router.push(res.url);
             }
         } catch (error) {
-            setError("An error occurred");
+            console.error('Sign in error:', error);
+            setError("An error occurred during sign in");
         }
     };
 

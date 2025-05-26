@@ -11,6 +11,10 @@ declare module "next-auth" {
     }
 }
 
+// Log the callback URLs for debugging
+console.log('Vercel callback URL:', `${process.env.NEXTAUTH_URL_INTERNAL}/api/auth/callback/github-vercel`);
+console.log('Personal callback URL:', `${process.env.NEXTAUTH_URL}/api/auth/callback/github-personal`);
+
 export const authOptions: NextAuthOptions = {
     providers: [
         // Vercel domain provider
@@ -20,7 +24,8 @@ export const authOptions: NextAuthOptions = {
             clientSecret: process.env.GITHUB_SECRET!,
             authorization: {
                 params: {
-                    redirect_uri: process.env.NEXTAUTH_URL_INTERNAL + '/api/auth/callback/github-vercel'
+                    // Use the full URL for the Vercel domain
+                    redirect_uri: `${process.env.NEXTAUTH_URL_INTERNAL}/api/auth/callback/github-vercel`
                 }
             }
         }),
@@ -31,13 +36,17 @@ export const authOptions: NextAuthOptions = {
             clientSecret: process.env.GITHUB_SECRET_PERSONAL!,
             authorization: {
                 params: {
-                    redirect_uri: process.env.NEXTAUTH_URL + '/api/auth/callback/github-personal'
+                    // Use the full URL for the personal domain
+                    redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/callback/github-personal`
                 }
             }
         }),
     ],
     callbacks: {
         async signIn({ user, account }) {
+            console.log('Sign in attempt with provider:', account?.provider);
+            console.log('Callback URL:', account?.redirect_uri);
+            
             if (account?.provider === "github-vercel" || account?.provider === "github-personal") {
                 const response = await fetch("https://api.github.com/user", {
                     headers: {
@@ -68,6 +77,7 @@ export const authOptions: NextAuthOptions = {
     pages: {
         signIn: "/auth/signin",
     },
+    debug: true, // Enable debug mode
     // Add support for multiple domains
     cookies: {
         sessionToken: {
