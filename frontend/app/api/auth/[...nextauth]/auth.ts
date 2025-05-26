@@ -11,32 +11,34 @@ declare module "next-auth" {
     }
 }
 
-// Helper function to get the appropriate GitHub credentials based on the request origin
-const getGitHubCredentials = (url: string) => {
-    // Check if we're on the personal domain
-    const isPersonalDomain = url.includes(process.env.NEXTAUTH_URL || '');
-    return {
-        clientId: isPersonalDomain ? process.env.GITHUB_ID_PERSONAL! : process.env.GITHUB_ID!,
-        clientSecret: isPersonalDomain ? process.env.GITHUB_SECRET_PERSONAL! : process.env.GITHUB_SECRET!
-    };
-};
-
 export const authOptions: NextAuthOptions = {
     providers: [
+        // Vercel domain provider
         GithubProvider({
-            id: 'github',
+            id: 'github-vercel',
             clientId: process.env.GITHUB_ID!,
             clientSecret: process.env.GITHUB_SECRET!,
+            authorization: {
+                params: {
+                    redirect_uri: process.env.NEXTAUTH_URL_INTERNAL + '/api/auth/callback/github-vercel'
+                }
+            }
         }),
+        // Personal domain provider
         GithubProvider({
             id: 'github-personal',
             clientId: process.env.GITHUB_ID_PERSONAL!,
             clientSecret: process.env.GITHUB_SECRET_PERSONAL!,
+            authorization: {
+                params: {
+                    redirect_uri: process.env.NEXTAUTH_URL + '/api/auth/callback/github-personal'
+                }
+            }
         }),
     ],
     callbacks: {
-        async signIn({ user, account, profile, email, credentials }) {
-            if (account?.provider === "github" || account?.provider === "github-personal") {
+        async signIn({ user, account }) {
+            if (account?.provider === "github-vercel" || account?.provider === "github-personal") {
                 const response = await fetch("https://api.github.com/user", {
                     headers: {
                         Authorization: `token ${account.access_token}`,

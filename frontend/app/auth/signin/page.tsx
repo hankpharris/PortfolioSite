@@ -10,7 +10,11 @@ export default function SignIn() {
 
     const handleGitHubSignIn = async () => {
         try {
-            const res = await signIn("github", {
+            // Determine which provider to use based on the current URL
+            const isPersonalDomain = window.location.hostname === process.env.NEXT_PUBLIC_PERSONAL_DOMAIN;
+            const provider = isPersonalDomain ? 'github-personal' : 'github-vercel';
+
+            const res = await signIn(provider, {
                 callbackUrl: "/admin",
                 redirect: false,
             });
