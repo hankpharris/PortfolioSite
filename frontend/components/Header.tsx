@@ -6,7 +6,7 @@ export function Header() {
     return (
         <header className="bg-white/30 backdrop-blur-md shadow-lg">
             <nav className="container mx-auto px-4 py-4">
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
                     <Link href="/" className="flex items-center space-x-2">
                         <Image
                             src="/LogoNoBG.png"
@@ -18,7 +18,7 @@ export function Header() {
                         />
                         <span className="text-2xl font-bold text-gray-800">Portfolio</span>
                     </Link>
-                    <div className="space-x-4">
+                    <div className="flex flex-wrap gap-2 md:space-x-4">
                         <Button href="/about" variant="nav">
                             About Me
                         </Button>
