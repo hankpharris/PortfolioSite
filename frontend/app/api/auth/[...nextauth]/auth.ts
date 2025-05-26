@@ -13,7 +13,8 @@ declare module "next-auth" {
 
 // Helper function to get the appropriate GitHub credentials based on the request origin
 const getGitHubCredentials = (url: string) => {
-    const isPersonalDomain = url.includes('your-personal-domain.com'); // Replace with your actual domain
+    // Check if we're on the personal domain
+    const isPersonalDomain = url.includes(process.env.NEXTAUTH_URL || '');
     return {
         clientId: isPersonalDomain ? process.env.GITHUB_ID_PERSONAL! : process.env.GITHUB_ID!,
         clientSecret: isPersonalDomain ? process.env.GITHUB_SECRET_PERSONAL! : process.env.GITHUB_SECRET!
@@ -23,13 +24,19 @@ const getGitHubCredentials = (url: string) => {
 export const authOptions: NextAuthOptions = {
     providers: [
         GithubProvider({
+            id: 'github',
             clientId: process.env.GITHUB_ID!,
             clientSecret: process.env.GITHUB_SECRET!,
+        }),
+        GithubProvider({
+            id: 'github-personal',
+            clientId: process.env.GITHUB_ID_PERSONAL!,
+            clientSecret: process.env.GITHUB_SECRET_PERSONAL!,
         }),
     ],
     callbacks: {
         async signIn({ user, account, profile, email, credentials }) {
-            if (account?.provider === "github") {
+            if (account?.provider === "github" || account?.provider === "github-personal") {
                 const response = await fetch("https://api.github.com/user", {
                     headers: {
                         Authorization: `token ${account.access_token}`,
@@ -68,8 +75,6 @@ export const authOptions: NextAuthOptions = {
                 sameSite: 'lax',
                 path: '/',
                 secure: true,
-                // Remove domain setting to allow cookies to work across both domains
-                // The domain will be automatically set based on the request origin
             }
         }
     }
