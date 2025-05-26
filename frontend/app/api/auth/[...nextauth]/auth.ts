@@ -11,6 +11,15 @@ declare module "next-auth" {
     }
 }
 
+// Helper function to get the appropriate GitHub credentials based on the request origin
+const getGitHubCredentials = (url: string) => {
+    const isPersonalDomain = url.includes('your-personal-domain.com'); // Replace with your actual domain
+    return {
+        clientId: isPersonalDomain ? process.env.GITHUB_ID_PERSONAL! : process.env.GITHUB_ID!,
+        clientSecret: isPersonalDomain ? process.env.GITHUB_SECRET_PERSONAL! : process.env.GITHUB_SECRET!
+    };
+};
+
 export const authOptions: NextAuthOptions = {
     providers: [
         GithubProvider({
@@ -19,7 +28,7 @@ export const authOptions: NextAuthOptions = {
         }),
     ],
     callbacks: {
-        async signIn({ user, account }) {
+        async signIn({ user, account, profile, email, credentials }) {
             if (account?.provider === "github") {
                 const response = await fetch("https://api.github.com/user", {
                     headers: {
