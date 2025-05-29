@@ -14,13 +14,13 @@ export default function AboutMe() {
                     <div className="text-lg text-gray-800 leading-relaxed space-y-4">
                         <p>
                             Hello! My name is Henry Pharris. I'm a senior at Worcester Polytechnic Institute studying RBE (Robotics Engineering) 
-                            with a minors in Computer Science and Music.
+                            with minors in Computer Science and Music.
                         </p>
                         <p>
-                            I enjoy outdoor activities like snowboarding and sailing as well as music and tinkering with both hardware and software.
+                            When outdoors I enjoy activities like snowboarding and sailing, but I also love making music and tinkering with both hardware and software when inside.
                         </p>
                         <p>
-                            If you have any ineterst in hiring me in any capacity, or any questions about my work, don't hesitate to reach out to me via hopharris@wpi.edu.
+                            If you have any interest in hiring me in any capacity, or any questions about my work, don't hesitate to reach out to me via hopharris@wpi.edu.
                         </p>
                     </div>
                 </div>
