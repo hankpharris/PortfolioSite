@@ -17,7 +17,7 @@ export default async function AdminPage() {
     return (
         <div className="container mx-auto p-4">
             <div className="flex justify-between items-center mb-4">
-                <h1 className="text-2xl font-bold">Admin Panel</h1>
+                <h1 className="text-3xl font-bold">Admin Panel</h1>
                 <SignOutButton />
             </div>
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow mb-8">

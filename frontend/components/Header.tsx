@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from './buttons/Button';
+import { ContactForm } from './ContactForm';
 
 export function Header() {
     return (
@@ -31,6 +32,7 @@ export function Header() {
                         <Button href="/admin" variant="nav">
                             Admin
                         </Button>
+                        <ContactForm />
                     </div>
                 </div>
             </nav>

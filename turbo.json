@@ -37,21 +37,10 @@
                 "POSTGRES_DB",
                 "POSTGRES_PORT",
                 "POSTGRES_HOST",
-                "POSTGRES_URL",
-                "VITE_AUTH0_DOMAIN",
-                "VITE_AUTH0_CLIENT_ID",
-                "VITE_AUTH0_AUDIENCE"
+                "POSTGRES_URL"
             ],
             "dependsOn": ["^dependencies"],
             "outputs": ["build/**"]
-        },
-        "docker:build": {
-            "dependsOn": ["lint"],
-            "cache": false
-        },
-        "docker:upload": {
-            "dependsOn": ["docker:build"],
-            "cache": false
         }
     }
 }
