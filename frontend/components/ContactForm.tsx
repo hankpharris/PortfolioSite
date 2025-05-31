@@ -3,10 +3,7 @@
 import { useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
-import { Resend } from 'resend';
 import { Button } from './buttons/Button';
-
-const resend = new Resend(process.env.NEXT_PUBLIC_RESEND_API_KEY);
 
 export function ContactForm() {
   const [isOpen, setIsOpen] = useState(false);
@@ -22,16 +19,18 @@ export function ContactForm() {
     setStatus('loading');
 
     try {
-      await resend.emails.send({
-        from: 'Portfolio Contact Form <onboarding@resend.dev>',
-        to: process.env.NEXT_PUBLIC_CONTACT_EMAIL!,
-        subject: `New Contact Form Submission from ${formData.name}`,
-        text: `
-          Name: ${formData.name}
-          Email: ${formData.email}
-          Message: ${formData.message}
-        `,
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+
       setStatus('success');
       setFormData({ name: '', email: '', message: '' });
     } catch (error) {
