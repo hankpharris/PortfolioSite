@@ -36,9 +36,9 @@ export function ChatBot() {
           className="fixed top-[88px] right-4 bottom-4 w-full max-w-md bg-white/30 backdrop-blur-md shadow-xl z-[101] rounded-xl transform transition-all duration-500 ease-in-out translate-x-full data-[state=open]:translate-x-0"
         >
           <div className="flex flex-col h-full">
-            <div className="flex items-center justify-between p-4 border-b border-gray-200/50 bg-gray-800/80 backdrop-blur-md rounded-t-xl">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200/50 bg-gray-800 rounded-t-xl">
               <Dialog.Title className="text-xl font-bold text-white">"Bueller" the AI Chat Assistant</Dialog.Title>
-              <Dialog.Close className="text-gray-400 hover:text-white">
+              <Dialog.Close className="text-gray-300 hover:text-white">
                 <X size={20} />
               </Dialog.Close>
             </div>
@@ -82,7 +82,7 @@ export function ChatBot() {
                 />
                 <button
                   type="submit"
-                  className="bg-gray-800/80 backdrop-blur-sm text-white p-2 rounded-lg hover:bg-gray-900/80 transition-colors"
+                  className="bg-gray-800 text-white p-2 rounded-lg hover:bg-gray-900 transition-colors"
                 >
                   <Send size={20} />
                 </button>
