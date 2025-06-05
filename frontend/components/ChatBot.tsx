@@ -6,10 +6,16 @@ import { MessageSquare, X, Send } from 'lucide-react';
 import { Button } from './buttons/Button';
 import { useChat } from 'ai/react';
 
+const welcomeMessage = {
+  role: 'assistant',
+  content: "Hi! I'm Bueller, your AI assistant for this portfolio site. I can help you:\n\n• Navigate through different sections (About, Projects, Contact)\n• Find specific projects or information\n• Answer questions about the portfolio\n• Guide you to relevant pages\n\nWhat would you like to know?"
+};
+
 export function ChatBot() {
   const [isOpen, setIsOpen] = useState(false);
   const { messages, input, handleInputChange, handleSubmit } = useChat({
     api: '/api/chat',
+    initialMessages: [welcomeMessage]
   });
 
   return (
@@ -22,11 +28,11 @@ export function ChatBot() {
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Content 
-          className="fixed top-[72px] right-0 h-[calc(100vh-72px)] w-full max-w-md bg-white shadow-xl z-[101] transform transition-transform duration-300 ease-in-out data-[state=open]:translate-x-0 data-[state=closed]:translate-x-full"
+          className="fixed top-[72px] right-0 h-[calc(100vh-72px)] w-full max-w-md bg-white shadow-xl z-[101] transform transition-all duration-500 ease-in-out data-[state=open]:translate-x-0 data-[state=closed]:translate-x-full"
         >
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between p-4 border-b">
-              <Dialog.Title className="text-xl font-bold">Chat Assistant</Dialog.Title>
+              <Dialog.Title className="text-xl font-bold">"Bueller" the AI Chat Assistant</Dialog.Title>
               <Dialog.Close className="text-gray-500 hover:text-gray-700">
                 <X size={20} />
               </Dialog.Close>
