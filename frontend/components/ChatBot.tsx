@@ -7,15 +7,13 @@ import { Button } from './buttons/Button';
 import { useChat } from 'ai/react';
 
 const welcomeMessage = {
-  role: 'assistant',
-  content: "Hi! I'm Bueller, your AI assistant for this portfolio site. I can help you:\n\n• Navigate through different sections (About, Projects, Contact)\n• Find specific projects or information\n• Answer questions about the portfolio\n• Guide you to relevant pages\n\nWhat would you like to know?"
+  content: "Hi! I'm Bueller, your AI assistant for this portfolio site. I can help you:\n\n• Navigate through different sections (About, Projects, Contact, etc)\n• Find specific projects or information\n• Answer questions about the portfolio\n• Guide you to relevant pages\n\nHow can I help you today?"
 };
 
 export function ChatBot() {
   const [isOpen, setIsOpen] = useState(false);
   const { messages, input, handleInputChange, handleSubmit } = useChat({
-    api: '/api/chat',
-    initialMessages: [welcomeMessage]
+    api: '/api/chat'
   });
 
   return (
@@ -39,6 +37,14 @@ export function ChatBot() {
             </div>
             
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {/* Static welcome message */}
+              <div className="flex justify-start">
+                <div className="max-w-[80%] rounded-lg p-3 bg-gray-100 text-gray-800">
+                  {welcomeMessage.content}
+                </div>
+              </div>
+
+              {/* AI chat messages */}
               {messages.map((message) => (
                 <div
                   key={message.id}
