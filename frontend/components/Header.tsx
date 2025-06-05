@@ -6,7 +6,7 @@ import { ChatBot } from './ChatBot';
 
 export function Header() {
     return (
-        <header className="bg-white/30 backdrop-blur-md shadow-lg">
+        <header className="fixed top-0 left-0 right-0 z-50 bg-white/30 backdrop-blur-md shadow-lg">
             <nav className="container mx-auto px-4 py-4">
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
                     <Link href="/" className="flex items-center space-x-2">

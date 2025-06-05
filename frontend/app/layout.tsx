@@ -21,7 +21,9 @@ export default function RootLayout({
             <body className={inter.className}>
                 <AnimatedBackground />
                 <Header />
-                {children}
+                <main className="pt-[88px]">
+                    {children}
+                </main>
             </body>
         </html>
     );
