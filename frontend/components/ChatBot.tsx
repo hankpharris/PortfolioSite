@@ -21,8 +21,9 @@ export function ChatBot() {
         </Button>
       </Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/50 z-[100]" />
-        <Dialog.Content className="fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-xl z-[101] transform transition-transform duration-300 ease-in-out">
+        <Dialog.Content 
+          className="fixed top-[72px] right-0 h-[calc(100vh-72px)] w-full max-w-md bg-white shadow-xl z-[101] transform transition-transform duration-300 ease-in-out data-[state=open]:translate-x-0 data-[state=closed]:translate-x-full"
+        >
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between p-4 border-b">
               <Dialog.Title className="text-xl font-bold">Chat Assistant</Dialog.Title>
