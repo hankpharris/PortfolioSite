@@ -38,7 +38,7 @@ export function ChatBot() {
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between p-4 border-b border-gray-200/50 bg-gray-800/80 backdrop-blur-md rounded-t-xl">
               <Dialog.Title className="text-xl font-bold text-white">"Bueller" the AI Chat Assistant</Dialog.Title>
-              <Dialog.Close className="text-gray-300 hover:text-white">
+              <Dialog.Close className="text-gray-400 hover:text-white">
                 <X size={20} />
               </Dialog.Close>
             </div>
