@@ -3030,6 +3030,35 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ai@npm:^2.2.31":
+  version: 2.2.37
+  resolution: "ai@npm:2.2.37"
+  dependencies:
+    eventsource-parser: "npm:1.0.0"
+    nanoid: "npm:3.3.6"
+    solid-swr-store: "npm:0.10.7"
+    sswr: "npm:2.0.0"
+    swr: "npm:2.2.0"
+    swr-store: "npm:0.10.6"
+    swrv: "npm:1.0.4"
+  peerDependencies:
+    react: ^18.2.0
+    solid-js: ^1.7.7
+    svelte: ^3.0.0 || ^4.0.0
+    vue: ^3.3.4
+  peerDependenciesMeta:
+    react:
+      optional: true
+    solid-js:
+      optional: true
+    svelte:
+      optional: true
+    vue:
+      optional: true
+  checksum: 10c0/a2b723d6751f5928ec383e97cf3cbae0c8355a3cdc18bca0b1cea7dee385dfa30bbd1b604eff8967d0f1afb6c6621a7165d5aab38e76b46c8232180438f1dd66
+  languageName: node
+  linkType: hard
+
 "ajv@npm:8.6.3":
   version: 8.6.3
   resolution: "ajv@npm:8.6.3"
@@ -3837,6 +3866,13 @@ __metadata:
   version: 1.1.2
   resolution: "depd@npm:1.1.2"
   checksum: 10c0/acb24aaf936ef9a227b6be6d495f0d2eb20108a9a6ad40585c5bda1a897031512fef6484e4fdbb80bd249fdaa82841fa1039f416ece03188e677ba11bcfda249
+  languageName: node
+  linkType: hard
+
+"dequal@npm:^2.0.3":
+  version: 2.0.3
+  resolution: "dequal@npm:2.0.3"
+  checksum: 10c0/f98860cdf58b64991ae10205137c0e97d384c3a4edc7f807603887b7c4b850af1224a33d88012009f150861cbee4fa2d322c4cc04b9313bee312e47f6ecaa888
   languageName: node
   linkType: hard
 
@@ -4682,6 +4718,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"eventsource-parser@npm:1.0.0":
+  version: 1.0.0
+  resolution: "eventsource-parser@npm:1.0.0"
+  checksum: 10c0/eb6b66231bd2b383f7a5fa1c5ca17d61cd8145afc560de8cc9f11ab60a05a22afd760de594886241378b831314c3b875c64ae3f596e9ce90cded99cbeef0ef9a
+  languageName: node
+  linkType: hard
+
 "expect-type@npm:^1.2.1":
   version: 1.2.1
   resolution: "expect-type@npm:1.2.1"
@@ -4892,6 +4935,7 @@ __metadata:
     "@types/react-dom": "npm:^18.2.0"
     "@vercel/blob": "npm:^1.1.1"
     "@vis.gl/react-google-maps": "npm:^1.5.2"
+    ai: "npm:^2.2.31"
     autoprefixer: "npm:^10.4.17"
     axios: "npm:^1.7.4"
     class-variance-authority: "npm:^0.7.1"
@@ -4909,6 +4953,7 @@ __metadata:
     next: "npm:14.1.3"
     next-auth: "npm:^4.24.5"
     next-themes: "npm:^0.4.6"
+    openai-edge: "npm:^1.2.3"
     postcss: "npm:^8.4.35"
     postcss-import: "npm:^16.0.1"
     postcss-nesting: "npm:^12.0.2"
@@ -6099,6 +6144,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"nanoid@npm:3.3.6":
+  version: 3.3.6
+  resolution: "nanoid@npm:3.3.6"
+  bin:
+    nanoid: bin/nanoid.cjs
+  checksum: 10c0/606b355960d0fcbe3d27924c4c52ef7d47d3b57208808ece73279420d91469b01ec1dce10fae512b6d4a8c5a5432b352b228336a8b2202a6ea68e67fa348e2ee
+  languageName: node
+  linkType: hard
+
 "nanoid@npm:^3.3.6, nanoid@npm:^3.3.8":
   version: 3.3.11
   resolution: "nanoid@npm:3.3.11"
@@ -6407,6 +6461,13 @@ __metadata:
   dependencies:
     wrappy: "npm:1"
   checksum: 10c0/bb9c0fa8f6420b89fea4e0fc80aac175f025358cd1374a8e7afb92672f58473684f45a784e18f147d07cf87e629cc277f63f35c48fdfdced662edd18779c5876
+  languageName: node
+  linkType: hard
+
+"openai-edge@npm:^1.2.3":
+  version: 1.2.3
+  resolution: "openai-edge@npm:1.2.3"
+  checksum: 10c0/362229696942ddd7ca80c5efb8cb7464e57a7013b640505c520c48f1bde2410b9af230f7f1e1c47fb28b3a7fe1f8049af821778b9c8bee0c29c062b617b33952
   languageName: node
   linkType: hard
 
@@ -7607,6 +7668,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"solid-swr-store@npm:0.10.7":
+  version: 0.10.7
+  resolution: "solid-swr-store@npm:0.10.7"
+  peerDependencies:
+    solid-js: ^1.2
+    swr-store: ^0.10
+  checksum: 10c0/da45f4eeb85323f8686b38dad09dbaf6aac2552191a7314be74bdc088080a11386d25ff7ba63754a880456b2647035f72640450ae07ec237bba4de2d884c2eb2
+  languageName: node
+  linkType: hard
+
 "sonner@npm:^2.0.3":
   version: 2.0.3
   resolution: "sonner@npm:2.0.3"
@@ -7644,6 +7715,17 @@ __metadata:
   dependencies:
     minipass: "npm:^7.0.3"
   checksum: 10c0/caddd5f544b2006e88fa6b0124d8d7b28208b83c72d7672d5ade44d794525d23b540f3396108c4eb9280dcb7c01f0bef50682f5b4b2c34291f7c5e211fd1417d
+  languageName: node
+  linkType: hard
+
+"sswr@npm:2.0.0":
+  version: 2.0.0
+  resolution: "sswr@npm:2.0.0"
+  dependencies:
+    swrev: "npm:^4.0.0"
+  peerDependencies:
+    svelte: ^4.0.0
+  checksum: 10c0/3eea2df761c58a11959bccceed5333100cfff6b1d4449c703a59e90c9f2662af00c476311ef1300bca24cca3dc6535b27caa9fa1a12e691318915fad01ed6cd5
   languageName: node
   linkType: hard
 
@@ -7805,6 +7887,42 @@ __metadata:
   version: 1.0.0
   resolution: "supports-preserve-symlinks-flag@npm:1.0.0"
   checksum: 10c0/6c4032340701a9950865f7ae8ef38578d8d7053f5e10518076e6554a9381fa91bd9c6850193695c141f32b21f979c985db07265a758867bac95de05f7d8aeb39
+  languageName: node
+  linkType: hard
+
+"swr-store@npm:0.10.6":
+  version: 0.10.6
+  resolution: "swr-store@npm:0.10.6"
+  dependencies:
+    dequal: "npm:^2.0.3"
+  checksum: 10c0/4d26084ec1aa83ef2e1c27be39e75a7f1e8e5b222dd5e0003c31495ed1827443647460b9de21879bd125f686fedc28928d7a067f03d9dde9a9298289cc217540
+  languageName: node
+  linkType: hard
+
+"swr@npm:2.2.0":
+  version: 2.2.0
+  resolution: "swr@npm:2.2.0"
+  dependencies:
+    use-sync-external-store: "npm:^1.2.0"
+  peerDependencies:
+    react: ^16.11.0 || ^17.0.0 || ^18.0.0
+  checksum: 10c0/f631dfd206a989313cd82e7d9477b11af08496000c339752c745e8b42ba58667528ee0c70ea529910a7b6dee9b4085e8a2cd622efb70b9709883211111e0d756
+  languageName: node
+  linkType: hard
+
+"swrev@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "swrev@npm:4.0.0"
+  checksum: 10c0/c2d2328f3f29d85af3b8fd9d449195f7be737d2efa465aeeaf1bf9b64473b610f0db82114261f9a11380bbe30c4a09fb702da24753144789de4073ede1d10824
+  languageName: node
+  linkType: hard
+
+"swrv@npm:1.0.4":
+  version: 1.0.4
+  resolution: "swrv@npm:1.0.4"
+  peerDependencies:
+    vue: ">=3.2.26 < 4"
+  checksum: 10c0/2bdf8bf3e461c21f9030ad47f1996e2429ca99cb31d0bb91ae5b04ba9b48e8fce93c356491cc69a3a586575a6ad0f5b29812b2a3a3e7ee28c1f2086c4f72f8b9
   languageName: node
   linkType: hard
 
@@ -8355,6 +8473,15 @@ __metadata:
     "@types/react":
       optional: true
   checksum: 10c0/161599bf921cfaa41c85d2b01c871975ee99260f3e874c2d41c05890d41170297bdcf314bc5185e7a700de2034ac5b888e3efc8e9f35724f4918f53538d717c9
+  languageName: node
+  linkType: hard
+
+"use-sync-external-store@npm:^1.2.0":
+  version: 1.5.0
+  resolution: "use-sync-external-store@npm:1.5.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10c0/1b8663515c0be34fa653feb724fdcce3984037c78dd4a18f68b2c8be55cc1a1084c578d5b75f158d41b5ddffc2bf5600766d1af3c19c8e329bb20af2ec6f52f4
   languageName: node
   linkType: hard
 

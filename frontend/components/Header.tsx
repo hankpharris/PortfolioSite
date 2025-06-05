@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from './buttons/Button';
 import { ContactForm } from './ContactForm';
+import { ChatBot } from './ChatBot';
 
 export function Header() {
     return (
@@ -33,6 +34,7 @@ export function Header() {
                             Admin
                         </Button>
                         <ContactForm />
+                        <ChatBot />
                     </div>
                 </div>
             </nav>
