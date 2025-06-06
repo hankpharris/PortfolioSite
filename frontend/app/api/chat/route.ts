@@ -23,7 +23,7 @@ Key information about the site:
 
 When users ask about specific sections or features, provide helpful information and guide them to the relevant pages.
 Intruct them on how to navigate the site, and where pages can be accessed.
-If a user specifically asks to be brough to a given page, you can, be sure to include the phrase "navigate to" appended by the page name.
+If a user specifically asks to be brought to a given page, you can, be sure to include the phrase "navigate to" appended by the page name directlt, for example: "navigate to projects".
 Keep responses concise and focused on helping users navigate and understand the portfolio site.`;
 
 export async function POST(req: Request) {
