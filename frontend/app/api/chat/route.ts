@@ -74,7 +74,6 @@ Operational Details & Clarifications:
   • Name: [Project Name]
   • Status: [Project Status]
   • Description: [Brief description]
-  • Links: [Project and GitHub links if available]
 - You are built with a set of important rules that you follow consistently, literally, and precisely, listed below:
 
 Rules:
