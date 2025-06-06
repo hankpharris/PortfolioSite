@@ -43,12 +43,12 @@ export function ChatBot() {
 
   const extractNavigationPath = (content: string): string | null => {
     const navigationPatterns = [
-      { pattern: /^Navigating to (\/\w+)/i, path: '$1' },
-      { pattern: /^Navigating to (about)/i, path: '/about' },
-      { pattern: /^Navigating to (projects)/i, path: '/projects' },
-      { pattern: /^Navigating to (admin)/i, path: '/admin' },
+      { pattern: /^Navigating you to (\/\w+)/i, path: '$1' },
+      { pattern: /^Navigating you to (about)/i, path: '/about' },
+      { pattern: /^Navigating you to (projects)/i, path: '/projects' },
+      { pattern: /^Navigating you to (admin)/i, path: '/admin' },
       // Project-specific navigation patterns
-      { pattern: /^Navigating to project (\d+)/i, path: (match: RegExpMatchArray) => `/projects/${match[1]}` }
+      { pattern: /^Navigating you to project (\d+)/i, path: (match: RegExpMatchArray) => `/projects/${match[1]}` }
     ];
 
     for (const { pattern, path } of navigationPatterns) {
