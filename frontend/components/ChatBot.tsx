@@ -54,16 +54,19 @@ export function ChatBot() {
       { pattern: /go to (admin)/i, path: '/admin' },
       { pattern: /take me to (admin)/i, path: '/admin' },
       // Project-specific navigation patterns
-      { pattern: /navigate to project (\d+)/i, path: '/projects/$1' },
-      { pattern: /go to project (\d+)/i, path: '/projects/$1' },
-      { pattern: /take me to project (\d+)/i, path: '/projects/$1' },
-      { pattern: /show me project (\d+)/i, path: '/projects/$1' },
-      { pattern: /view project (\d+)/i, path: '/projects/$1' }
+      { pattern: /navigate to project (\d+)/i, path: (match: RegExpMatchArray) => `/projects/${match[1]}` },
+      { pattern: /go to project (\d+)/i, path: (match: RegExpMatchArray) => `/projects/${match[1]}` },
+      { pattern: /take me to project (\d+)/i, path: (match: RegExpMatchArray) => `/projects/${match[1]}` },
+      { pattern: /show me project (\d+)/i, path: (match: RegExpMatchArray) => `/projects/${match[1]}` },
+      { pattern: /view project (\d+)/i, path: (match: RegExpMatchArray) => `/projects/${match[1]}` }
     ];
 
     for (const { pattern, path } of navigationPatterns) {
       const match = content.match(pattern);
       if (match) {
+        if (typeof path === 'function') {
+          return path(match);
+        }
         return path.startsWith('/') ? path : `/${path}`;
       }
     }
