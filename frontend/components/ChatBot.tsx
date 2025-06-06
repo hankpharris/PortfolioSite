@@ -28,9 +28,9 @@ export function ChatBot() {
     api: '/api/chat',
     onFinish: (message) => {
       // Check if the message contains a navigation request
-      const content = message.content.toLowerCase();
-      // Look for navigation phrases anywhere in the message
-      const navigationMatch = content.match(/navigating to (?:project )?(\d+|\/\w+|\w+)/i);
+      const content = message.content;
+      // Look for navigation phrases at the start of the message
+      const navigationMatch = content.match(/^Navigating to (?:project )?(\d+|\/\w+|\w+)/i);
       if (navigationMatch) {
         const path = extractNavigationPath(navigationMatch[0]);
         if (path) {
@@ -43,26 +43,12 @@ export function ChatBot() {
 
   const extractNavigationPath = (content: string): string | null => {
     const navigationPatterns = [
-      { pattern: /navigate to (\/\w+)/i, path: '$1' },
-      { pattern: /Navigating to (\/\w+)/i, path: '$1' },
-      { pattern: /go to (\/\w+)/i, path: '$1' },
-      { pattern: /take me to (\/\w+)/i, path: '$1' },
-      { pattern: /navigate to (about)/i, path: '/about' },
-      { pattern: /go to (about)/i, path: '/about' },
-      { pattern: /take me to (about)/i, path: '/about' },
-      { pattern: /navigate to (projects)/i, path: '/projects' },
-      { pattern: /go to (projects)/i, path: '/projects' },
-      { pattern: /take me to (projects)/i, path: '/projects' },
-      { pattern: /navigate to (admin)/i, path: '/admin' },
-      { pattern: /go to (admin)/i, path: '/admin' },
-      { pattern: /take me to (admin)/i, path: '/admin' },
+      { pattern: /^Navigating to (\/\w+)/i, path: '$1' },
+      { pattern: /^Navigating to (about)/i, path: '/about' },
+      { pattern: /^Navigating to (projects)/i, path: '/projects' },
+      { pattern: /^Navigating to (admin)/i, path: '/admin' },
       // Project-specific navigation patterns
-      { pattern: /navigate to project (\d+)/i, path: (match: RegExpMatchArray) => `/projects/${match[1]}` },
-      { pattern: /Navigating to project (\d+)/i, path: (match: RegExpMatchArray) => `/projects/${match[1]}` },
-      { pattern: /go to project (\d+)/i, path: (match: RegExpMatchArray) => `/projects/${match[1]}` },
-      { pattern: /take me to project (\d+)/i, path: (match: RegExpMatchArray) => `/projects/${match[1]}` },
-      { pattern: /show me project (\d+)/i, path: (match: RegExpMatchArray) => `/projects/${match[1]}` },
-      { pattern: /view project (\d+)/i, path: (match: RegExpMatchArray) => `/projects/${match[1]}` }
+      { pattern: /^Navigating to project (\d+)/i, path: (match: RegExpMatchArray) => `/projects/${match[1]}` }
     ];
 
     for (const { pattern, path } of navigationPatterns) {
