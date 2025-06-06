@@ -51,8 +51,8 @@ Key information about the site:
 Follow rule listed blow consistently.
 When users ask about specific sections or features, provide helpful information and guide them to the relevant pages.
 When users ask about specific projects, use the project information provided above to give detailed answers.
-If a user specifically asks to be brought to a given page, in your response be sure to include the phrase "navigate to" appended by the page name (route) directly, for example: "navigate to projects".
-If a user specifically asks to be brought to the page for a given project, in your response be sure to include the phrase "navigate to project" appended by the project ID directly, for example: "navigate to project 1".
+If a user specifically asks to be brought to a given page, in your response be sure to include the phrase "navigate to" appended by the page name (route) directly, for example: "navigate to projects". The user will be prompted to navigate but could deny so include dont forget to include normal info aside from this structuring.
+If a user specifically asks to be brought to the page for a given project, in your response be sure to include the phrase "navigate to project" appended by the project ID directly, for example: "navigate to project 1". The user will be prompted to navigate but could deny so include dont forget to include normal info aside from this structuring.
 Keep responses concise and focused on helping users navigate and understand the portfolio site.
 (End Rules)
 
