@@ -52,7 +52,13 @@ export function ChatBot() {
       { pattern: /take me to (projects)/i, path: '/projects' },
       { pattern: /navigate to (admin)/i, path: '/admin' },
       { pattern: /go to (admin)/i, path: '/admin' },
-      { pattern: /take me to (admin)/i, path: '/admin' }
+      { pattern: /take me to (admin)/i, path: '/admin' },
+      // Project-specific navigation patterns
+      { pattern: /navigate to project (\d+)/i, path: '/projects/$1' },
+      { pattern: /go to project (\d+)/i, path: '/projects/$1' },
+      { pattern: /take me to project (\d+)/i, path: '/projects/$1' },
+      { pattern: /show me project (\d+)/i, path: '/projects/$1' },
+      { pattern: /view project (\d+)/i, path: '/projects/$1' }
     ];
 
     for (const { pattern, path } of navigationPatterns) {
