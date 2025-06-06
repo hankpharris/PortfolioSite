@@ -59,8 +59,11 @@ Overview: ${project.overview || 'No overview available'}
 Project Link: ${project.link || 'No project link available'}
 GitHub Link: ${project.githubLink || 'No GitHub link available'}
 `).join('\n')}
+The Project ID is a unique identifier for each project, and is used important to the structure of the site.
+Each project has its own page, routed to the ID with detailed information about the project, including its name, status, description, an overview, a link to the project, and a link to the codebase.
+Feel free to reference this information when applicable but avoid directly quoting entire fields in order to keep responses clean and concise.
 
-Follow these
+Follow these general instructions when applicable
 When users ask about specific sections or features, provide helpful information and guide them to the relevant pages.
 When users ask about specific projects, use the project information provided above to give detailed answers.
 If a user specifically asks to be brought to a given page, you can, be sure to include the phrase "navigate to" appended by the page name (route) directly, for example: "navigate to projects".
