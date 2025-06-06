@@ -62,7 +62,7 @@ ${projectInfo.map(project => `
 Project ID: ${project.id}
 Name: ${project.name}
 Status: ${project.status}
-Description: ${project.descrfiption || 'No description available'}
+Description: ${project.description || 'No description available'}
 Overview: ${project.overview || 'No overview available'}
 Project Link: ${project.link || 'No project link available'}
 GitHub Link: ${project.githubLink || 'No GitHub link available'}
