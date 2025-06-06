@@ -118,7 +118,7 @@ export function ChatBot() {
                       message.role === 'assistant'
                         ? 'bg-white/50 backdrop-blur-sm text-gray-800'
                         : 'bg-gray-800/80 backdrop-blur-sm text-white'
-                    }`}
+                    } whitespace-pre-line`}
                   >
                     {message.content}
                   </div>
