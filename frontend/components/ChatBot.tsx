@@ -30,7 +30,7 @@ export function ChatBot() {
       // Check if the message contains a navigation request
       const content = message.content;
       // Look for navigation phrases at the start of the message
-      const navigationMatch = content.match(/^Navigating to (?:project )?(\d+|\/\w+|\w+)/i);
+      const navigationMatch = content.match(/^Navigating you to (?:project )?(\d+|\/\w+|\w+)/i);
       if (navigationMatch) {
         const path = extractNavigationPath(navigationMatch[0]);
         if (path) {
