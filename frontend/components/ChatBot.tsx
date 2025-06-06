@@ -54,7 +54,7 @@ export function ChatBot() {
       { pattern: /go to (admin)/i, path: '/admin' },
       { pattern: /take me to (admin)/i, path: '/admin' },
       // Project-specific navigation patterns
-      { pattern: /navigate to project (\/\w+)/i, path: '/projects/$1' },
+      { pattern: /navigate to project (\d+)/i, path: '/projects/$1' },
       { pattern: /go to project (\d+)/i, path: '/projects/$1' },
       { pattern: /take me to project (\d+)/i, path: '/projects/$1' },
       { pattern: /show me project (\d+)/i, path: '/projects/$1' },
