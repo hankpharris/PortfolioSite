@@ -5,6 +5,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { MessageSquare, X, Send } from 'lucide-react';
 import { Button } from './buttons/Button';
 import { useChat } from 'ai/react';
+import { useRouter } from 'next/navigation';
 
 const welcomeMessage = {
   content: `Hi! I'm Bueller, an AI assistant for this portfolio site. I was built by Henry Pharris using vercels AI SDK and OpenAI's GPT 3.5-Turbo model & api. I can help you:
@@ -19,9 +20,63 @@ How can I help you today?`
 
 export function ChatBot() {
   const [isOpen, setIsOpen] = useState(false);
+  const [showNavigationConfirm, setShowNavigationConfirm] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+  const router = useRouter();
+
   const { messages, input, handleInputChange, handleSubmit } = useChat({
-    api: '/api/chat'
+    api: '/api/chat',
+    onFinish: (message) => {
+      // Check if the message contains a navigation request
+      const content = message.content.toLowerCase();
+      if (content.includes('navigate to') || content.includes('go to') || content.includes('take me to')) {
+        const path = extractNavigationPath(content);
+        if (path) {
+          setPendingNavigation(path);
+          setShowNavigationConfirm(true);
+        }
+      }
+    }
   });
+
+  const extractNavigationPath = (content: string): string | null => {
+    const navigationPatterns = [
+      { pattern: /navigate to (\/\w+)/i, path: '$1' },
+      { pattern: /go to (\/\w+)/i, path: '$1' },
+      { pattern: /take me to (\/\w+)/i, path: '$1' },
+      { pattern: /navigate to (about)/i, path: '/about' },
+      { pattern: /go to (about)/i, path: '/about' },
+      { pattern: /take me to (about)/i, path: '/about' },
+      { pattern: /navigate to (projects)/i, path: '/projects' },
+      { pattern: /go to (projects)/i, path: '/projects' },
+      { pattern: /take me to (projects)/i, path: '/projects' },
+      { pattern: /navigate to (admin)/i, path: '/admin' },
+      { pattern: /go to (admin)/i, path: '/admin' },
+      { pattern: /take me to (admin)/i, path: '/admin' }
+    ];
+
+    for (const { pattern, path } of navigationPatterns) {
+      const match = content.match(pattern);
+      if (match) {
+        return path.startsWith('/') ? path : `/${path}`;
+      }
+    }
+    return null;
+  };
+
+  const handleNavigation = () => {
+    if (pendingNavigation) {
+      setIsOpen(false);
+      setShowNavigationConfirm(false);
+      setPendingNavigation(null);
+      router.push(pendingNavigation);
+    }
+  };
+
+  const cancelNavigation = () => {
+    setShowNavigationConfirm(false);
+    setPendingNavigation(null);
+  };
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={setIsOpen}>
@@ -71,6 +126,30 @@ export function ChatBot() {
                 </div>
               ))}
             </div>
+
+            {/* Navigation Confirmation Dialog */}
+            {showNavigationConfirm && (
+              <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center rounded-xl">
+                <div className="bg-white/90 p-6 rounded-xl shadow-xl max-w-sm mx-4">
+                  <h3 className="text-lg font-semibold mb-2">Confirm Navigation</h3>
+                  <p className="mb-4">Would you like to navigate to {pendingNavigation}?</p>
+                  <div className="flex justify-end gap-2">
+                    <button
+                      onClick={cancelNavigation}
+                      className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleNavigation}
+                      className="px-4 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-900 transition-colors"
+                    >
+                      Navigate
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200/50">
               <div className="flex gap-2">
