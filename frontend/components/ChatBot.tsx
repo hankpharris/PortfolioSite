@@ -29,8 +29,10 @@ export function ChatBot() {
     onFinish: (message) => {
       // Check if the message contains a navigation request
       const content = message.content.toLowerCase();
-      if (content.includes('navigate to') || content.includes('go to') || content.includes('take me to')) {
-        const path = extractNavigationPath(content);
+      // Look for navigation phrases anywhere in the message
+      const navigationMatch = content.match(/navigating to (?:project )?(\d+|\/\w+|\w+)/i);
+      if (navigationMatch) {
+        const path = extractNavigationPath(navigationMatch[0]);
         if (path) {
           setPendingNavigation(path);
           setShowNavigationConfirm(true);
