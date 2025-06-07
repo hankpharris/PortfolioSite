@@ -2,13 +2,13 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
 import { Button } from './buttons/Button';
 import { ContactForm } from './ContactForm';
 import { ChatBot } from './ChatBot';
+import { useChatStore } from '../store/chatStore';
 
 export function Header() {
-    const [isChatOpen, setIsChatOpen] = useState(false);
+    const { isOpen, setIsOpen } = useChatStore();
 
     return (
         <header className="fixed top-0 left-0 right-0 z-50 bg-white/30 backdrop-blur-md shadow-lg">
@@ -39,7 +39,7 @@ export function Header() {
                             Admin
                         </Button>
                         <ContactForm />
-                        <ChatBot isOpen={isChatOpen} onOpenChange={setIsChatOpen} />
+                        <ChatBot isOpen={isOpen} onOpenChange={setIsOpen} />
                     </div>
                 </div>
             </nav>

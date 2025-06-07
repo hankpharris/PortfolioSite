@@ -455,12 +455,16 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
   }, [isTTSEnabled]);
 
   return (
-    <Dialog.Root open={isOpen} onOpenChange={handleOpenChange} modal={false}>
-      <Dialog.Trigger asChild>
-        <Button variant="nav">
-          <MessageSquare className="h-5 w-5" />
-        </Button>
-      </Dialog.Trigger>
+    <Dialog.Root open={isOpen} onOpenChange={onOpenChange} modal={false}>
+      <Button 
+        variant="nav" 
+        onClick={(e: React.MouseEvent) => {
+          e.preventDefault();
+          onOpenChange(!isOpen);
+        }}
+      >
+        <MessageSquare className="h-5 w-5" />
+      </Button>
       <Dialog.Portal>
         <Dialog.Overlay className="hidden" />
         <Dialog.Content 
