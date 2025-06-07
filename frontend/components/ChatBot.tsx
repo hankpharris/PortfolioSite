@@ -8,10 +8,64 @@ import { useChat } from 'ai/react';
 import { useRouter } from 'next/navigation';
 
 // Add type declarations for Web Speech API
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+  resultIndex: number;
+  interpretation: unknown;
+}
+
+interface SpeechRecognitionResultList {
+  length: number;
+  item(index: number): SpeechRecognitionResult;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResult {
+  isFinal: boolean;
+  length: number;
+  item(index: number): SpeechRecognitionAlternative;
+  [index: number]: SpeechRecognitionAlternative;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+interface SpeechRecognitionError extends Event {
+  error: string;
+  message: string;
+}
+
+type SpeechRecognitionEventHandler = (this: SpeechRecognition, ev: Event) => void;
+type SpeechRecognitionErrorEventHandler = (this: SpeechRecognition, ev: SpeechRecognitionError) => void;
+type SpeechRecognitionResultEventHandler = (this: SpeechRecognition, ev: SpeechRecognitionEvent) => void;
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  maxAlternatives: number;
+  onaudioend: SpeechRecognitionEventHandler | null;
+  onaudiostart: SpeechRecognitionEventHandler | null;
+  onend: SpeechRecognitionEventHandler | null;
+  onerror: SpeechRecognitionErrorEventHandler | null;
+  onnomatch: SpeechRecognitionEventHandler | null;
+  onresult: SpeechRecognitionResultEventHandler | null;
+  onsoundend: SpeechRecognitionEventHandler | null;
+  onsoundstart: SpeechRecognitionEventHandler | null;
+  onspeechend: SpeechRecognitionEventHandler | null;
+  onspeechstart: SpeechRecognitionEventHandler | null;
+  onstart: SpeechRecognitionEventHandler | null;
+  start(): void;
+  stop(): void;
+  abort(): void;
+}
+
 declare global {
   interface Window {
-    SpeechRecognition: typeof SpeechRecognition;
-    webkitSpeechRecognition: typeof SpeechRecognition;
+    SpeechRecognition: new () => SpeechRecognition;
+    webkitSpeechRecognition: new () => SpeechRecognition;
   }
 }
 
