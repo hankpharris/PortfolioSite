@@ -114,6 +114,7 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
 
   // Handle chat open/close
   const handleOpenChange = useCallback((open: boolean) => {
+    console.log('Dialog onOpenChange called with:', open);
     onOpenChange(open);
   }, [onOpenChange]);
 
@@ -455,98 +456,112 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
   }, [isTTSEnabled]);
 
   return (
-    <Dialog.Root open={isOpen} onOpenChange={onOpenChange} modal={false}>
+    <>
       <Button 
         variant="nav" 
         onClick={(e: React.MouseEvent) => {
+          console.log('Button clicked, current state:', isOpen);
           e.preventDefault();
+          e.stopPropagation();
           onOpenChange(!isOpen);
         }}
       >
         <MessageSquare className="h-5 w-5" />
       </Button>
-      <Dialog.Portal>
-        <Dialog.Overlay className="hidden" />
-        <Dialog.Content 
-          className="fixed top-[88px] right-4 bottom-4 w-full max-w-md bg-gray-800/30 backdrop-blur-md shadow-xl z-[101] rounded-xl transform transition-all duration-500 ease-in-out translate-x-full data-[state=open]:translate-x-0 overflow-hidden"
-          onPointerDownOutside={(e) => e.preventDefault()}
-        >
-          <div className="flex flex-col h-full">
-            <div className="flex items-center justify-between p-4 border-b border-gray-200/50 bg-gray-800 rounded-t-xl">
-              <Dialog.Title className="text-xl font-bold text-white">"Bueller" the AI Chat Assistant</Dialog.Title>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsTTSEnabled(!isTTSEnabled)}
-                  className={`p-2 rounded-lg transition-colors ${
-                    isTTSEnabled
-                      ? 'bg-gray-700 text-white hover:bg-gray-600'
-                      : 'text-gray-300 hover:text-white'
-                  }`}
-                  title={isTTSEnabled ? 'Disable TTS' : 'Enable TTS'}
-                >
-                  {isTTSEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
-                </button>
-                <Dialog.Close className="text-gray-300 hover:text-white">
-                  <X size={20} />
-                </Dialog.Close>
-              </div>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white/30 backdrop-blur-md">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${
-                    message.role === 'assistant' ? 'justify-start' : 'justify-end'
-                  }`}
-                >
-                  <div
-                    className={`max-w-[80%] rounded-lg p-3 ${
-                      message.role === 'assistant'
-                        ? 'bg-gray-700 text-white'
-                        : 'bg-blue-600 text-white'
-                    }`}
-                  >
-                    {message.content}
+      {isOpen && (
+        <Dialog.Root open={isOpen} onOpenChange={handleOpenChange} modal={false}>
+          <Dialog.Portal>
+            <Dialog.Overlay className="hidden" />
+            <Dialog.Content 
+              className="fixed top-[88px] right-4 bottom-4 w-full max-w-md bg-gray-800/30 backdrop-blur-md shadow-xl z-[101] rounded-xl transform transition-all duration-500 ease-in-out translate-x-full data-[state=open]:translate-x-0 overflow-hidden"
+              onPointerDownOutside={(e) => e.preventDefault()}
+            >
+              <div className="flex flex-col h-full">
+                <div className="flex items-center justify-between p-4 border-b border-gray-200/50 bg-gray-800 rounded-t-xl">
+                  <Dialog.Title className="text-xl font-bold text-white">"Bueller" the AI Chat Assistant</Dialog.Title>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsTTSEnabled(!isTTSEnabled)}
+                      className={`p-2 rounded-lg transition-colors ${
+                        isTTSEnabled
+                          ? 'bg-gray-700 text-white hover:bg-gray-600'
+                          : 'text-gray-300 hover:text-white'
+                      }`}
+                      title={isTTSEnabled ? 'Disable TTS' : 'Enable TTS'}
+                    >
+                      {isTTSEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
+                    </button>
+                    <Dialog.Close asChild>
+                      <button
+                        onClick={() => {
+                          console.log('Close button clicked');
+                          onOpenChange(false);
+                        }}
+                        className="text-gray-300 hover:text-white"
+                      >
+                        <X size={20} />
+                      </button>
+                    </Dialog.Close>
                   </div>
                 </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
-            <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200/50 bg-gray-800 rounded-b-xl">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Type your message..."
-                  className="flex-1 px-4 py-2 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button
-                  type="button"
-                  onClick={toggleSTT}
-                  className={`p-2 rounded-lg transition-colors ${
-                    isSTTEnabled
-                      ? 'bg-gray-700 text-white hover:bg-gray-600'
-                      : 'text-gray-300 hover:text-white'
-                  }`}
-                  title={isSTTEnabled ? 'Disable STT' : 'Enable STT'}
-                >
-                  {isSTTEnabled ? <Mic size={20} /> : <MicOff size={20} />}
-                </button>
-                <button
-                  type="submit"
-                  disabled={!input.trim()}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Send size={20} />
-                </button>
+                <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white/30 backdrop-blur-md">
+                  {messages.map((message) => (
+                    <div
+                      key={message.id}
+                      className={`flex ${
+                        message.role === 'assistant' ? 'justify-start' : 'justify-end'
+                      }`}
+                    >
+                      <div
+                        className={`max-w-[80%] rounded-lg p-3 ${
+                          message.role === 'assistant'
+                            ? 'bg-gray-700 text-white'
+                            : 'bg-blue-600 text-white'
+                        }`}
+                      >
+                        {message.content}
+                      </div>
+                    </div>
+                  ))}
+                  <div ref={messagesEndRef} />
+                </div>
+                <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200/50 bg-gray-800 rounded-b-xl">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      placeholder="Type your message..."
+                      className="flex-1 px-4 py-2 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={toggleSTT}
+                      className={`p-2 rounded-lg transition-colors ${
+                        isSTTEnabled
+                          ? 'bg-gray-700 text-white hover:bg-gray-600'
+                          : 'text-gray-300 hover:text-white'
+                      }`}
+                      title={isSTTEnabled ? 'Disable STT' : 'Enable STT'}
+                    >
+                      {isSTTEnabled ? <Mic size={20} /> : <MicOff size={20} />}
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={!input.trim()}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Send size={20} />
+                    </button>
+                  </div>
+                </form>
               </div>
-            </form>
-          </div>
-        </Dialog.Content>
-      </Dialog.Portal>
+            </Dialog.Content>
+          </Dialog.Portal>
+        </Dialog.Root>
+      )}
       <audio ref={audioRef} className="hidden" />
-    </Dialog.Root>
+    </>
   );
 } 
