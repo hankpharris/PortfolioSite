@@ -98,7 +98,7 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
   const [showNavigationConfirm, setShowNavigationConfirm] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
   const [isTTSEnabled, setIsTTSEnabled] = useState(false);
-  const { isSTTEnabled, setIsSTTEnabled, isRecording, setIsRecording } = useChatStore();
+  const { isRecording, setIsRecording, isTranscribing, setIsTranscribing } = useChatStore();
   const [messages, setMessages] = useState<Message[]>([welcomeMessage]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -135,7 +135,7 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
             .join('')
             .toLowerCase();
 
-          console.log('Speech recognized:', transcript);
+          console.log('Speech recognized:', transcript, 'Recording:', isRecording, 'Transcribing:', isTranscribing);
 
           // Handle wake words and commands
           if (transcript.includes('hey bueller') || transcript.includes('hello bueller')) {
@@ -151,9 +151,9 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
           // Only process message commands if chat is open
           if (isOpen) {
             if (transcript.includes('start message') || transcript.includes('start a message') || transcript.includes('begin message')) {
-              // Clear any existing input and start recording
+              console.log('Starting message transcription');
               setInput('');
-              setIsRecording(true);
+              setIsTranscribing(true);
               return;
             }
 
@@ -165,24 +165,25 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
                   setInput('');
                 }
               }
-              setIsRecording(false);
+              setIsTranscribing(false);
               return;
             }
 
             if (transcript.includes('reset message') || transcript.includes('clear message')) {
               setInput('');
-              setIsRecording(false);
+              setIsTranscribing(false);
               return;
             }
 
-            // Only update input if we're in recording mode
-            if (isRecording) {
+            // Only update input if we're in transcribing mode
+            if (isTranscribing) {
               // Remove any wake words or commands from the transcript
               const cleanTranscript = transcript
                 .replace(/hey bueller| hello bueller| goodbye bueller| bye bueller| close bueller|start message|send message|send a message|reset message|clear message/gi, '')
                 .trim();
 
               if (cleanTranscript) {
+                console.log('Updating input with:', cleanTranscript);
                 setInput(cleanTranscript);
               }
             }
@@ -192,7 +193,7 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
         recognitionRef.current.onerror = (event) => {
           console.error('Speech recognition error:', event.error);
           // Restart recognition if it stops due to an error
-          if (isSTTEnabled && recognitionRef.current) {
+          if (isRecording && recognitionRef.current) {
             try {
               recognitionRef.current.start();
             } catch (error) {
@@ -203,7 +204,7 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
 
         recognitionRef.current.onend = () => {
           // Restart recognition if it was enabled
-          if (isSTTEnabled && recognitionRef.current) {
+          if (isRecording && recognitionRef.current) {
             try {
               recognitionRef.current.start();
             } catch (error) {
@@ -212,8 +213,8 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
           }
         };
 
-        // Start recognition if STT is enabled
-        if (isSTTEnabled) {
+        // Start recognition if recording is enabled
+        if (isRecording) {
           try {
             recognitionRef.current.start();
           } catch (error) {
@@ -228,25 +229,25 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
         recognitionRef.current.stop();
       }
     };
-  }, [isSTTEnabled, isOpen, onOpenChange, isRecording]);
+  }, [isRecording, isOpen, onOpenChange, isTranscribing]);
 
-  // Handle STT toggle
-  const toggleSTT = useCallback(() => {
+  // Handle recording toggle
+  const toggleRecording = useCallback(() => {
     if (recognitionRef.current) {
-      if (!isSTTEnabled) {
+      if (!isRecording) {
         try {
           recognitionRef.current.start();
-          setIsSTTEnabled(true);
+          setIsRecording(true);
         } catch (error) {
           console.error('Failed to start speech recognition:', error);
         }
       } else {
         recognitionRef.current.stop();
-        setIsSTTEnabled(false);
         setIsRecording(false);
+        setIsTranscribing(false);
       }
     }
-  }, [isSTTEnabled, setIsSTTEnabled, setIsRecording]);
+  }, [isRecording, setIsRecording, setIsTranscribing]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -525,6 +526,18 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
                       {isTTSEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
                     </button>
                     <button
+                      type="button"
+                      onClick={toggleRecording}
+                      className={`p-2 rounded-lg transition-colors ${
+                        isRecording
+                          ? 'bg-gray-700 text-white hover:bg-gray-600'
+                          : 'text-gray-300 hover:text-white'
+                      }`}
+                      title={isRecording ? 'Disable Voice Input' : 'Enable Voice Input'}
+                    >
+                      {isRecording ? <Mic size={20} /> : <MicOff size={20} />}
+                    </button>
+                    <button
                       onClick={() => {
                         console.log('Close button clicked');
                         onOpenChange(false);
@@ -565,18 +578,6 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
                       placeholder="Type your message..."
                       className="flex-1 px-4 py-2 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                    <button
-                      type="button"
-                      onClick={toggleSTT}
-                      className={`p-2 rounded-lg transition-colors ${
-                        isSTTEnabled
-                          ? 'bg-gray-700 text-white hover:bg-gray-600'
-                          : 'text-gray-300 hover:text-white'
-                      }`}
-                      title={isSTTEnabled ? 'Disable STT' : 'Enable STT'}
-                    >
-                      {isSTTEnabled ? <Mic size={20} /> : <MicOff size={20} />}
-                    </button>
                     <button
                       type="submit"
                       disabled={!input.trim()}
