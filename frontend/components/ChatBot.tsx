@@ -176,10 +176,10 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
               // Check for send message command
               if (transcript.includes('send message') || transcript.includes('send a message')) {
                 if (input.trim()) {
-                  // Use the existing form submission logic
-                  const form = document.querySelector('form');
-                  if (form) {
-                    form.requestSubmit();
+                  // Use the exact same flow as the manual send button
+                  const submitButton = document.querySelector('button[type="submit"]') as HTMLButtonElement;
+                  if (submitButton) {
+                    submitButton.click();
                   }
                   setInput('');
                 }
