@@ -89,12 +89,13 @@ type Message = {
   content: string;
 };
 
-type ChatBotProps = {
+interface ChatBotProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-};
+  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+}
 
-export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
+export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
   const [showNavigationConfirm, setShowNavigationConfirm] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
   const [isTTSEnabled, setIsTTSEnabled] = useState(false);
@@ -175,12 +176,21 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
               // Check for send message command
               if (transcript.includes('send message') || transcript.includes('send a message')) {
                 if (input.trim()) {
-                  const form = document.querySelector('form');
-                  if (form) {
-                    const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
-                    form.dispatchEvent(submitEvent);
-                    setInput('');
-                  }
+                  // Create a synthetic form event
+                  const formEvent = {
+                    preventDefault: () => {},
+                    target: {
+                      elements: {
+                        message: {
+                          value: input
+                        }
+                      }
+                    }
+                  } as unknown as React.FormEvent<HTMLFormElement>;
+                  
+                  // Call handleSubmit directly
+                  handleSubmit(formEvent);
+                  setInput('');
                 }
                 setIsTranscribing(false);
                 return;
