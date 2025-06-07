@@ -101,11 +101,22 @@ export function ChatBot() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const isClosingRef = useRef(false);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Handle chat close
+  const handleClose = useCallback(() => {
+    isClosingRef.current = true;
+    setIsOpen(false);
+    // Reset the closing state after a short delay
+    setTimeout(() => {
+      isClosingRef.current = false;
+    }, 1000); // 1 second delay before re-enabling wake word
+  }, []);
 
   // Initialize speech recognition
   useEffect(() => {
@@ -121,8 +132,8 @@ export function ChatBot() {
             .map(result => result[0].transcript)
             .join('');
 
-          // Check for wake word and commands
-          if (transcript.toLowerCase().includes('hey bueller')) {
+          // Check for wake word and commands, but only if we're not currently closing
+          if (!isClosingRef.current && transcript.toLowerCase().includes('hey bueller')) {
             // Open chat if closed
             if (!isOpen) {
               setIsOpen(true);
@@ -186,7 +197,7 @@ export function ChatBot() {
         recognitionRef.current.stop();
       }
     };
-  }, [isSTTEnabled]); // Only re-run when STT is toggled
+  }, [isSTTEnabled, isOpen]);
 
   // Handle STT toggle
   const toggleSTT = useCallback(() => {
@@ -445,7 +456,7 @@ export function ChatBot() {
   }, [isTTSEnabled]);
 
   return (
-    <Dialog.Root open={isOpen} onOpenChange={setIsOpen} modal={false}>
+    <Dialog.Root open={isOpen} onOpenChange={handleClose} modal={false}>
       <Dialog.Trigger asChild>
         <Button variant="nav">
           <MessageSquare className="w-5 h-5 mr-2" />
