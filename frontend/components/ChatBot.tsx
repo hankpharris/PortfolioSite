@@ -7,6 +7,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { MessageSquare, X, Send, Volume2, VolumeX } from 'lucide-react';
 import { Button } from './buttons/Button';
+import type { Message } from 'ai';
 
 const welcomeMessage = {
   id: 'welcome',
@@ -16,59 +17,43 @@ const welcomeMessage = {
 
 export function ChatBot() {
   const [isOpen, setIsOpen] = useState(false);
-  const [showNavigationConfirm, setShowNavigationConfirm] = useState(false);
-  const [pendingNavigation, setPendingNavigation] = useState('');
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
   const [isTTSEnabled, setIsTTSEnabled] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [navigationTarget, setNavigationTarget] = useState('');
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const router = useRouter();
 
-  const { messages, input, handleInputChange, handleSubmit, setMessages } = useChat({
+  const { messages: aiMessages, input: aiInput, handleInputChange, handleSubmit, isLoading } = useChat({
     api: '/api/chat',
-    onFinish: async (message) => {
-      const content = message.content;
-      const navigationMatch = content.match(/^Navigating you to (?:project )?(\d+|\/\w+|\w+)/i);
-      
-      if (navigationMatch) {
-        const path = navigationMatch[1];
-        setPendingNavigation(path);
-        setShowNavigationConfirm(true);
-      }
-
-      // Handle TTS if enabled
-      if (isTTSEnabled && message.role === 'assistant') {
-        try {
-          const response = await fetch(`/api/chat?text=${encodeURIComponent(content)}`);
-          if (!response.ok) throw new Error('TTS request failed');
-          
-          const audioBlob = await response.blob();
-          const audioUrl = URL.createObjectURL(audioBlob);
-          
-          if (audioRef.current) {
-            audioRef.current.src = audioUrl;
-            audioRef.current.play();
-          }
-        } catch (error) {
-          console.error('Error playing TTS:', error);
+    onResponse: async (response) => {
+      const data = await response.json();
+      if (data.useTTS && isTTSEnabled) {
+        const audioUrl = `/api/chat?text=${encodeURIComponent(data.content)}`;
+        if (audioRef.current) {
+          audioRef.current.src = audioUrl;
+          audioRef.current.play().catch(console.error);
         }
       }
     }
   });
 
   const handleNavigation = useCallback(() => {
-    if (pendingNavigation.startsWith('/')) {
-      router.push(pendingNavigation);
-    } else if (/^\d+$/.test(pendingNavigation)) {
-      router.push(`/projects/${pendingNavigation}`);
+    if (navigationTarget.startsWith('/')) {
+      router.push(navigationTarget);
+    } else if (/^\d+$/.test(navigationTarget)) {
+      router.push(`/projects/${navigationTarget}`);
     } else {
-      router.push(`/${pendingNavigation}`);
+      router.push(`/${navigationTarget}`);
     }
-    setShowNavigationConfirm(false);
+    setIsNavigating(false);
     setIsOpen(false);
-  }, [pendingNavigation, router]);
+  }, [navigationTarget, router]);
 
   const cancelNavigation = useCallback(() => {
-    setShowNavigationConfirm(false);
-    setPendingNavigation('');
+    setIsNavigating(false);
+    setNavigationTarget('');
   }, []);
 
   useEffect(() => {
@@ -79,23 +64,26 @@ export function ChatBot() {
 
   return (
     <>
-      <Button variant="nav" onClick={() => setIsOpen(true)}>
-        <MessageSquare className="w-5 h-5 mr-2" />
-        Chat
-      </Button>
+      <button
+        onClick={() => setIsOpen(true)}
+        className="fixed bottom-4 right-4 p-3 bg-black/80 hover:bg-black text-white rounded-full shadow-lg transition-all duration-300 hover:scale-110 z-50"
+        aria-label="Open chat"
+      >
+        <MessageSquare className="w-6 h-6" />
+      </button>
 
-      <Transition.Root show={isOpen} as={Fragment}>
+      <Transition show={isOpen} as={Fragment}>
         <Dialog as="div" className="relative z-50" onClose={setIsOpen}>
           <Transition.Child
             as={Fragment}
-            enter="ease-out duration-500"
+            enter="ease-out duration-300"
             enterFrom="opacity-0"
             enterTo="opacity-100"
-            leave="ease-in duration-500"
+            leave="ease-in duration-200"
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" />
           </Transition.Child>
 
           <div className="fixed inset-0 overflow-hidden">
@@ -103,55 +91,51 @@ export function ChatBot() {
               <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
                 <Transition.Child
                   as={Fragment}
-                  enter="transform transition ease-in-out duration-500"
+                  enter="transform transition ease-in-out duration-300"
                   enterFrom="translate-x-full"
                   enterTo="translate-x-0"
-                  leave="transform transition ease-in-out duration-500"
+                  leave="transform transition ease-in-out duration-300"
                   leaveFrom="translate-x-0"
                   leaveTo="translate-x-full"
                 >
                   <Dialog.Panel className="pointer-events-auto w-screen max-w-md">
-                    <div className="flex h-[calc(100vh-72px)] flex-col overflow-y-scroll bg-white/30 backdrop-blur-md shadow-xl rounded-xl">
-                      <div className="flex items-center justify-between p-4 border-b border-gray-200/50 bg-gray-800 rounded-t-xl">
-                        <Dialog.Title className="text-xl font-bold text-white">"Bueller" the AI Chat Assistant</Dialog.Title>
+                    <div className="flex h-[calc(100vh-5rem)] flex-col overflow-y-auto bg-white/90 backdrop-blur-md shadow-xl rounded-lg border border-gray-200">
+                      <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+                        <Dialog.Title className="text-lg font-semibold">Chat with Bueller</Dialog.Title>
                         <div className="flex items-center gap-2">
                           <button
-                            type="button"
                             onClick={() => setIsTTSEnabled(!isTTSEnabled)}
-                            className={`p-2 rounded-lg transition-colors ${
-                              isTTSEnabled
-                                ? 'bg-gray-700 text-white hover:bg-gray-600'
-                                : 'text-gray-300 hover:text-white'
+                            className={`p-2 rounded-full transition-colors ${
+                              isTTSEnabled ? 'bg-black/10' : 'hover:bg-black/5'
                             }`}
-                            title={isTTSEnabled ? 'Disable TTS' : 'Enable TTS'}
+                            aria-label={isTTSEnabled ? 'Disable TTS' : 'Enable TTS'}
                           >
-                            {isTTSEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
+                            {isTTSEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
                           </button>
                           <button
-                            type="button"
-                            className="text-gray-300 hover:text-white"
                             onClick={() => setIsOpen(false)}
+                            className="p-2 rounded-full hover:bg-black/5 transition-colors"
+                            aria-label="Close chat"
                           >
-                            <X size={20} />
+                            <X className="w-5 h-5" />
                           </button>
                         </div>
                       </div>
-                      
+
                       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                        {/* AI chat messages */}
-                        {messages.map((message) => (
+                        {messages.map((message, index) => (
                           <div
-                            key={message.id}
+                            key={index}
                             className={`flex ${
-                              message.role === 'assistant' ? 'justify-start' : 'justify-end'
-                            } animate-fade-in`}
+                              message.role === 'user' ? 'justify-end' : 'justify-start'
+                            }`}
                           >
                             <div
-                              className={`max-w-[80%] rounded-2xl p-3 ${
-                                message.role === 'assistant'
-                                  ? 'bg-white/50 backdrop-blur-sm text-gray-800'
-                                  : 'bg-gray-800/80 backdrop-blur-sm text-white'
-                              } whitespace-pre-line`}
+                              className={`max-w-[80%] rounded-lg p-3 ${
+                                message.role === 'user'
+                                  ? 'bg-black text-white'
+                                  : 'bg-gray-100 text-gray-900'
+                              }`}
                             >
                               {message.content}
                             </div>
@@ -159,43 +143,24 @@ export function ChatBot() {
                         ))}
                       </div>
 
-                      {/* Navigation Confirmation Dialog */}
-                      {showNavigationConfirm && (
-                        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center rounded-xl">
-                          <div className="bg-white/90 p-6 rounded-xl shadow-xl max-w-sm mx-4">
-                            <h3 className="text-lg font-semibold mb-2">Confirm Navigation</h3>
-                            <p className="mb-4">Would you like to navigate to {pendingNavigation}?</p>
-                            <div className="flex justify-end gap-2">
-                              <button
-                                onClick={cancelNavigation}
-                                className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition-colors"
-                              >
-                                Cancel
-                              </button>
-                              <button
-                                onClick={handleNavigation}
-                                className="px-4 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-900 transition-colors"
-                              >
-                                Navigate
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200/50">
+                      <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200">
                         <div className="flex gap-2">
                           <input
+                            type="text"
                             value={input}
-                            onChange={handleInputChange}
-                            placeholder="Ask me anything..."
-                            className="flex-1 rounded-lg border border-gray-300/50 bg-white/50 backdrop-blur-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            onChange={(e) => {
+                              setInput(e.target.value);
+                              handleInputChange(e);
+                            }}
+                            placeholder="Type your message..."
+                            className="flex-1 p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black/20"
                           />
                           <button
                             type="submit"
-                            className="bg-gray-800 text-white p-2 rounded-lg hover:bg-gray-900 transition-colors"
+                            disabled={isLoading}
+                            className="p-2 bg-black text-white rounded-lg hover:bg-black/90 transition-colors disabled:opacity-50"
                           >
-                            <Send size={20} />
+                            <Send className="w-5 h-5" />
                           </button>
                         </div>
                       </form>
@@ -206,7 +171,59 @@ export function ChatBot() {
             </div>
           </div>
         </Dialog>
-      </Transition.Root>
+      </Transition>
+
+      <Transition show={isNavigating} as={Fragment}>
+        <Dialog as="div" className="relative z-[60]" onClose={() => setIsNavigating(false)}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-lg bg-white p-6 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Title as="h3" className="text-lg font-semibold mb-4">
+                    Confirm Navigation
+                  </Dialog.Title>
+                  <p className="mb-6">Would you like to navigate to {navigationTarget}?</p>
+                  <div className="flex justify-end gap-4">
+                    <button
+                      onClick={cancelNavigation}
+                      className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleNavigation}
+                      className="px-4 py-2 bg-black text-white rounded-lg hover:bg-black/90 transition-colors"
+                    >
+                      Navigate
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+
       <audio ref={audioRef} className="hidden" />
     </>
   );

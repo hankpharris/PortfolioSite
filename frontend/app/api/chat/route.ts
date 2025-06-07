@@ -182,7 +182,7 @@ export async function GET(req: Request) {
   try {
     const response = await openai.audio.speech.create({
       model: 'tts-1',
-      voice: 'alloy',
+      voice: 'onyx',
       input: text,
     });
 
