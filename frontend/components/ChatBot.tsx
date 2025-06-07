@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { MessageSquare, X, Send, Volume2, VolumeX, Mic, MicOff } from 'lucide-react';
+import { MessageSquare, X, Send, Mic, MicOff } from 'lucide-react';
 import { Button } from './buttons/Button';
 import { useChat } from 'ai/react';
 import { useRouter } from 'next/navigation';
@@ -97,7 +97,6 @@ type ChatBotProps = {
 export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
   const [showNavigationConfirm, setShowNavigationConfirm] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
-  const [isTTSEnabled, setIsTTSEnabled] = useState(false);
   const { isRecording, setIsRecording, isTranscribing, setIsTranscribing } = useChatStore();
   const [messages, setMessages] = useState<Message[]>([welcomeMessage]);
   const [input, setInput] = useState('');
@@ -112,12 +111,6 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-
-  // Handle chat open/close
-  const handleOpenChange = useCallback((open: boolean) => {
-    console.log('Dialog onOpenChange called with:', open);
-    onOpenChange(open);
-  }, [onOpenChange]);
 
   // Handle recording toggle
   const toggleRecording = useCallback(() => {
@@ -138,7 +131,7 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
               .join('')
               .toLowerCase();
 
-            console.log('Speech recognized:', transcript, 'Recording:', isRecording, 'Transcribing:', isTranscribing);
+            console.log('Speech recognized:', transcript, 'Recording:', isRecording, 'Transcribing:', isTranscribing, 'Chat Open:', isOpen);
 
             // Handle wake words and commands
             if (transcript.includes('hey bueller') || transcript.includes('hello bueller')) {
@@ -151,13 +144,11 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
               return;
             }
 
-            // Only process message commands if chat is open
+            // Process message commands if chat is open
             if (isOpen) {
               if (transcript.includes('start message') || transcript.includes('start a message') || transcript.includes('begin message')) {
-                console.log('Starting message transcription');
                 setInput('');
                 setIsTranscribing(true);
-                console.log('Set isTranscribing to true');
                 return;
               }
 
@@ -170,14 +161,12 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
                   }
                 }
                 setIsTranscribing(false);
-                console.log('Set isTranscribing to false (send)');
                 return;
               }
 
               if (transcript.includes('reset message') || transcript.includes('clear message')) {
                 setInput('');
                 setIsTranscribing(false);
-                console.log('Set isTranscribing to false (reset)');
                 return;
               }
 
@@ -189,11 +178,8 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
                   .trim();
 
                 if (cleanTranscript) {
-                  console.log('Updating input with:', cleanTranscript);
                   setInput(cleanTranscript);
                 }
-              } else {
-                console.log('Not transcribing because isTranscribing is false');
               }
             }
           };
@@ -221,7 +207,6 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
 
           recognitionRef.current.start();
           setIsRecording(true);
-          console.log('Started recording');
         } catch (error) {
           console.error('Failed to start speech recognition:', error);
         }
@@ -244,7 +229,6 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
           // Update state
           setIsRecording(false);
           setIsTranscribing(false);
-          console.log('Stopped recording');
         } catch (error) {
           console.error('Failed to stop speech recognition:', error);
           // Force cleanup even if stop fails
@@ -254,7 +238,7 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
         }
       }
     }
-  }, [isRecording, isOpen, onOpenChange, isTranscribing, input, setIsTranscribing]);
+  }, [isRecording, isOpen, onOpenChange, isTranscribing, input, setIsRecording, setIsTranscribing]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -312,67 +296,6 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
             };
             return newMessages;
           });
-        }
-      }
-
-      // Handle TTS if enabled
-      if (isTTSEnabled) {
-        try {
-          const ttsRes = await fetch('/api/tts', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: fullContent }),
-          });
-
-          if (!ttsRes.ok) throw new Error('TTS request failed');
-
-          // Create a MediaSource
-          const mediaSource = new MediaSource();
-          const audioUrl = URL.createObjectURL(mediaSource);
-          
-          if (audioRef.current) {
-            // Clean up previous audio URL
-            if (audioRef.current.src) {
-              URL.revokeObjectURL(audioRef.current.src);
-            }
-            
-            audioRef.current.src = audioUrl;
-            
-            // Wait for MediaSource to be ready
-            await new Promise((resolve) => {
-              mediaSource.addEventListener('sourceopen', resolve, { once: true });
-            });
-
-            // Create a SourceBuffer
-            const sourceBuffer = mediaSource.addSourceBuffer('audio/mpeg');
-            
-            // Handle streaming audio data
-            const reader = ttsRes.body?.getReader();
-            if (reader) {
-              while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-
-                // Append the chunk to the SourceBuffer
-                await new Promise((resolve) => {
-                  sourceBuffer.addEventListener('updateend', resolve, { once: true });
-                  sourceBuffer.appendBuffer(value);
-                });
-              }
-            }
-
-            // End the stream
-            mediaSource.endOfStream();
-            
-            try {
-              await audioRef.current.play();
-              console.log('Playing audio');
-            } catch (playError) {
-              console.error('Error playing audio:', playError);
-            }
-          }
-        } catch (error) {
-          console.error('TTS Error:', error);
         }
       }
 
@@ -443,74 +366,11 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
     }
   }, [isOpen, messages.length]);
 
-  // Handle TTS
-  useEffect(() => {
-    if (!isTTSEnabled) return;
-
-    const handleMessage = async (event: Event) => {
-      const customEvent = event as CustomEvent<{ role: string; content: string }>;
-      const message = customEvent.detail;
-      if (message.role === 'assistant') {
-        try {
-          console.log('Sending TTS request for:', message.content);
-          const response = await fetch(`/api/chat?text=${encodeURIComponent(message.content)}`);
-
-          if (!response.ok) {
-            const errorText = await response.text();
-            console.error('TTS request failed:', errorText);
-            throw new Error(`TTS request failed: ${errorText}`);
-          }
-          
-          const audioBlob = await response.blob();
-          console.log('Received audio blob:', audioBlob.size, 'bytes');
-          
-          if (audioBlob.size === 0) {
-            console.error('Received empty audio blob');
-            return;
-          }
-
-          const audioUrl = URL.createObjectURL(audioBlob);
-          
-          if (audioRef.current) {
-            // Clean up previous audio URL
-            if (audioRef.current.src) {
-              URL.revokeObjectURL(audioRef.current.src);
-            }
-            
-            audioRef.current.src = audioUrl;
-            
-            try {
-              await audioRef.current.play();
-              console.log('Playing audio');
-            } catch (playError) {
-              console.error('Error playing audio:', playError);
-            }
-          }
-        } catch (error) {
-          console.error('Error in TTS handling:', error);
-        }
-      }
-    };
-
-    window.addEventListener('ai:message', handleMessage);
-    return () => {
-      window.removeEventListener('ai:message', handleMessage);
-      if (audioRef.current) {
-        audioRef.current.pause();
-        if (audioRef.current.src) {
-          URL.revokeObjectURL(audioRef.current.src);
-        }
-        audioRef.current.src = '';
-      }
-    };
-  }, [isTTSEnabled]);
-
   return (
     <>
       <Button 
         variant="nav" 
         onClick={(e: React.MouseEvent) => {
-          console.log('Button clicked, current state:', isOpen);
           e.preventDefault();
           e.stopPropagation();
           onOpenChange(!isOpen);
@@ -532,18 +392,6 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => setIsTTSEnabled(!isTTSEnabled)}
-                      className={`p-2 rounded-lg transition-colors ${
-                        isTTSEnabled
-                          ? 'bg-gray-700 text-white hover:bg-gray-600'
-                          : 'text-gray-300 hover:text-white'
-                      }`}
-                      title={isTTSEnabled ? 'Disable TTS' : 'Enable TTS'}
-                    >
-                      {isTTSEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
-                    </button>
-                    <button
-                      type="button"
                       onClick={toggleRecording}
                       className={`p-2 rounded-lg transition-colors ${
                         isRecording
@@ -556,7 +404,6 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
                     </button>
                     <button
                       onClick={() => {
-                        console.log('Close button clicked');
                         onOpenChange(false);
                       }}
                       className="text-gray-300 hover:text-white"
