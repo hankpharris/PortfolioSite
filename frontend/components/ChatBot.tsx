@@ -112,15 +112,31 @@ export function ChatBot() {
           
           const audioBlob = await response.blob();
           console.log('Received audio blob:', audioBlob.size, 'bytes');
+          
+          if (audioBlob.size === 0) {
+            console.error('Received empty audio blob');
+            return;
+          }
+
           const audioUrl = URL.createObjectURL(audioBlob);
           
           if (audioRef.current) {
+            // Clean up previous audio URL
+            if (audioRef.current.src) {
+              URL.revokeObjectURL(audioRef.current.src);
+            }
+            
             audioRef.current.src = audioUrl;
-            await audioRef.current.play();
-            console.log('Playing audio');
+            
+            try {
+              await audioRef.current.play();
+              console.log('Playing audio');
+            } catch (playError) {
+              console.error('Error playing audio:', playError);
+            }
           }
         } catch (error) {
-          console.error('Error playing TTS:', error);
+          console.error('Error in TTS handling:', error);
         }
       }
     };
@@ -130,6 +146,9 @@ export function ChatBot() {
       window.removeEventListener('ai:message', handleMessage);
       if (audioRef.current) {
         audioRef.current.pause();
+        if (audioRef.current.src) {
+          URL.revokeObjectURL(audioRef.current.src);
+        }
         audioRef.current.src = '';
       }
     };

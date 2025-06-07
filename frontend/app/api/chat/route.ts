@@ -189,7 +189,7 @@ export async function GET(req: Request) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini-tts',
+        model: 'tts-1',
         voice: 'onyx',
         input: text,
         response_format: 'mp3'
@@ -207,6 +207,7 @@ export async function GET(req: Request) {
     return new Response(audioBuffer, {
       headers: {
         'Content-Type': 'audio/mpeg',
+        'Cache-Control': 'no-cache',
       },
     });
   } catch (error) {
