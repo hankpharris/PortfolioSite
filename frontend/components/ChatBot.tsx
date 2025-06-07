@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { useChat } from 'ai/react';
-import { useRouter } from 'next/navigation';
-import { Dialog, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import * as Dialog from '@radix-ui/react-dialog';
 import { MessageSquare, X, Send, Volume2, VolumeX } from 'lucide-react';
 import { Button } from './buttons/Button';
+import { useChat } from 'ai/react';
+import { useRouter } from 'next/navigation';
 
 const welcomeMessage = {
   id: 'welcome',
@@ -24,180 +23,192 @@ How can I help you today?`
 export function ChatBot() {
   const [isOpen, setIsOpen] = useState(false);
   const [showNavigationConfirm, setShowNavigationConfirm] = useState(false);
-  const [pendingNavigation, setPendingNavigation] = useState('');
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
   const [isTTSEnabled, setIsTTSEnabled] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const router = useRouter();
 
-  const { messages, input, handleInputChange, handleSubmit, setMessages } = useChat({
+  const { messages, input, handleInputChange, handleSubmit } = useChat({
     api: '/api/chat',
-    onFinish: async (message) => {
+    onFinish: (message) => {
+      // Check if the message contains a navigation request
       const content = message.content;
+      // Look for navigation phrases at the start of the message
       const navigationMatch = content.match(/^Navigating you to (?:project )?(\d+|\/\w+|\w+)/i);
-      
       if (navigationMatch) {
-        const path = navigationMatch[1];
-        setPendingNavigation(path);
-        setShowNavigationConfirm(true);
-      }
-
-      // Handle TTS if enabled
-      if (isTTSEnabled && message.role === 'assistant') {
-        try {
-          const response = await fetch(`/api/chat?text=${encodeURIComponent(content)}`);
-          if (!response.ok) throw new Error('TTS request failed');
-          
-          const audioBlob = await response.blob();
-          const audioUrl = URL.createObjectURL(audioBlob);
-          
-          if (audioRef.current) {
-            audioRef.current.src = audioUrl;
-            audioRef.current.play();
-          }
-        } catch (error) {
-          console.error('Error playing TTS:', error);
+        const path = extractNavigationPath(navigationMatch[0]);
+        if (path) {
+          setPendingNavigation(path);
+          setShowNavigationConfirm(true);
         }
       }
     }
   });
 
-  const handleNavigation = useCallback(() => {
-    if (pendingNavigation.startsWith('/')) {
-      router.push(pendingNavigation);
-    } else if (/^\d+$/.test(pendingNavigation)) {
-      router.push(`/projects/${pendingNavigation}`);
-    } else {
-      router.push(`/${pendingNavigation}`);
+  const extractNavigationPath = (content: string): string | null => {
+    const navigationPatterns = [
+      { pattern: /^Navigating you to (\/\w+)/i, path: '$1' },
+      { pattern: /^Navigating you to (about)/i, path: '/about' },
+      { pattern: /^Navigating you to (projects)/i, path: '/projects' },
+      { pattern: /^Navigating you to (admin)/i, path: '/admin' },
+      // Project-specific navigation patterns
+      { pattern: /^Navigating you to project (\d+)/i, path: (match: RegExpMatchArray) => `/projects/${match[1]}` }
+    ];
+
+    for (const { pattern, path } of navigationPatterns) {
+      const match = content.match(pattern);
+      if (match) {
+        if (typeof path === 'function') {
+          return path(match);
+        }
+        return path.startsWith('/') ? path : `/${path}`;
+      }
     }
-    setShowNavigationConfirm(false);
-    setIsOpen(false);
-  }, [pendingNavigation, router]);
+    return null;
+  };
 
-  const cancelNavigation = useCallback(() => {
-    setShowNavigationConfirm(false);
-    setPendingNavigation('');
-  }, []);
+  const handleNavigation = () => {
+    if (pendingNavigation) {
+      setIsOpen(false);
+      setShowNavigationConfirm(false);
+      setPendingNavigation(null);
+      router.push(pendingNavigation);
+    }
+  };
 
+  const cancelNavigation = () => {
+    setShowNavigationConfirm(false);
+    setPendingNavigation(null);
+  };
+
+  // Add welcome message when chat is first opened
   useEffect(() => {
     if (isOpen && messages.length === 0) {
-      setMessages([welcomeMessage]);
+      // Add welcome message
+      const welcomeEvent = new CustomEvent('ai:message', {
+        detail: welcomeMessage
+      });
+      window.dispatchEvent(welcomeEvent);
     }
-  }, [isOpen, messages.length, setMessages]);
+  }, [isOpen, messages.length]);
+
+  // Handle TTS
+  useEffect(() => {
+    if (!isTTSEnabled) return;
+
+    const handleMessage = (event: CustomEvent) => {
+      const message = event.detail;
+      if (message.role === 'assistant') {
+        // Use browser's speech synthesis
+        const utterance = new SpeechSynthesisUtterance(message.content);
+        window.speechSynthesis.speak(utterance);
+      }
+    };
+
+    window.addEventListener('ai:message', handleMessage as EventListener);
+    return () => {
+      window.removeEventListener('ai:message', handleMessage as EventListener);
+      window.speechSynthesis.cancel();
+    };
+  }, [isTTSEnabled]);
 
   return (
-    <>
-      <Button variant="nav" onClick={() => setIsOpen(true)}>
-        <MessageSquare className="w-5 h-5 mr-2" />
-        Chat
-      </Button>
-
-      <Transition.Root show={isOpen} as={Fragment}>
-        <div className="relative z-50">
-          <Transition.Child
-            as={Fragment}
-            enter="transform transition ease-in-out duration-500"
-            enterFrom="translate-x-full"
-            enterTo="translate-x-0"
-            leave="transform transition ease-in-out duration-500"
-            leaveFrom="translate-x-0"
-            leaveTo="translate-x-full"
-          >
-            <div className="fixed inset-y-0 right-0 w-screen max-w-md pointer-events-none" style={{ position: 'fixed', top: 0, right: 0, bottom: 0 }}>
-              <div className="flex h-[calc(100vh-144px)] flex-col bg-white/30 backdrop-blur-md shadow-xl rounded-xl mt-[88px] mr-4 mb-4 pointer-events-auto relative">
-                <div className="absolute -inset-[2px] border-[4px] border-gray-800 rounded-xl pointer-events-none z-[9999]"></div>
-                <div className="flex flex-col h-full bg-white/30 backdrop-blur-md rounded-xl overflow-hidden relative z-0">
-                  <div className="flex items-center justify-between p-4 border-b border-gray-200/50 bg-gray-800 relative z-0">
-                    <h2 className="text-xl font-bold text-white">"Bueller" the AI Chat Assistant</h2>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setIsTTSEnabled(!isTTSEnabled)}
-                        className={`p-2 rounded-lg transition-colors ${
-                          isTTSEnabled
-                            ? 'bg-gray-700 text-white hover:bg-gray-600'
-                            : 'text-gray-300 hover:text-white'
-                        }`}
-                        title={isTTSEnabled ? 'Disable TTS' : 'Enable TTS'}
-                      >
-                        {isTTSEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
-                      </button>
-                      <button
-                        type="button"
-                        className="text-gray-300 hover:text-white"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        <X size={20} />
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                    {messages.map((message) => (
-                      <div
-                        key={message.id}
-                        className={`flex ${
-                          message.role === 'assistant' ? 'justify-start' : 'justify-end'
-                        } animate-fade-in`}
-                      >
-                        <div
-                          className={`max-w-[80%] rounded-2xl p-3 ${
-                            message.role === 'assistant'
-                              ? 'bg-white/50 backdrop-blur-sm text-gray-800'
-                              : 'bg-gray-800/80 backdrop-blur-sm text-white'
-                          } whitespace-pre-line`}
-                        >
-                          {message.content}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {showNavigationConfirm && (
-                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center rounded-xl">
-                      <div className="bg-white/90 p-6 rounded-xl shadow-xl max-w-sm mx-4">
-                        <h3 className="text-lg font-semibold mb-2">Confirm Navigation</h3>
-                        <p className="mb-4">Would you like to navigate to {pendingNavigation}?</p>
-                        <div className="flex justify-end gap-2">
-                          <button
-                            onClick={cancelNavigation}
-                            className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition-colors"
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            onClick={handleNavigation}
-                            className="px-4 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-900 transition-colors"
-                          >
-                            Navigate
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200/50">
-                    <div className="flex gap-2">
-                      <input
-                        value={input}
-                        onChange={handleInputChange}
-                        placeholder="Ask me anything..."
-                        className="flex-1 rounded-lg border border-gray-300/50 bg-white/50 backdrop-blur-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                      <button
-                        type="submit"
-                        className="bg-gray-800 text-white p-2 rounded-lg hover:bg-gray-900 transition-colors"
-                      >
-                        <Send size={20} />
-                      </button>
-                    </div>
-                  </form>
-                </div>
+    <Dialog.Root open={isOpen} onOpenChange={setIsOpen}>
+      <Dialog.Trigger asChild>
+        <Button variant="nav">
+          <MessageSquare className="w-5 h-5 mr-2" />
+          Chat
+        </Button>
+      </Dialog.Trigger>
+      <Dialog.Portal>
+        <Dialog.Content 
+          className="fixed top-[88px] right-4 bottom-4 w-full max-w-md bg-white/30 backdrop-blur-md shadow-xl z-[101] rounded-xl transform transition-all duration-500 ease-in-out translate-x-full data-[state=open]:translate-x-0"
+        >
+          <div className="flex flex-col h-full">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200/50 bg-gray-800 rounded-t-xl">
+              <Dialog.Title className="text-xl font-bold text-white">"Bueller" the AI Chat Assistant</Dialog.Title>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsTTSEnabled(!isTTSEnabled)}
+                  className={`p-2 rounded-lg transition-colors ${
+                    isTTSEnabled
+                      ? 'bg-gray-700 text-white hover:bg-gray-600'
+                      : 'text-gray-300 hover:text-white'
+                  }`}
+                  title={isTTSEnabled ? 'Disable TTS' : 'Enable TTS'}
+                >
+                  {isTTSEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
+                </button>
+                <Dialog.Close className="text-gray-300 hover:text-white">
+                  <X size={20} />
+                </Dialog.Close>
               </div>
             </div>
-          </Transition.Child>
-        </div>
-      </Transition.Root>
-      <audio ref={audioRef} className="hidden" />
-    </>
+            
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${
+                    message.role === 'assistant' ? 'justify-start' : 'justify-end'
+                  } animate-fade-in`}
+                >
+                  <div
+                    className={`max-w-[80%] rounded-2xl p-3 ${
+                      message.role === 'assistant'
+                        ? 'bg-white/50 backdrop-blur-sm text-gray-800'
+                        : 'bg-gray-800/80 backdrop-blur-sm text-white'
+                    } whitespace-pre-line`}
+                  >
+                    {message.content}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {showNavigationConfirm && (
+              <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center rounded-xl">
+                <div className="bg-white/90 p-6 rounded-xl shadow-xl max-w-sm mx-4">
+                  <h3 className="text-lg font-semibold mb-2">Confirm Navigation</h3>
+                  <p className="mb-4">Would you like to navigate to {pendingNavigation}?</p>
+                  <div className="flex justify-end gap-2">
+                    <button
+                      onClick={cancelNavigation}
+                      className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleNavigation}
+                      className="px-4 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-900 transition-colors"
+                    >
+                      Navigate
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200/50">
+              <div className="flex gap-2">
+                <input
+                  value={input}
+                  onChange={handleInputChange}
+                  placeholder="Ask me anything..."
+                  className="flex-1 rounded-lg border border-gray-300/50 bg-white/50 backdrop-blur-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  type="submit"
+                  className="bg-gray-800 text-white p-2 rounded-lg hover:bg-gray-900 transition-colors"
+                >
+                  <Send size={20} />
+                </button>
+              </div>
+            </form>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 } 
