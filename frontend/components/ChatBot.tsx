@@ -11,7 +11,14 @@ import { Button } from './buttons/Button';
 const welcomeMessage = {
   id: 'welcome',
   role: 'assistant' as const,
-  content: `Hello! I'm "Bueller" the AI Chat Assistant. I can help you navigate the site and provide information about the projects. Feel free to ask me anything!`
+  content: `Hi! I'm Bueller, an AI assistant for this portfolio site. I was built by Henry Pharris using vercels AI SDK and OpenAI's GPT 3.5-Turbo model & api. I can help you:
+
+• Navigate through different sections (About, Projects, Contact, etc)
+• Find specific projects or information
+• Answer questions about the portfolio
+• Guide you to relevant pages
+
+How can I help you today?`
 };
 
 export function ChatBot() {
@@ -96,7 +103,7 @@ export function ChatBot() {
             leaveTo="translate-x-full"
           >
             <div className="fixed inset-y-0 right-0 w-screen max-w-md pointer-events-none" style={{ position: 'fixed', top: 0, right: 0, bottom: 0 }}>
-              <div className="flex h-[calc(100vh-144px)] flex-col bg-white/80 backdrop-blur-md shadow-xl rounded-xl mt-[88px] mr-4 mb-4 pointer-events-auto">
+              <div className="flex h-[calc(100vh-144px)] flex-col bg-gray-100/80 backdrop-blur-md shadow-xl rounded-xl mt-[88px] mr-4 mb-4 pointer-events-auto">
                 <div className="flex items-center justify-between p-4 border-b border-gray-200/50 bg-gray-800 rounded-t-xl">
                   <h2 className="text-xl font-bold text-white">"Bueller" the AI Chat Assistant</h2>
                   <div className="flex items-center gap-2">
@@ -133,7 +140,7 @@ export function ChatBot() {
                       <div
                         className={`max-w-[80%] rounded-2xl p-3 ${
                           message.role === 'assistant'
-                            ? 'bg-white text-gray-800'
+                            ? 'bg-gray-200 text-gray-800'
                             : 'bg-gray-800 text-white'
                         } whitespace-pre-line`}
                       >
@@ -145,7 +152,7 @@ export function ChatBot() {
 
                 {showNavigationConfirm && (
                   <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center rounded-xl">
-                    <div className="bg-white p-6 rounded-xl shadow-xl max-w-sm mx-4">
+                    <div className="bg-gray-100 p-6 rounded-xl shadow-xl max-w-sm mx-4">
                       <h3 className="text-lg font-semibold mb-2">Confirm Navigation</h3>
                       <p className="mb-4">Would you like to navigate to {pendingNavigation}?</p>
                       <div className="flex justify-end gap-2">
@@ -172,7 +179,7 @@ export function ChatBot() {
                       value={input}
                       onChange={handleInputChange}
                       placeholder="Ask me anything..."
-                      className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="flex-1 rounded-lg border border-gray-300 bg-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <button
                       type="submit"
