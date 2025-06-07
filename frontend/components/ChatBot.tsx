@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useChat } from 'ai/react';
 import { useRouter } from 'next/navigation';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-import { MessageSquare, X, Send } from 'lucide-react';
+import { MessageSquare, X, Send, Volume2, VolumeX } from 'lucide-react';
 import { Button } from './buttons/Button';
 
 const welcomeMessage = {
@@ -18,11 +18,13 @@ export function ChatBot() {
   const [isOpen, setIsOpen] = useState(false);
   const [showNavigationConfirm, setShowNavigationConfirm] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState('');
+  const [isTTSEnabled, setIsTTSEnabled] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const router = useRouter();
 
   const { messages, input, handleInputChange, handleSubmit, setMessages } = useChat({
     api: '/api/chat',
-    onFinish: (message) => {
+    onFinish: async (message) => {
       const content = message.content;
       const navigationMatch = content.match(/^Navigating you to (?:project )?(\d+|\/\w+|\w+)/i);
       
@@ -30,6 +32,24 @@ export function ChatBot() {
         const path = navigationMatch[1];
         setPendingNavigation(path);
         setShowNavigationConfirm(true);
+      }
+
+      // Handle TTS if enabled
+      if (isTTSEnabled && message.role === 'assistant') {
+        try {
+          const response = await fetch(`/api/chat?text=${encodeURIComponent(content)}`);
+          if (!response.ok) throw new Error('TTS request failed');
+          
+          const audioBlob = await response.blob();
+          const audioUrl = URL.createObjectURL(audioBlob);
+          
+          if (audioRef.current) {
+            audioRef.current.src = audioUrl;
+            audioRef.current.play();
+          }
+        } catch (error) {
+          console.error('Error playing TTS:', error);
+        }
       }
     }
   });
@@ -94,23 +114,30 @@ export function ChatBot() {
                     <div className="flex h-[calc(100vh-72px)] flex-col overflow-y-scroll bg-white/30 backdrop-blur-md shadow-xl rounded-xl">
                       <div className="flex items-center justify-between p-4 border-b border-gray-200/50 bg-gray-800 rounded-t-xl">
                         <Dialog.Title className="text-xl font-bold text-white">"Bueller" the AI Chat Assistant</Dialog.Title>
-                        <button
-                          type="button"
-                          className="text-gray-300 hover:text-white"
-                          onClick={() => setIsOpen(false)}
-                        >
-                          <X size={20} />
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setIsTTSEnabled(!isTTSEnabled)}
+                            className={`p-2 rounded-lg transition-colors ${
+                              isTTSEnabled
+                                ? 'bg-gray-700 text-white hover:bg-gray-600'
+                                : 'text-gray-300 hover:text-white'
+                            }`}
+                            title={isTTSEnabled ? 'Disable TTS' : 'Enable TTS'}
+                          >
+                            {isTTSEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
+                          </button>
+                          <button
+                            type="button"
+                            className="text-gray-300 hover:text-white"
+                            onClick={() => setIsOpen(false)}
+                          >
+                            <X size={20} />
+                          </button>
+                        </div>
                       </div>
                       
                       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                        {/* Static welcome message */}
-                        <div className="flex justify-start animate-fade-in">
-                          <div className="max-w-[80%] rounded-2xl p-3 bg-white/50 backdrop-blur-sm text-gray-800 whitespace-pre-line">
-                            {welcomeMessage.content}
-                          </div>
-                        </div>
-
                         {/* AI chat messages */}
                         {messages.map((message) => (
                           <div
@@ -180,6 +207,7 @@ export function ChatBot() {
           </div>
         </Dialog>
       </Transition.Root>
+      <audio ref={audioRef} className="hidden" />
     </>
   );
 } 
