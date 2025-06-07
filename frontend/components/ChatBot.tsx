@@ -102,14 +102,10 @@ export function ChatBot() {
           });
 
           if (!ttsRes.ok) throw new Error('TTS request failed');
-          
-          const audioBlob = await ttsRes.blob();
-          if (audioBlob.size === 0) {
-            console.error('Received empty audio blob');
-            return;
-          }
 
-          const audioUrl = URL.createObjectURL(audioBlob);
+          // Create a MediaSource
+          const mediaSource = new MediaSource();
+          const audioUrl = URL.createObjectURL(mediaSource);
           
           if (audioRef.current) {
             // Clean up previous audio URL
@@ -118,6 +114,32 @@ export function ChatBot() {
             }
             
             audioRef.current.src = audioUrl;
+            
+            // Wait for MediaSource to be ready
+            await new Promise((resolve) => {
+              mediaSource.addEventListener('sourceopen', resolve, { once: true });
+            });
+
+            // Create a SourceBuffer
+            const sourceBuffer = mediaSource.addSourceBuffer('audio/mpeg');
+            
+            // Handle streaming audio data
+            const reader = ttsRes.body?.getReader();
+            if (reader) {
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                // Append the chunk to the SourceBuffer
+                await new Promise((resolve) => {
+                  sourceBuffer.addEventListener('updateend', resolve, { once: true });
+                  sourceBuffer.appendBuffer(value);
+                });
+              }
+            }
+
+            // End the stream
+            mediaSource.endOfStream();
             
             try {
               await audioRef.current.play();

@@ -17,12 +17,26 @@ export async function POST(req: Request) {
       response_format: "mp3",
     });
 
-    const buffer = Buffer.from(await audio.arrayBuffer());
+    // Create a TransformStream to handle the streaming response
+    const stream = new TransformStream();
+    const writer = stream.writable.getWriter();
 
-    return new Response(buffer, {
+    // Process the stream
+    (async () => {
+      try {
+        const buffer = Buffer.from(await audio.arrayBuffer());
+        await writer.write(buffer);
+      } catch (error) {
+        console.error('Streaming error:', error);
+      } finally {
+        await writer.close();
+      }
+    })();
+
+    return new Response(stream.readable, {
       headers: {
         'Content-Type': 'audio/mpeg',
-        'Content-Length': buffer.length.toString(),
+        'Transfer-Encoding': 'chunked',
       },
     });
   } catch (error) {
