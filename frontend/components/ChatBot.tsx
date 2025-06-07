@@ -133,8 +133,9 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
       } else {
         try {
           recognitionRef.current.stop();
+          recognitionRef.current = null; // Clear the recognition instance
           setIsRecording(false);
-          setIsTranscribing(false); // Also stop transcribing when recording stops
+          setIsTranscribing(false);
           console.log('Stopped recording');
         } catch (error) {
           console.error('Failed to stop speech recognition:', error);
@@ -147,7 +148,9 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (SpeechRecognition) {
+      
+      // Only create a new recognition instance if we don't have one and recording is enabled
+      if (SpeechRecognition && !recognitionRef.current && isRecording) {
         recognitionRef.current = new SpeechRecognition();
         recognitionRef.current.continuous = true;
         recognitionRef.current.interimResults = true;
@@ -254,6 +257,7 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
     return () => {
       if (recognitionRef.current) {
         recognitionRef.current.stop();
+        recognitionRef.current = null;
       }
     };
   }, [isRecording, isOpen, onOpenChange, isTranscribing]);
