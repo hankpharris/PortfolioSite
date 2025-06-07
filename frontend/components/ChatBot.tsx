@@ -33,17 +33,25 @@ export function ChatBot() {
   const [isTTSEnabled, setIsTTSEnabled] = useState(false);
   const [messages, setMessages] = useState<Message[]>([welcomeMessage]);
   const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || isLoading) return;
 
     // Add user message
     const userMessage = { role: 'user', content: input };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
+    setIsLoading(true);
 
     try {
       // Get chat response
@@ -54,11 +62,35 @@ export function ChatBot() {
       });
 
       if (!chatRes.ok) throw new Error('Chat request failed');
-      const chatData = await chatRes.json();
-
-      // Add assistant message
-      const assistantMessage = { role: 'assistant', content: chatData.reply };
+      
+      // Add assistant message with empty content
+      const assistantMessage = { role: 'assistant', content: '' };
       setMessages(prev => [...prev, assistantMessage]);
+
+      // Handle streaming response
+      const reader = chatRes.body?.getReader();
+      const decoder = new TextDecoder();
+      let fullContent = '';
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          fullContent += chunk;
+
+          // Update the last message with the new content
+          setMessages(prev => {
+            const newMessages = [...prev];
+            newMessages[newMessages.length - 1] = {
+              ...newMessages[newMessages.length - 1],
+              content: fullContent,
+            };
+            return newMessages;
+          });
+        }
+      }
 
       // Handle TTS if enabled
       if (isTTSEnabled) {
@@ -66,7 +98,7 @@ export function ChatBot() {
           const ttsRes = await fetch('/api/tts', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: chatData.reply }),
+            body: JSON.stringify({ text: fullContent }),
           });
 
           if (!ttsRes.ok) throw new Error('TTS request failed');
@@ -100,8 +132,7 @@ export function ChatBot() {
       }
 
       // Check for navigation
-      const content = chatData.reply;
-      const navigationMatch = content.match(/^Navigating you to (?:project )?(\d+|\/\w+|\w+)/i);
+      const navigationMatch = fullContent.match(/^Navigating you to (?:project )?(\d+|\/\w+|\w+)/i);
       if (navigationMatch) {
         const path = extractNavigationPath(navigationMatch[0]);
         if (path) {
@@ -115,6 +146,8 @@ export function ChatBot() {
         role: 'assistant',
         content: 'Sorry, I encountered an error. Please try again.'
       }]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -262,24 +295,25 @@ export function ChatBot() {
             </div>
             
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.map((message) => (
+              {messages.map((message, index) => (
                 <div
-                  key={message.id}
+                  key={index}
                   className={`flex ${
                     message.role === 'assistant' ? 'justify-start' : 'justify-end'
-                  } animate-fade-in`}
+                  }`}
                 >
                   <div
-                    className={`max-w-[80%] rounded-2xl p-3 ${
+                    className={`max-w-[80%] rounded-lg p-3 ${
                       message.role === 'assistant'
-                        ? 'bg-white/50 backdrop-blur-sm text-gray-800'
-                        : 'bg-gray-800/80 backdrop-blur-sm text-white'
-                    } whitespace-pre-line`}
+                        ? 'bg-gray-800 text-white'
+                        : 'bg-blue-500 text-white'
+                    }`}
                   >
                     {message.content}
                   </div>
                 </div>
               ))}
+              <div ref={messagesEndRef} />
             </div>
 
             {showNavigationConfirm && (
@@ -312,10 +346,14 @@ export function ChatBot() {
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Ask me anything..."
                   className="flex-1 rounded-lg border border-gray-300/50 bg-white/50 backdrop-blur-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={isLoading}
                 />
                 <button
                   type="submit"
-                  className="bg-gray-800 text-white p-2 rounded-lg hover:bg-gray-900 transition-colors"
+                  className={`bg-gray-800 text-white p-2 rounded-lg hover:bg-gray-900 transition-colors ${
+                    isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                  disabled={isLoading}
                 >
                   <Send size={20} />
                 </button>

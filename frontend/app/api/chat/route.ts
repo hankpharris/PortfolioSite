@@ -160,13 +160,34 @@ export async function POST(req: Request) {
     const completion = await openai.chat.completions.create({
       model: 'gpt-4',
       messages: [systemMessage, ...messages],
+      stream: true,
     });
 
-    const reply = completion.choices[0].message.content;
+    // Create a TransformStream to handle the streaming response
+    const encoder = new TextEncoder();
+    const stream = new TransformStream();
+    const writer = stream.writable.getWriter();
 
-    return new Response(JSON.stringify({ reply }), {
+    // Process the stream
+    (async () => {
+      try {
+        for await (const chunk of completion) {
+          const content = chunk.choices[0]?.delta?.content || '';
+          if (content) {
+            await writer.write(encoder.encode(content));
+          }
+        }
+      } catch (error) {
+        console.error('Streaming error:', error);
+      } finally {
+        await writer.close();
+      }
+    })();
+
+    return new Response(stream.readable, {
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'text/plain',
+        'Transfer-Encoding': 'chunked',
       },
     });
   } catch (error) {
