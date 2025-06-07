@@ -175,8 +175,10 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
 
               // Check for send message command
               if (transcript.includes('send message') || transcript.includes('send a message')) {
-                handleSubmit(new Event('submit') as unknown as React.FormEvent);
-                setIsTranscribing(false);
+                const form = document.querySelector('form');
+                if (form) {
+                  form.dispatchEvent(new Event('submit', { bubbles: true }));
+                }
                 return;
               }
 
@@ -284,6 +286,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
+    setIsTranscribing(false); // Reset transcribing state when sending
 
     try {
       // Get chat response
