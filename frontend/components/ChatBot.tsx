@@ -92,7 +92,7 @@ type Message = {
 interface ChatBotProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  onSubmit?: (e: React.FormEvent<HTMLFormElement>) => void;
 }
 
 export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
