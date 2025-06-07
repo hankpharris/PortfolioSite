@@ -7,6 +7,14 @@ import { Button } from './buttons/Button';
 import { useChat } from 'ai/react';
 import { useRouter } from 'next/navigation';
 
+// Add type declarations for Web Speech API
+declare global {
+  interface Window {
+    SpeechRecognition: typeof SpeechRecognition;
+    webkitSpeechRecognition: typeof SpeechRecognition;
+  }
+}
+
 const welcomeMessage = {
   id: 'welcome',
   role: 'assistant' as const,
@@ -47,51 +55,53 @@ export function ChatBot() {
 
   // Initialize speech recognition
   useEffect(() => {
-    if (typeof window !== 'undefined' && 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+    if (typeof window !== 'undefined') {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = true;
-      recognitionRef.current.interimResults = true;
+      if (SpeechRecognition) {
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = true;
+        recognitionRef.current.interimResults = true;
 
-      recognitionRef.current.onresult = (event) => {
-        const transcript = Array.from(event.results)
-          .map(result => result[0].transcript)
-          .join('');
+        recognitionRef.current.onresult = (event) => {
+          const transcript = Array.from(event.results)
+            .map(result => result[0].transcript)
+            .join('');
 
-        // Check for wake word and commands
-        if (transcript.toLowerCase().includes('hey bueller')) {
-          // Open chat if closed
-          if (!isOpen) {
-            setIsOpen(true);
-          }
-
-          // Extract message content after wake word
-          const messageContent = transcript
-            .toLowerCase()
-            .replace('hey bueller', '')
-            .trim();
-
-          // If "send message" is detected, send the current input
-          if (messageContent.includes('send message')) {
-            const finalMessage = messageContent.replace('send message', '').trim();
-            if (finalMessage) {
-              setInput(finalMessage);
-              // Use setTimeout to ensure the input is set before submitting
-              setTimeout(() => {
-                const form = document.querySelector('form');
-                if (form) form.requestSubmit();
-              }, 0);
+          // Check for wake word and commands
+          if (transcript.toLowerCase().includes('hey bueller')) {
+            // Open chat if closed
+            if (!isOpen) {
+              setIsOpen(true);
             }
-          } else {
-            // Update input with current transcript
-            setInput(messageContent);
-          }
-        }
-      };
 
-      recognitionRef.current.onerror = (event) => {
-        console.error('Speech recognition error:', event.error);
-      };
+            // Extract message content after wake word
+            const messageContent = transcript
+              .toLowerCase()
+              .replace('hey bueller', '')
+              .trim();
+
+            // If "send message" is detected, send the current input
+            if (messageContent.includes('send message')) {
+              const finalMessage = messageContent.replace('send message', '').trim();
+              if (finalMessage) {
+                setInput(finalMessage);
+                // Use setTimeout to ensure the input is set before submitting
+                setTimeout(() => {
+                  const form = document.querySelector('form');
+                  if (form) form.requestSubmit();
+                }, 0);
+              }
+            } else {
+              // Update input with current transcript
+              setInput(messageContent);
+            }
+          }
+        };
+
+        recognitionRef.current.onerror = (event) => {
+          console.error('Speech recognition error:', event.error);
+        };
+      }
     }
 
     return () => {
