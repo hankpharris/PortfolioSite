@@ -101,13 +101,7 @@ export function ChatBot() {
       const message = customEvent.detail;
       if (message.role === 'assistant') {
         try {
-          const response = await fetch('/api/chat/tts', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ text: message.content }),
-          });
+          const response = await fetch(`/api/chat?text=${encodeURIComponent(message.content)}`);
 
           if (!response.ok) throw new Error('TTS request failed');
           
