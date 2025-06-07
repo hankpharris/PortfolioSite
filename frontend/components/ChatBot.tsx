@@ -85,7 +85,7 @@ export function ChatBot() {
       </Button>
 
       <Transition.Root show={isOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-50" onClose={setIsOpen}>
+        <div className="relative z-50">
           <Transition.Child
             as={Fragment}
             enter="transform transition ease-in-out duration-500"
@@ -98,7 +98,7 @@ export function ChatBot() {
             <div className="fixed inset-y-0 right-0 w-screen max-w-md pointer-events-none" style={{ position: 'fixed', top: 0, right: 0, bottom: 0 }}>
               <div className="flex h-[calc(100vh-144px)] flex-col bg-white/30 backdrop-blur-md shadow-xl rounded-xl mt-[88px] mr-4 mb-4 pointer-events-auto">
                 <div className="flex items-center justify-between p-4 border-b border-gray-200/50 bg-gray-800 rounded-t-xl">
-                  <Dialog.Title className="text-xl font-bold text-white">"Bueller" the AI Chat Assistant</Dialog.Title>
+                  <h2 className="text-xl font-bold text-white">"Bueller" the AI Chat Assistant</h2>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
@@ -185,7 +185,7 @@ export function ChatBot() {
               </div>
             </div>
           </Transition.Child>
-        </Dialog>
+        </div>
       </Transition.Root>
       <audio ref={audioRef} className="hidden" />
     </>
