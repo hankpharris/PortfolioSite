@@ -168,7 +168,7 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
             // Process message commands if chat is open
             if (isOpen) {
               // Check for start message command first
-              if (transcript.includes('start message') || transcript.includes('start a message') || transcript.includes('begin message')) {
+              if (!isTranscribingRef.current && (transcript.includes('start message') || transcript.includes('start a message') || transcript.includes('begin message'))) {
                 console.log('Start message command detected, current transcribing state:', isTranscribingRef.current);
                 setInput('');
                 setIsTranscribing(true);
