@@ -292,10 +292,10 @@ export function ChatBot() {
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Content 
-          className="fixed top-[88px] right-4 bottom-4 w-full max-w-md bg-white/30 backdrop-blur-md shadow-xl z-[101] rounded-xl transform transition-all duration-500 ease-in-out translate-x-full data-[state=open]:translate-x-0 overflow-hidden"
+          className="fixed top-[88px] right-4 bottom-4 w-full max-w-md bg-gray-800 shadow-xl z-[101] rounded-xl transform transition-all duration-500 ease-in-out translate-x-full data-[state=open]:translate-x-0 overflow-hidden"
         >
           <div className="flex flex-col h-full">
-            <div className="flex items-center justify-between p-4 border-b border-gray-200/50 bg-gray-800/90 backdrop-blur-sm rounded-t-xl">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200/50 bg-gray-800 rounded-t-xl">
               <Dialog.Title className="text-xl font-bold text-white">"Bueller" the AI Chat Assistant</Dialog.Title>
               <div className="flex items-center gap-2">
                 <button
@@ -315,8 +315,7 @@ export function ChatBot() {
                 </Dialog.Close>
               </div>
             </div>
-            
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white/30 backdrop-blur-md">
               {messages.map((message, index) => (
                 <div
                   key={index}
@@ -327,8 +326,8 @@ export function ChatBot() {
                   <div
                     className={`max-w-[80%] rounded-2xl p-3 ${
                       message.role === 'assistant'
-                        ? 'bg-gray-700/90 backdrop-blur-sm text-white'
-                        : 'bg-white/50 backdrop-blur-sm text-gray-800'
+                        ? 'bg-gray-700 text-white'
+                        : 'bg-white text-gray-700'
                     }`}
                   >
                     {message.content}
@@ -337,7 +336,6 @@ export function ChatBot() {
               ))}
               <div ref={messagesEndRef} />
             </div>
-
             {showNavigationConfirm && (
               <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center rounded-xl">
                 <div className="bg-white/90 p-6 rounded-xl shadow-xl max-w-sm mx-4">
@@ -360,8 +358,7 @@ export function ChatBot() {
                 </div>
               </div>
             )}
-
-            <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200/50">
+            <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200/50 bg-white/30 backdrop-blur-md">
               <div className="flex gap-2">
                 <input
                   value={input}
