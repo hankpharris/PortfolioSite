@@ -1,11 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { MessageSquare, X, Send } from 'lucide-react';
 import { Button } from './buttons/Button';
 import { useChat } from 'ai/react';
 import { useRouter } from 'next/navigation';
+import { Dialog as HeadlessUIDialog, Transition } from '@headlessui/react';
+import { XMarkIcon, PaperAirplaneIcon, SpeakerWaveIcon, SpeakerXMarkIcon } from '@heroicons/react/24/outline';
 
 const welcomeMessage = {
   content: `Hi! I'm Bueller, an AI assistant for this portfolio site. I was built by Henry Pharris using vercels AI SDK and OpenAI's GPT 3.5-Turbo model & api. I can help you:
@@ -18,157 +20,187 @@ const welcomeMessage = {
 How can I help you today?`
 };
 
-export function ChatBot() {
+export default function ChatBot() {
   const [isOpen, setIsOpen] = useState(false);
-  const [showNavigationConfirm, setShowNavigationConfirm] = useState(false);
-  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+  const [isTTSEnabled, setIsTTSEnabled] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const router = useRouter();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { messages, input, handleInputChange, handleSubmit } = useChat({
+  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
     api: '/api/chat',
-    onFinish: (message) => {
-      // Check if the message contains a navigation request
+    onFinish: async (message) => {
       const content = message.content;
-      // Look for navigation phrases at the start of the message
       const navigationMatch = content.match(/^Navigating you to (?:project )?(\d+|\/\w+|\w+)/i);
+      
       if (navigationMatch) {
-        const path = extractNavigationPath(navigationMatch[0]);
-        if (path) {
-          setPendingNavigation(path);
-          setShowNavigationConfirm(true);
+        const path = navigationMatch[1];
+        if (path.startsWith('/')) {
+          router.push(path);
+        } else if (path.match(/^\d+$/)) {
+          router.push(`/projects/${path}`);
+        } else {
+          router.push(`/${path}`);
+        }
+      }
+
+      // Handle TTS if enabled
+      if (isTTSEnabled && message.role === 'assistant') {
+        try {
+          const response = await fetch(`/api/chat?text=${encodeURIComponent(content)}`);
+          if (!response.ok) throw new Error('TTS request failed');
+          
+          const audioBlob = await response.blob();
+          const audioUrl = URL.createObjectURL(audioBlob);
+          
+          if (audioRef.current) {
+            audioRef.current.src = audioUrl;
+            audioRef.current.play();
+          }
+        } catch (error) {
+          console.error('Error playing TTS:', error);
         }
       }
     }
   });
 
-  const extractNavigationPath = (content: string): string | null => {
-    const navigationPatterns = [
-      { pattern: /^Navigating you to (\/\w+)/i, path: '$1' },
-      { pattern: /^Navigating you to (about)/i, path: '/about' },
-      { pattern: /^Navigating you to (projects)/i, path: '/projects' },
-      { pattern: /^Navigating you to (admin)/i, path: '/admin' },
-      // Project-specific navigation patterns
-      { pattern: /^Navigating you to project (\d+)/i, path: (match: RegExpMatchArray) => `/projects/${match[1]}` }
-    ];
-
-    for (const { pattern, path } of navigationPatterns) {
-      const match = content.match(pattern);
-      if (match) {
-        if (typeof path === 'function') {
-          return path(match);
-        }
-        return path.startsWith('/') ? path : `/${path}`;
-      }
-    }
-    return null;
-  };
-
-  const handleNavigation = () => {
-    if (pendingNavigation) {
-      setIsOpen(false);
-      setShowNavigationConfirm(false);
-      setPendingNavigation(null);
-      router.push(pendingNavigation);
-    }
-  };
-
-  const cancelNavigation = () => {
-    setShowNavigationConfirm(false);
-    setPendingNavigation(null);
-  };
-
   return (
-    <Dialog.Root open={isOpen} onOpenChange={setIsOpen}>
-      <Dialog.Trigger asChild>
-        <Button variant="nav">
-          <MessageSquare className="w-5 h-5 mr-2" />
-          Chat
-        </Button>
-      </Dialog.Trigger>
-      <Dialog.Portal>
-        <Dialog.Content 
-          className="fixed top-[88px] right-4 bottom-4 w-full max-w-md bg-white/30 backdrop-blur-md shadow-xl z-[101] rounded-xl transform transition-all duration-500 ease-in-out translate-x-full data-[state=open]:translate-x-0"
+    <>
+      <button
+        onClick={() => setIsOpen(true)}
+        className="fixed bottom-4 right-4 z-50 bg-gray-800 text-white p-3 rounded-full shadow-lg hover:bg-gray-900 transition-colors"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={1.5}
+          stroke="currentColor"
+          className="w-6 h-6"
         >
-          <div className="flex flex-col h-full">
-            <div className="flex items-center justify-between p-4 border-b border-gray-200/50 bg-gray-800 rounded-t-xl">
-              <Dialog.Title className="text-xl font-bold text-white">"Bueller" the AI Chat Assistant</Dialog.Title>
-              <Dialog.Close className="text-gray-300 hover:text-white">
-                <X size={20} />
-              </Dialog.Close>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {/* Static welcome message */}
-              <div className="flex justify-start animate-fade-in">
-                <div className="max-w-[80%] rounded-2xl p-3 bg-white/50 backdrop-blur-sm text-gray-800 whitespace-pre-line">
-                  {welcomeMessage.content}
-                </div>
-              </div>
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"
+          />
+        </svg>
+      </button>
 
-              {/* AI chat messages */}
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${
-                    message.role === 'assistant' ? 'justify-start' : 'justify-end'
-                  } animate-fade-in`}
-                >
-                  <div
-                    className={`max-w-[80%] rounded-2xl p-3 ${
-                      message.role === 'assistant'
-                        ? 'bg-white/50 backdrop-blur-sm text-gray-800'
-                        : 'bg-gray-800/80 backdrop-blur-sm text-white'
-                    } whitespace-pre-line`}
-                  >
-                    {message.content}
+      <Transition.Root show={isOpen} as={HeadlessUIDialog.Root} onClose={setIsOpen}>
+        <Transition.Child
+          as={HeadlessUIDialog.Overlay}
+          enter="ease-out duration-500"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-500"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+        </Transition.Child>
+
+        <div className="fixed inset-0 overflow-hidden">
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
+              <Transition.Child
+                as={HeadlessUIDialog.Panel}
+                className="pointer-events-auto w-screen max-w-md"
+              >
+                <div className="flex h-[calc(100vh-72px)] flex-col overflow-y-scroll bg-gray-100/80 backdrop-blur-sm shadow-xl">
+                  <div className="px-4 py-6 sm:px-6 bg-gray-800/80 backdrop-blur-sm">
+                    <div className="flex items-start justify-between">
+                      <HeadlessUIDialog.Title className="text-base font-semibold leading-6 text-white">
+                        "Bueller" the AI Chat Assistant
+                      </HeadlessUIDialog.Title>
+                      <div className="ml-3 flex h-7 items-center">
+                        <button
+                          type="button"
+                          className="relative rounded-md bg-gray-800 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          <span className="absolute -inset-2.5" />
+                          <span className="sr-only">Close panel</span>
+                          <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="relative flex-1 px-4 sm:px-6">
+                    <div className="absolute inset-0 px-4 sm:px-6">
+                      <div className="h-full border-gray-200 py-6">
+                        <div className="space-y-4">
+                          {/* Welcome message */}
+                          <div className="flex justify-start">
+                            <div className="max-w-[80%] rounded-2xl bg-white/50 backdrop-blur-sm p-3 text-gray-800 whitespace-pre-line">
+                              {welcomeMessage.content}
+                            </div>
+                          </div>
+
+                          {/* AI chat messages */}
+                          {messages.map((message) => (
+                            <div
+                              key={message.id}
+                              className={`flex ${
+                                message.role === 'assistant' ? 'justify-start' : 'justify-end'
+                              } animate-fade-in`}
+                            >
+                              <div
+                                className={`max-w-[80%] rounded-2xl p-3 ${
+                                  message.role === 'assistant'
+                                    ? 'bg-white/50 backdrop-blur-sm text-gray-800'
+                                    : 'bg-gray-800/80 backdrop-blur-sm text-white'
+                                } whitespace-pre-line`}
+                              >
+                                {message.content}
+                              </div>
+                            </div>
+                          ))}
+                          <div ref={messagesEndRef} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-shrink-0 border-t border-gray-200 px-4 py-4 sm:px-6">
+                    <form onSubmit={handleSubmit} className="flex w-full items-center gap-2">
+                      <input
+                        type="text"
+                        value={input}
+                        onChange={handleInputChange}
+                        placeholder="Type your message..."
+                        className="flex-1 rounded-lg border border-gray-300 bg-white/50 backdrop-blur-sm px-4 py-2 text-gray-900 placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setIsTTSEnabled(!isTTSEnabled)}
+                        className={`rounded-lg p-2 ${
+                          isTTSEnabled
+                            ? 'bg-gray-800 text-white hover:bg-gray-900'
+                            : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                        } transition-colors`}
+                        title={isTTSEnabled ? 'Disable TTS' : 'Enable TTS'}
+                      >
+                        {isTTSEnabled ? (
+                          <SpeakerWaveIcon className="h-5 w-5" />
+                        ) : (
+                          <SpeakerXMarkIcon className="h-5 w-5" />
+                        )}
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="rounded-lg bg-gray-800 px-4 py-2 text-white hover:bg-gray-900 disabled:opacity-50"
+                      >
+                        <PaperAirplaneIcon className="h-5 w-5" />
+                      </button>
+                    </form>
                   </div>
                 </div>
-              ))}
+              </HeadlessUIDialog.Panel>
             </div>
-
-            {/* Navigation Confirmation Dialog */}
-            {showNavigationConfirm && (
-              <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center rounded-xl">
-                <div className="bg-white/90 p-6 rounded-xl shadow-xl max-w-sm mx-4">
-                  <h3 className="text-lg font-semibold mb-2">Confirm Navigation</h3>
-                  <p className="mb-4">Would you like to navigate to {pendingNavigation}?</p>
-                  <div className="flex justify-end gap-2">
-                    <button
-                      onClick={cancelNavigation}
-                      className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleNavigation}
-                      className="px-4 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-900 transition-colors"
-                    >
-                      Navigate
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200/50">
-              <div className="flex gap-2">
-                <input
-                  value={input}
-                  onChange={handleInputChange}
-                  placeholder="Ask me anything..."
-                  className="flex-1 rounded-lg border border-gray-300/50 bg-white/50 backdrop-blur-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button
-                  type="submit"
-                  className="bg-gray-800 text-white p-2 rounded-lg hover:bg-gray-900 transition-colors"
-                >
-                  <Send size={20} />
-                </button>
-              </div>
-            </form>
           </div>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+        </div>
+      </Transition.Root>
+      <audio ref={audioRef} className="hidden" />
+    </>
   );
 } 

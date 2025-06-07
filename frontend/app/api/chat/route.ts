@@ -1,12 +1,12 @@
 import { OpenAIStream, StreamingTextResponse } from 'ai';
-import { Configuration, OpenAIApi } from 'openai-edge';
-import { neon } from '@neondatabase/serverless';
+import OpenAI from 'openai';
+import { NextResponse } from 'next/server';
+import { getProjects } from '@/lib/db';
 
 // Create an OpenAI API client (that's edge friendly!)
-const config = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || '',
 });
-const openai = new OpenAIApi(config);
 
 // IMPORTANT! Set the runtime to edge
 export const runtime = 'edge';
@@ -112,22 +112,68 @@ Data Calrifications:
 };
 
 export async function POST(req: Request) {
-  const { messages } = await req.json();
-  const systemMessage = await getSystemMessage();
+  try {
+    const { messages, useTTS } = await req.json();
 
-  // Create the chat completion
-  const response = await openai.createChatCompletion({
-    model: 'gpt-3.5-turbo',
-    stream: true,
-    messages: [
-      { role: 'system', content: systemMessage },
-      ...messages
-    ],
-  });
+    // Get projects from the database
+    const projects = await getProjects();
 
-  // Convert the response into a friendly text-stream
-  const stream = OpenAIStream(response);
-  
-  // Return a StreamingTextResponse, which can be consumed by the client
-  return new StreamingTextResponse(stream);
+    // Create a system message with project information
+    const systemMessage = await getSystemMessage();
+
+    // Create the chat completion
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      stream: true,
+      messages: [systemMessage, ...messages],
+    });
+
+    // Convert the response into a friendly text-stream
+    const stream = OpenAIStream(response);
+
+    // Return a StreamingTextResponse, which can be consumed by the client
+    return new StreamingTextResponse(stream);
+  } catch (error) {
+    console.error('Error in chat API:', error);
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 }
+    );
+  }
+}
+
+// Add a new endpoint for TTS
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const text = searchParams.get('text');
+
+    if (!text) {
+      return NextResponse.json(
+        { error: 'Text parameter is required' },
+        { status: 400 }
+      );
+    }
+
+    const mp3 = await openai.audio.speech.create({
+      model: 'tts-1',
+      voice: 'alloy',
+      input: text,
+    });
+
+    const buffer = Buffer.from(await mp3.arrayBuffer());
+    
+    return new NextResponse(buffer, {
+      headers: {
+        'Content-Type': 'audio/mpeg',
+        'Content-Length': buffer.length.toString(),
+      },
+    });
+  } catch (error) {
+    console.error('Error in TTS API:', error);
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 }
+    );
+  }
 } 
