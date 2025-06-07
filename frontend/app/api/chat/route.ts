@@ -175,7 +175,7 @@ ${useTTS ? 'Keep responses brief and conversational for better text-to-speech ex
   });
 
   // Convert the response into a friendly text-stream
-  const stream = OpenAIStream(response as AsyncIterable<ChatCompletionChunk>);
+  const stream = OpenAIStream(response as any);
   
   // Return a StreamingTextResponse, which can be consumed by the client
   return new StreamingTextResponse(stream);
