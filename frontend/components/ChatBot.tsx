@@ -104,8 +104,7 @@ export function ChatBot() {
           >
             <div className="fixed inset-y-0 right-0 w-screen max-w-md pointer-events-none" style={{ position: 'fixed', top: 0, right: 0, bottom: 0 }}>
               <div className="flex h-[calc(100vh-144px)] flex-col bg-white/30 backdrop-blur-md shadow-xl rounded-xl mt-[88px] mr-4 mb-4 pointer-events-auto relative">
-                <div className="absolute inset-0 border-[3px] border-gray-800 rounded-xl pointer-events-none z-[9999]"></div>
-                <div className="absolute -inset-[3px] border-[3px] border-gray-800 rounded-xl pointer-events-none z-[9999]"></div>
+                <div className="absolute -inset-[2px] border-[4px] border-gray-800 rounded-xl pointer-events-none z-[9999]"></div>
                 <div className="flex flex-col h-full bg-white/30 backdrop-blur-md rounded-xl overflow-hidden relative z-0">
                   <div className="flex items-center justify-between p-4 border-b border-gray-200/50 bg-gray-800 relative z-0">
                     <h2 className="text-xl font-bold text-white">"Bueller" the AI Chat Assistant</h2>
