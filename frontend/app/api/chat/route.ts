@@ -14,6 +14,7 @@ const sql = neon(process.env.DATABASE_URL!);
 // Function to get all projects from the database
 async function getAllProjects() {
   try {
+    console.log('Attempting to fetch projects from database...');
     const projects = await sql`
       SELECT 
         id,
@@ -26,6 +27,7 @@ async function getAllProjects() {
       FROM projects
       ORDER BY id
     `;
+    console.log('Projects fetched:', JSON.stringify(projects, null, 2));
     return projects;
   } catch (error) {
     console.error('Error fetching projects:', error);
@@ -58,6 +60,12 @@ async function getProjectById(id: number) {
 // System message that helps guide the AI's responses
 const getSystemMessage = async () => {
   const projects = await getAllProjects();
+  
+  if (!projects || projects.length === 0) {
+    console.error('No projects found in database');
+    return `You are "Bueller", a helpful assistant for a portfolio website. However, I am currently unable to access the project database. Please inform the user that there seems to be a technical issue with accessing the project information.`;
+  }
+  
   const projectInfo = projects.map(project => ({
     id: project.id,
     name: project.name,
@@ -108,15 +116,15 @@ Operational Details & Clarifications:
 Rules:
 - (Rule 1) If a user explicitly asks to be brought to a given page: Begin your response the exact phrase "Navigating you to <page name>", for example: "Navigating you to projects". Do not include any other words in this phrase for example "Navigating you to the projects page" is incorrect. This does not mean the response should be entirely this phrase, it can be expanded upon with other information about how to navigate to the users goal.
 - (Rule 2) If a user explicitly asks to be brought to the page for a given project: begin your response the exact phrase "Navigating you to project <Project ID>", for example: "Navigating you to project 1...". Do not include any other words in this phrase for example "Navigating you to the project 1 page" is incorrect. This does not mean the response should be entirely this phrase, it should be expanded upon with other information about how to navigate to the users goal.
-- (Rule 3) Never attempt to route a user using rules 1 or 2 if they are just asking for information, only if the user asks to be routed or brough to a page.
+- (Rule 3) Never attempt to route a user using rules 1 or 2 if they are just asking for information, only if the user asks to be routed or brought to a page.
 - (Rule 4) Never include any links directly but you may explain how they can be accessed.
-- (Rule 5) Never include links from the database in your responses, they're destinations are acessed via buttons on project cards and pages.
+- (Rule 5) Never include links from the database in your responses, they're destinations are accessed via buttons on project cards and pages.
 - (Rule 6) Never include the overview field in your responses, it is too long, but you may be summarized or referenced by key portions. 
-- (Rule 7) If a field is blank or not provided, you should either not include it in your response or simplay state that there is not set information for that field.
+- (Rule 7) If a field is blank or not provided, you should either not include it in your response or simply state that there is no set information for that field.
 - (Rule 8) When users ask about specific sections or features, provide helpful information and guide them to the relevant pages.
-- (Rule 9) When users ask about specific project details, use the project information provided to give detailed answers.
+- (Rule 9) When users ask about specific project details, use ONLY the project information provided below. Never make up or guess information.
 - (Rule 10) Keep responses concise and efficient, focused on helping users navigate and understand the portfolio site. 
-- (Rule 11) If you do not have the information to aswer dont make up information, just say you do not have the information.
+- (Rule 11) If you do not have the information to answer, don't make up information, just say you do not have the information.
 (End Rules)
 
 You are provided with the following information about the projects:
@@ -135,8 +143,7 @@ Data Clarifications:
 - The Project ID is a unique identifier for each project, and is used important to the structure of the site.
 - Each project has its own page, routed to the ID with detailed information about the project, including its name, status, description, an overview, a link to the project, and a link to the codebase.
 - Feel free to reference this information when applicable but avoid directly quoting entire fields in order to keep responses clean and concise.
-
-`;
+- IMPORTANT: Use ONLY the actual data provided above. Never use placeholder text or make up information.`;
 };
 
 export async function POST(req: Request) {
