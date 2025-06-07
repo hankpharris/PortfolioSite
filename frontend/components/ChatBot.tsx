@@ -291,8 +291,10 @@ export function ChatBot() {
         </Button>
       </Dialog.Trigger>
       <Dialog.Portal>
+        <Dialog.Overlay className="hidden" />
         <Dialog.Content 
           className="fixed top-[88px] right-4 bottom-4 w-full max-w-md bg-gray-800/30 backdrop-blur-md shadow-xl z-[101] rounded-xl transform transition-all duration-500 ease-in-out translate-x-full data-[state=open]:translate-x-0 overflow-hidden"
+          onPointerDownOutside={(e) => e.preventDefault()}
         >
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between p-4 border-b border-gray-200/50 bg-gray-800 rounded-t-xl">
