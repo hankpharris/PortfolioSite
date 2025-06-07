@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { MessageSquare, X, Send, Volume2, VolumeX } from 'lucide-react';
+import { MessageSquare, X, Send, Volume2, VolumeX, Mic, MicOff } from 'lucide-react';
 import { Button } from './buttons/Button';
 import { useChat } from 'ai/react';
 import { useRouter } from 'next/navigation';
@@ -31,17 +31,87 @@ export function ChatBot() {
   const [showNavigationConfirm, setShowNavigationConfirm] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
   const [isTTSEnabled, setIsTTSEnabled] = useState(false);
+  const [isSTTEnabled, setIsSTTEnabled] = useState(false);
   const [messages, setMessages] = useState<Message[]>([welcomeMessage]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Initialize speech recognition
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = true;
+      recognitionRef.current.interimResults = true;
+
+      recognitionRef.current.onresult = (event) => {
+        const transcript = Array.from(event.results)
+          .map(result => result[0].transcript)
+          .join('');
+
+        // Check for wake word and commands
+        if (transcript.toLowerCase().includes('hey bueller')) {
+          // Open chat if closed
+          if (!isOpen) {
+            setIsOpen(true);
+          }
+
+          // Extract message content after wake word
+          const messageContent = transcript
+            .toLowerCase()
+            .replace('hey bueller', '')
+            .trim();
+
+          // If "send message" is detected, send the current input
+          if (messageContent.includes('send message')) {
+            const finalMessage = messageContent.replace('send message', '').trim();
+            if (finalMessage) {
+              setInput(finalMessage);
+              // Use setTimeout to ensure the input is set before submitting
+              setTimeout(() => {
+                const form = document.querySelector('form');
+                if (form) form.requestSubmit();
+              }, 0);
+            }
+          } else {
+            // Update input with current transcript
+            setInput(messageContent);
+          }
+        }
+      };
+
+      recognitionRef.current.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+      };
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, [isOpen]);
+
+  // Handle STT toggle
+  const toggleSTT = useCallback(() => {
+    if (recognitionRef.current) {
+      if (!isSTTEnabled) {
+        recognitionRef.current.start();
+      } else {
+        recognitionRef.current.stop();
+      }
+      setIsSTTEnabled(!isSTTEnabled);
+    }
+  }, [isSTTEnabled]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -362,6 +432,18 @@ export function ChatBot() {
             )}
             <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200/50 bg-white/30 backdrop-blur-md">
               <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={toggleSTT}
+                  className={`p-2 rounded-lg transition-colors ${
+                    isSTTEnabled
+                      ? 'bg-gray-700 text-white hover:bg-gray-600'
+                      : 'text-gray-300 hover:text-white'
+                  }`}
+                  title={isSTTEnabled ? 'Disable Voice Input' : 'Enable Voice Input'}
+                >
+                  {isSTTEnabled ? <Mic size={20} /> : <MicOff size={20} />}
+                </button>
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
