@@ -110,18 +110,7 @@ export function ChatBot() {
 
   // Handle chat open/close
   const handleOpenChange = useCallback((open: boolean) => {
-    if (!open) {
-      // We're closing the chat
-      isClosingRef.current = true;
-      setIsOpen(false);
-      // Reset the closing state after a short delay
-      setTimeout(() => {
-        isClosingRef.current = false;
-      }, 1000); // 1 second delay before re-enabling wake word
-    } else {
-      // We're opening the chat
-      setIsOpen(true);
-    }
+    setIsOpen(open);
   }, []);
 
   // Initialize speech recognition
@@ -463,9 +452,11 @@ export function ChatBot() {
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={handleOpenChange} modal={false}>
-      <Button variant="nav" onClick={() => setIsOpen(!isOpen)}>
-        <MessageSquare className="h-5 w-5" />
-      </Button>
+      <Dialog.Trigger asChild>
+        <Button variant="nav">
+          <MessageSquare className="h-5 w-5" />
+        </Button>
+      </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="hidden" />
         <Dialog.Content 
