@@ -96,19 +96,41 @@ export function ChatBot() {
   useEffect(() => {
     if (!isTTSEnabled) return;
 
-    const handleMessage = (event: CustomEvent) => {
-      const message = event.detail;
+    const handleMessage = async (event: Event) => {
+      const customEvent = event as CustomEvent<{ role: string; content: string }>;
+      const message = customEvent.detail;
       if (message.role === 'assistant') {
-        // Use browser's speech synthesis
-        const utterance = new SpeechSynthesisUtterance(message.content);
-        window.speechSynthesis.speak(utterance);
+        try {
+          const response = await fetch('/api/chat/tts', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ text: message.content }),
+          });
+
+          if (!response.ok) throw new Error('TTS request failed');
+          
+          const audioBlob = await response.blob();
+          const audioUrl = URL.createObjectURL(audioBlob);
+          
+          if (audioRef.current) {
+            audioRef.current.src = audioUrl;
+            audioRef.current.play();
+          }
+        } catch (error) {
+          console.error('Error playing TTS:', error);
+        }
       }
     };
 
-    window.addEventListener('ai:message', handleMessage as EventListener);
+    window.addEventListener('ai:message', handleMessage);
     return () => {
-      window.removeEventListener('ai:message', handleMessage as EventListener);
-      window.speechSynthesis.cancel();
+      window.removeEventListener('ai:message', handleMessage);
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
+      }
     };
   }, [isTTSEnabled]);
 
@@ -209,6 +231,7 @@ export function ChatBot() {
           </div>
         </Dialog.Content>
       </Dialog.Portal>
+      <audio ref={audioRef} className="hidden" />
     </Dialog.Root>
   );
 } 
