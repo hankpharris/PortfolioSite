@@ -107,6 +107,12 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
   const router = useRouter();
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const isClosingRef = useRef(false);
+  const isTranscribingRef = useRef(false);
+
+  // Sync ref with state
+  useEffect(() => {
+    isTranscribingRef.current = isTranscribing;
+  }, [isTranscribing]);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -141,7 +147,7 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
               .join('')
               .toLowerCase();
 
-            console.log('Speech recognized:', transcript, 'Recording:', isRecording, 'Transcribing:', isTranscribing);
+            console.log('Speech recognized:', transcript, 'Recording:', isRecording, 'Transcribing:', isTranscribingRef.current);
 
             // Handle wake words and commands
             if (transcript.includes('hey bueller') || transcript.includes('hello bueller')) {
@@ -158,14 +164,10 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
             if (isOpen) {
               // Check for start message command first
               if (transcript.includes('start message') || transcript.includes('start a message') || transcript.includes('begin message')) {
-                console.log('Start message command detected, current transcribing state:', isTranscribing);
+                console.log('Start message command detected, current transcribing state:', isTranscribingRef.current);
                 setInput('');
-                // Force state update
-                setIsTranscribing(false);
-                setTimeout(() => {
-                  setIsTranscribing(true);
-                  console.log('Set isTranscribing to true');
-                }, 0);
+                setIsTranscribing(true);
+                console.log('Set isTranscribing to true');
                 return;
               }
 
@@ -190,7 +192,7 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
               }
 
               // Only update input if we're in transcribing mode
-              if (isTranscribing) {
+              if (isTranscribingRef.current) {
                 // Remove any wake words or commands from the transcript
                 const cleanTranscript = transcript
                   .replace(/hey bueller|hello bueller|goodbye bueller|bye bueller|close bueller|start message|send message|send a message|reset message|clear message/gi, '')
