@@ -86,21 +86,9 @@ export function ChatBot() {
 
       <Transition.Root show={isOpen} as={Fragment}>
         <Dialog as="div" className="relative z-50" onClose={setIsOpen}>
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-500"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-500"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-          </Transition.Child>
-
           <div className="fixed inset-0 overflow-hidden">
             <div className="absolute inset-0 overflow-hidden">
-              <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
+              <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full">
                 <Transition.Child
                   as={Fragment}
                   enter="transform transition ease-in-out duration-500"
@@ -138,7 +126,6 @@ export function ChatBot() {
                       </div>
                       
                       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                        {/* AI chat messages */}
                         {messages.map((message) => (
                           <div
                             key={message.id}
@@ -159,7 +146,6 @@ export function ChatBot() {
                         ))}
                       </div>
 
-                      {/* Navigation Confirmation Dialog */}
                       {showNavigationConfirm && (
                         <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center rounded-xl">
                           <div className="bg-white/90 p-6 rounded-xl shadow-xl max-w-sm mx-4">
