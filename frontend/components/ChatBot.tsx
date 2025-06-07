@@ -121,17 +121,20 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
 
   // Handle recording toggle
   const toggleRecording = useCallback(() => {
+    console.log('Toggle recording clicked, current state:', isRecording);
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     
     if (!isRecording) {
       // Starting recording
       if (SpeechRecognition) {
         try {
+          // Create new recognition instance
           recognitionRef.current = new SpeechRecognition();
           recognitionRef.current.continuous = true;
           recognitionRef.current.interimResults = true;
           recognitionRef.current.lang = 'en-US';
 
+          // Set up event handlers
           recognitionRef.current.onresult = (event) => {
             const transcript = Array.from(event.results)
               .map(result => result[0].transcript)
@@ -222,15 +225,20 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
             }
           };
 
+          // Start recognition and update state
           recognitionRef.current.start();
           setIsRecording(true);
-          console.log('Started recording');
+          console.log('Started recording, new state:', true);
         } catch (error) {
           console.error('Failed to start speech recognition:', error);
+          // Reset state if start fails
+          setIsRecording(false);
+          recognitionRef.current = null;
         }
       }
     } else {
       // Stopping recording
+      console.log('Attempting to stop recording');
       if (recognitionRef.current) {
         try {
           // Remove all event listeners
@@ -247,14 +255,20 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
           // Update state
           setIsRecording(false);
           setIsTranscribing(false);
-          console.log('Stopped recording');
+          console.log('Stopped recording, new state:', false);
         } catch (error) {
           console.error('Failed to stop speech recognition:', error);
           // Force cleanup even if stop fails
           recognitionRef.current = null;
           setIsRecording(false);
           setIsTranscribing(false);
+          console.log('Forced state reset after error');
         }
+      } else {
+        // If no recognition instance but state is true, force reset
+        console.log('No recognition instance found, forcing state reset');
+        setIsRecording(false);
+        setIsTranscribing(false);
       }
     }
   }, [isRecording, isOpen, onOpenChange, isTranscribing, input, setIsTranscribing]);
