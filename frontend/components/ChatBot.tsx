@@ -20,20 +20,87 @@ const welcomeMessage = {
 How can I help you today?`
 };
 
+type Message = {
+  id?: string;
+  role: string;
+  content: string;
+};
+
 export function ChatBot() {
   const [isOpen, setIsOpen] = useState(false);
   const [showNavigationConfirm, setShowNavigationConfirm] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
   const [isTTSEnabled, setIsTTSEnabled] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([welcomeMessage]);
+  const [input, setInput] = useState('');
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const router = useRouter();
 
-  const { messages, input, handleInputChange, handleSubmit } = useChat({
-    api: '/api/chat',
-    onFinish: (message) => {
-      // Check if the message contains a navigation request
-      const content = message.content;
-      // Look for navigation phrases at the start of the message
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+
+    // Add user message
+    const userMessage = { role: 'user', content: input };
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+
+    try {
+      // Get chat response
+      const chatRes = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: [...messages, userMessage] }),
+      });
+
+      if (!chatRes.ok) throw new Error('Chat request failed');
+      const chatData = await chatRes.json();
+
+      // Add assistant message
+      const assistantMessage = { role: 'assistant', content: chatData.reply };
+      setMessages(prev => [...prev, assistantMessage]);
+
+      // Handle TTS if enabled
+      if (isTTSEnabled) {
+        try {
+          const ttsRes = await fetch('/api/tts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: chatData.reply }),
+          });
+
+          if (!ttsRes.ok) throw new Error('TTS request failed');
+          
+          const audioBlob = await ttsRes.blob();
+          if (audioBlob.size === 0) {
+            console.error('Received empty audio blob');
+            return;
+          }
+
+          const audioUrl = URL.createObjectURL(audioBlob);
+          
+          if (audioRef.current) {
+            // Clean up previous audio URL
+            if (audioRef.current.src) {
+              URL.revokeObjectURL(audioRef.current.src);
+            }
+            
+            audioRef.current.src = audioUrl;
+            
+            try {
+              await audioRef.current.play();
+              console.log('Playing audio');
+            } catch (playError) {
+              console.error('Error playing audio:', playError);
+            }
+          }
+        } catch (error) {
+          console.error('TTS Error:', error);
+        }
+      }
+
+      // Check for navigation
+      const content = chatData.reply;
       const navigationMatch = content.match(/^Navigating you to (?:project )?(\d+|\/\w+|\w+)/i);
       if (navigationMatch) {
         const path = extractNavigationPath(navigationMatch[0]);
@@ -42,8 +109,14 @@ export function ChatBot() {
           setShowNavigationConfirm(true);
         }
       }
+    } catch (error) {
+      console.error('Error:', error);
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: 'Sorry, I encountered an error. Please try again.'
+      }]);
     }
-  });
+  };
 
   const extractNavigationPath = (content: string): string | null => {
     const navigationPatterns = [
@@ -236,7 +309,7 @@ export function ChatBot() {
               <div className="flex gap-2">
                 <input
                   value={input}
-                  onChange={handleInputChange}
+                  onChange={(e) => setInput(e.target.value)}
                   placeholder="Ask me anything..."
                   className="flex-1 rounded-lg border border-gray-300/50 bg-white/50 backdrop-blur-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />

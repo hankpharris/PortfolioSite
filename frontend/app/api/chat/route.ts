@@ -1,6 +1,5 @@
-import { OpenAIStream, StreamingTextResponse } from 'ai';
+import { OpenAI } from 'openai';
 import { neon } from '@neondatabase/serverless';
-import OpenAI from 'openai';
 import { ChatCompletionChunk } from 'openai/resources/chat/completions';
 
 // Create an OpenAI API client (that's edge friendly!)
@@ -148,27 +147,32 @@ IMPORTANT: Use ONLY the actual data provided above. Never use placeholder text o
 };
 
 export async function POST(req: Request) {
-  const { messages, useTTS } = await req.json();
-  
-  // Get the detailed system message
-  const systemMessageContent = await getSystemMessage();
-  const systemMessage = {
-    role: 'system',
-    content: systemMessageContent
-  };
+  try {
+    const { messages } = await req.json();
+    
+    // Get the detailed system message
+    const systemMessageContent = await getSystemMessage();
+    const systemMessage = {
+      role: 'system',
+      content: systemMessageContent
+    };
 
-  // Create a new chat completion
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4',
-    stream: true,
-    messages: [systemMessage, ...messages],
-  });
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [systemMessage, ...messages],
+    });
 
-  // Convert the response into a friendly text-stream
-  const stream = OpenAIStream(response as any);
-  
-  // Return a StreamingTextResponse, which can be consumed by the client
-  return new StreamingTextResponse(stream);
+    const reply = completion.choices[0].message.content;
+
+    return new Response(JSON.stringify({ reply }), {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  } catch (error) {
+    console.error('Chat Error:', error);
+    return new Response('Error processing chat', { status: 500 });
+  }
 }
 
 // Add a new endpoint for TTS
