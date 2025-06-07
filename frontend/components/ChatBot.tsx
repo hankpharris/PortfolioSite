@@ -463,11 +463,9 @@ export function ChatBot() {
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={handleOpenChange} modal={false}>
-      <Dialog.Trigger asChild>
-        <Button variant="nav">
-          <MessageSquare className="h-5 w-5" />
-        </Button>
-      </Dialog.Trigger>
+      <Button variant="nav" onClick={() => setIsOpen(!isOpen)}>
+        <MessageSquare className="h-5 w-5" />
+      </Button>
       <Dialog.Portal>
         <Dialog.Overlay className="hidden" />
         <Dialog.Content 
@@ -496,18 +494,18 @@ export function ChatBot() {
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white/30 backdrop-blur-md">
-              {messages.map((message, index) => (
+              {messages.map((message) => (
                 <div
-                  key={index}
+                  key={message.id}
                   className={`flex ${
                     message.role === 'assistant' ? 'justify-start' : 'justify-end'
                   }`}
                 >
                   <div
-                    className={`max-w-[80%] rounded-2xl p-3 ${
+                    className={`max-w-[80%] rounded-lg p-3 ${
                       message.role === 'assistant'
                         ? 'bg-gray-700 text-white'
-                        : 'bg-white text-gray-700'
+                        : 'bg-blue-600 text-white'
                     }`}
                   >
                     {message.content}
@@ -516,30 +514,15 @@ export function ChatBot() {
               ))}
               <div ref={messagesEndRef} />
             </div>
-            {showNavigationConfirm && (
-              <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center rounded-xl">
-                <div className="bg-white/90 p-6 rounded-xl shadow-xl max-w-sm mx-4">
-                  <h3 className="text-lg font-semibold mb-2">Confirm Navigation</h3>
-                  <p className="mb-4">Would you like to navigate to {pendingNavigation}?</p>
-                  <div className="flex justify-end gap-2">
-                    <button
-                      onClick={cancelNavigation}
-                      className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleNavigation}
-                      className="px-4 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-900 transition-colors"
-                    >
-                      Navigate
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-            <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200/50 bg-white/30 backdrop-blur-md">
+            <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200/50 bg-gray-800 rounded-b-xl">
               <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Type your message..."
+                  className="flex-1 px-4 py-2 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
                 <button
                   type="button"
                   onClick={toggleSTT}
@@ -548,23 +531,14 @@ export function ChatBot() {
                       ? 'bg-gray-700 text-white hover:bg-gray-600'
                       : 'text-gray-300 hover:text-white'
                   }`}
-                  title={isSTTEnabled ? 'Disable Voice Input' : 'Enable Voice Input'}
+                  title={isSTTEnabled ? 'Disable STT' : 'Enable STT'}
                 >
                   {isSTTEnabled ? <Mic size={20} /> : <MicOff size={20} />}
                 </button>
-                <input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask me anything..."
-                  className="flex-1 rounded-lg border border-gray-300/50 bg-white/50 backdrop-blur-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={isLoading}
-                />
                 <button
                   type="submit"
-                  className={`bg-gray-800 text-white p-2 rounded-lg hover:bg-gray-900 transition-colors ${
-                    isLoading ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                  disabled={isLoading}
+                  disabled={!input.trim()}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Send size={20} />
                 </button>
