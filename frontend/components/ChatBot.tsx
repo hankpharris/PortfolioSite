@@ -175,11 +175,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
 
               // Check for send message command
               if (transcript.includes('send message') || transcript.includes('send a message')) {
-                if (input.trim()) {
-                  // Use the same handleSubmit function directly
-                  handleSubmit(new Event('submit') as unknown as React.FormEvent);
-                  setInput('');
-                }
+                handleSubmit(new Event('submit') as unknown as React.FormEvent);
                 setIsTranscribing(false);
                 return;
               }
