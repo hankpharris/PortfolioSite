@@ -121,51 +121,25 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
 
   // Handle recording toggle
   const toggleRecording = useCallback(() => {
-    if (recognitionRef.current) {
-      if (!isRecording) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (!isRecording) {
+      // Starting recording
+      if (SpeechRecognition) {
         try {
-          recognitionRef.current.start();
-          setIsRecording(true);
-          console.log('Started recording');
-        } catch (error) {
-          console.error('Failed to start speech recognition:', error);
-        }
-      } else {
-        try {
-          recognitionRef.current.stop();
-          recognitionRef.current = null; // Clear the recognition instance
-          setIsRecording(false);
-          setIsTranscribing(false);
-          console.log('Stopped recording');
-        } catch (error) {
-          console.error('Failed to stop speech recognition:', error);
-        }
-      }
-    }
-  }, [isRecording, setIsRecording, setIsTranscribing]);
+          recognitionRef.current = new SpeechRecognition();
+          recognitionRef.current.continuous = true;
+          recognitionRef.current.interimResults = true;
+          recognitionRef.current.lang = 'en-US';
 
-  // Initialize speech recognition
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      
-      // Only create a new recognition instance if we don't have one and recording is enabled
-      if (SpeechRecognition && !recognitionRef.current && isRecording) {
-        recognitionRef.current = new SpeechRecognition();
-        recognitionRef.current.continuous = true;
-        recognitionRef.current.interimResults = true;
-        recognitionRef.current.lang = 'en-US';
+          recognitionRef.current.onresult = (event) => {
+            const transcript = Array.from(event.results)
+              .map(result => result[0].transcript)
+              .join('')
+              .toLowerCase();
 
-        recognitionRef.current.onresult = (event) => {
-          const transcript = Array.from(event.results)
-            .map(result => result[0].transcript)
-            .join('')
-            .toLowerCase();
+            console.log('Speech recognized:', transcript, 'Recording:', isRecording, 'Transcribing:', isTranscribing);
 
-          console.log('Speech recognized:', transcript, 'Recording:', isRecording, 'Transcribing:', isTranscribing);
-
-          // Only process commands if we're recording
-          if (isRecording) {
             // Handle wake words and commands
             if (transcript.includes('hey bueller') || transcript.includes('hello bueller')) {
               onOpenChange(true);
@@ -217,50 +191,61 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
                 }
               }
             }
-          }
-        };
+          };
 
-        recognitionRef.current.onerror = (event) => {
-          console.error('Speech recognition error:', event.error);
-          // Only restart if we're supposed to be recording
-          if (isRecording && recognitionRef.current) {
-            try {
-              recognitionRef.current.start();
-            } catch (error) {
-              console.error('Failed to restart speech recognition:', error);
+          recognitionRef.current.onerror = (event) => {
+            console.error('Speech recognition error:', event.error);
+            if (isRecording && recognitionRef.current) {
+              try {
+                recognitionRef.current.start();
+              } catch (error) {
+                console.error('Failed to restart speech recognition:', error);
+              }
             }
-          }
-        };
+          };
 
-        recognitionRef.current.onend = () => {
-          // Only restart if we're supposed to be recording
-          if (isRecording && recognitionRef.current) {
-            try {
-              recognitionRef.current.start();
-            } catch (error) {
-              console.error('Failed to restart speech recognition:', error);
+          recognitionRef.current.onend = () => {
+            if (isRecording && recognitionRef.current) {
+              try {
+                recognitionRef.current.start();
+              } catch (error) {
+                console.error('Failed to restart speech recognition:', error);
+              }
             }
-          }
-        };
+          };
 
-        // Start recognition if recording is enabled
-        if (isRecording) {
-          try {
-            recognitionRef.current.start();
-          } catch (error) {
-            console.error('Failed to start speech recognition:', error);
-          }
+          recognitionRef.current.start();
+          setIsRecording(true);
+          console.log('Started recording');
+        } catch (error) {
+          console.error('Failed to start speech recognition:', error);
+        }
+      }
+    } else {
+      // Stopping recording
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+          recognitionRef.current = null;
+          setIsRecording(false);
+          setIsTranscribing(false);
+          console.log('Stopped recording');
+        } catch (error) {
+          console.error('Failed to stop speech recognition:', error);
         }
       }
     }
+  }, [isRecording, isOpen, onOpenChange, isTranscribing, input]);
 
+  // Cleanup on unmount
+  useEffect(() => {
     return () => {
       if (recognitionRef.current) {
         recognitionRef.current.stop();
         recognitionRef.current = null;
       }
     };
-  }, [isRecording, isOpen, onOpenChange, isTranscribing]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
