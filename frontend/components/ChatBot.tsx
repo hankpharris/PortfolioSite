@@ -95,8 +95,8 @@ export function ChatBot() {
             leaveFrom="translate-x-0"
             leaveTo="translate-x-full"
           >
-            <div className="fixed inset-y-0 right-0 w-screen max-w-md">
-              <div className="flex h-[calc(100vh-144px)] flex-col bg-white/30 backdrop-blur-md shadow-xl rounded-xl mt-[88px] mr-4 mb-4">
+            <div className="fixed inset-y-0 right-0 w-screen max-w-md pointer-events-none">
+              <div className="flex h-[calc(100vh-144px)] flex-col bg-white/30 backdrop-blur-md shadow-xl rounded-xl mt-[88px] mr-4 mb-4 pointer-events-auto">
                 <div className="flex items-center justify-between p-4 border-b border-gray-200/50 bg-gray-800 rounded-t-xl">
                   <Dialog.Title className="text-xl font-bold text-white">"Bueller" the AI Chat Assistant</Dialog.Title>
                   <div className="flex items-center gap-2">
