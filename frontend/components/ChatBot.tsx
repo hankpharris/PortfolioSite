@@ -469,7 +469,7 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
         <MessageSquare className="h-5 w-5" />
       </Button>
       {isOpen && (
-        <Dialog.Root open={isOpen} onOpenChange={handleOpenChange} modal={false}>
+        <Dialog.Root open={isOpen} modal={false}>
           <Dialog.Portal>
             <Dialog.Overlay className="hidden" />
             <Dialog.Content 
@@ -492,17 +492,15 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
                     >
                       {isTTSEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
                     </button>
-                    <Dialog.Close asChild>
-                      <button
-                        onClick={() => {
-                          console.log('Close button clicked');
-                          onOpenChange(false);
-                        }}
-                        className="text-gray-300 hover:text-white"
-                      >
-                        <X size={20} />
-                      </button>
-                    </Dialog.Close>
+                    <button
+                      onClick={() => {
+                        console.log('Close button clicked');
+                        onOpenChange(false);
+                      }}
+                      className="text-gray-300 hover:text-white"
+                    >
+                      <X size={20} />
+                    </button>
                   </div>
                 </div>
                 <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white/30 backdrop-blur-md">
