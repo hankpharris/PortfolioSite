@@ -176,17 +176,21 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
               // Check for send message command
               if (transcript.includes('send message') || transcript.includes('send a message')) {
                 if (input.trim()) {
-                  // Create a synthetic form event
+                  // Create a synthetic form event that matches the real form structure
                   const formEvent = {
                     preventDefault: () => {},
-                    target: {
-                      elements: {
-                        message: {
-                          value: input
-                        }
-                      }
-                    }
+                    target: document.querySelector('form'),
+                    currentTarget: document.querySelector('form'),
+                    type: 'submit',
+                    bubbles: true,
+                    cancelable: true
                   } as unknown as React.FormEvent<HTMLFormElement>;
+
+                  // Set the input value directly on the form element
+                  const inputElement = document.querySelector('input[type="text"]') as HTMLInputElement;
+                  if (inputElement) {
+                    inputElement.value = input;
+                  }
                   
                   // Call handleSubmit directly
                   handleSubmit(formEvent);
