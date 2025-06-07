@@ -86,9 +86,9 @@ export function ChatBot() {
 
       <Transition.Root show={isOpen} as={Fragment}>
         <Dialog as="div" className="relative z-50" onClose={setIsOpen}>
-          <div className="fixed inset-0 overflow-hidden">
-            <div className="absolute inset-0 overflow-hidden">
-              <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full">
+          <div className="fixed inset-0">
+            <div className="absolute inset-0">
+              <div className="fixed inset-y-0 right-0 flex max-w-full">
                 <Transition.Child
                   as={Fragment}
                   enter="transform transition ease-in-out duration-500"
@@ -98,8 +98,8 @@ export function ChatBot() {
                   leaveFrom="translate-x-0"
                   leaveTo="translate-x-full"
                 >
-                  <Dialog.Panel className="pointer-events-auto w-screen max-w-md">
-                    <div className="flex h-[calc(100vh-72px)] flex-col overflow-y-scroll bg-white/30 backdrop-blur-md shadow-xl rounded-xl mt-[72px] mr-4 mb-4">
+                  <Dialog.Panel className="w-screen max-w-md">
+                    <div className="flex h-[calc(100vh-144px)] flex-col overflow-y-scroll bg-white/30 backdrop-blur-md shadow-xl rounded-xl mt-[88px] mr-4 mb-4">
                       <div className="flex items-center justify-between p-4 border-b border-gray-200/50 bg-gray-800 rounded-t-xl">
                         <Dialog.Title className="text-xl font-bold text-white">"Bueller" the AI Chat Assistant</Dialog.Title>
                         <div className="flex items-center gap-2">
