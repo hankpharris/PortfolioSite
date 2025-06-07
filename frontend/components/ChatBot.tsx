@@ -6,6 +6,7 @@ import { MessageSquare, X, Send, Volume2, VolumeX, Mic, MicOff } from 'lucide-re
 import { Button } from './buttons/Button';
 import { useChat } from 'ai/react';
 import { useRouter } from 'next/navigation';
+import { useChatStore } from '../store/chatStore';
 
 // Add type declarations for Web Speech API
 interface SpeechRecognitionEvent extends Event {
@@ -97,7 +98,7 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
   const [showNavigationConfirm, setShowNavigationConfirm] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
   const [isTTSEnabled, setIsTTSEnabled] = useState(false);
-  const [isSTTEnabled, setIsSTTEnabled] = useState(false);
+  const { isSTTEnabled, setIsSTTEnabled, isRecording, setIsRecording } = useChatStore();
   const [messages, setMessages] = useState<Message[]>([welcomeMessage]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -137,21 +138,22 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
           console.log('Speech recognized:', transcript);
 
           // Handle wake words and commands
-          if (transcript.includes('hey bueller')) {
+          if (transcript.includes('hey bueller') || transcript.includes('hello bueller')) {
             onOpenChange(true);
             return;
           }
 
-          if (transcript.includes('bye bueller')) {
+          if (transcript.includes('goodbye bueller') || transcript.includes('bye bueller') || transcript.includes('close bueller')) {
             onOpenChange(false);
             return;
           }
 
           // Only process message commands if chat is open
           if (isOpen) {
-            if (transcript.includes('start message')) {
-              // Clear any existing input
+            if (transcript.includes('start message') || transcript.includes('start a message') || transcript.includes('begin message')) {
+              // Clear any existing input and start recording
               setInput('');
+              setIsRecording(true);
               return;
             }
 
@@ -163,22 +165,26 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
                   setInput('');
                 }
               }
+              setIsRecording(false);
               return;
             }
 
-            if (transcript.includes('reset message')) {
+            if (transcript.includes('reset message') || transcript.includes('clear message')) {
               setInput('');
+              setIsRecording(false);
               return;
             }
 
-            // If no command matched and we're in message input mode, update the input
-            // Remove any wake words or commands from the transcript
-            const cleanTranscript = transcript
-              .replace(/hey bueller|bye bueller|start message|send message|send a message|reset message/gi, '')
-              .trim();
+            // Only update input if we're in recording mode
+            if (isRecording) {
+              // Remove any wake words or commands from the transcript
+              const cleanTranscript = transcript
+                .replace(/hey bueller| hello bueller| goodbye bueller| bye bueller| close bueller|start message|send message|send a message|reset message|clear message/gi, '')
+                .trim();
 
-            if (cleanTranscript) {
-              setInput(cleanTranscript);
+              if (cleanTranscript) {
+                setInput(cleanTranscript);
+              }
             }
           }
         };
@@ -222,7 +228,7 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
         recognitionRef.current.stop();
       }
     };
-  }, [isSTTEnabled, isOpen, onOpenChange]);
+  }, [isSTTEnabled, isOpen, onOpenChange, isRecording]);
 
   // Handle STT toggle
   const toggleSTT = useCallback(() => {
@@ -237,9 +243,10 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
       } else {
         recognitionRef.current.stop();
         setIsSTTEnabled(false);
+        setIsRecording(false);
       }
     }
-  }, [isSTTEnabled]);
+  }, [isSTTEnabled, setIsSTTEnabled, setIsRecording]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
