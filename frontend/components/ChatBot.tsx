@@ -154,6 +154,25 @@ export function ChatBot() {
 
         recognitionRef.current.onerror = (event) => {
           console.error('Speech recognition error:', event.error);
+          // Restart recognition if it stops due to an error
+          if (isSTTEnabled && recognitionRef.current) {
+            try {
+              recognitionRef.current.start();
+            } catch (error) {
+              console.error('Failed to restart speech recognition:', error);
+            }
+          }
+        };
+
+        recognitionRef.current.onend = () => {
+          // Restart recognition if it was enabled
+          if (isSTTEnabled && recognitionRef.current) {
+            try {
+              recognitionRef.current.start();
+            } catch (error) {
+              console.error('Failed to restart speech recognition:', error);
+            }
+          }
         };
       }
     }
@@ -163,17 +182,22 @@ export function ChatBot() {
         recognitionRef.current.stop();
       }
     };
-  }, [isOpen]);
+  }, [isSTTEnabled]); // Only re-run when STT is toggled
 
   // Handle STT toggle
   const toggleSTT = useCallback(() => {
     if (recognitionRef.current) {
       if (!isSTTEnabled) {
-        recognitionRef.current.start();
+        try {
+          recognitionRef.current.start();
+          setIsSTTEnabled(true);
+        } catch (error) {
+          console.error('Failed to start speech recognition:', error);
+        }
       } else {
         recognitionRef.current.stop();
+        setIsSTTEnabled(false);
       }
-      setIsSTTEnabled(!isSTTEnabled);
     }
   }, [isSTTEnabled]);
 
