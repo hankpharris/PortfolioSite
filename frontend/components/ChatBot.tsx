@@ -176,11 +176,8 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
               // Check for send message command
               if (transcript.includes('send message') || transcript.includes('send a message')) {
                 if (input.trim()) {
-                  // Use the exact same flow as the manual send button
-                  const submitButton = document.querySelector('button[type="submit"]') as HTMLButtonElement;
-                  if (submitButton) {
-                    submitButton.click();
-                  }
+                  // Use the same handleSubmit function directly
+                  handleSubmit(new Event('submit') as unknown as React.FormEvent);
                   setInput('');
                 }
                 setIsTranscribing(false);
@@ -382,7 +379,6 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
             
             try {
               await audioRef.current.play();
-              console.log('Playing audio');
             } catch (playError) {
               console.error('Error playing audio:', playError);
             }
