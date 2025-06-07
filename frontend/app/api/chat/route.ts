@@ -130,7 +130,8 @@ Overview: ${project.overview || 'No overview available'}
 Project Link: ${project.link || 'No project link available'}
 GitHub Link: ${project.githubLink || 'No GitHub link available'}
 `).join('\n')}
-Data Calrifications:
+
+Data Clarifications:
 - The Project ID is a unique identifier for each project, and is used important to the structure of the site.
 - Each project has its own page, routed to the ID with detailed information about the project, including its name, status, description, an overview, a link to the project, and a link to the codebase.
 - Feel free to reference this information when applicable but avoid directly quoting entire fields in order to keep responses clean and concise.
@@ -140,31 +141,12 @@ Data Calrifications:
 
 export async function POST(req: Request) {
   const { messages, useTTS } = await req.json();
-  const projects = await getAllProjects();
-
+  
+  // Get the detailed system message
+  const systemMessageContent = await getSystemMessage();
   const systemMessage = {
     role: 'system',
-    content: `You are a helpful AI assistant for a portfolio website. You have access to the following projects:
-
-${projects.map(p => `
-Project ${p.id}:
-- Name: ${p.name}
-- Status: ${p.status}
-- Description: ${p.description}
-- Overview: ${p.overview}
-- Links: ${p.projectLink ? `Project: ${p.projectLink}` : ''} ${p.githubLink ? `GitHub: ${p.githubLink}` : ''}
-`).join('\n')}
-
-When users ask about projects, provide detailed information about the specific project they're interested in.
-If they ask about multiple projects, you can compare them.
-If they ask about technologies or features, mention which projects use them.
-
-For navigation requests, use these exact phrases:
-- For main pages: "Navigating you to [page]" (e.g., "Navigating you to about", "Navigating you to projects")
-- For specific projects: "Navigating you to project [id]" (e.g., "Navigating you to project 1")
-
-Keep responses concise and efficient. Use bullet points and line breaks for better readability.
-${useTTS ? 'Keep responses brief and conversational for better text-to-speech experience.' : ''}`
+    content: systemMessageContent
   };
 
   // Create a new chat completion
