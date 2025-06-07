@@ -157,6 +157,7 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
                 console.log('Starting message transcription');
                 setInput('');
                 setIsTranscribing(true);
+                console.log('Set isTranscribing to true');
                 return;
               }
 
@@ -169,12 +170,14 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
                   }
                 }
                 setIsTranscribing(false);
+                console.log('Set isTranscribing to false (send)');
                 return;
               }
 
               if (transcript.includes('reset message') || transcript.includes('clear message')) {
                 setInput('');
                 setIsTranscribing(false);
+                console.log('Set isTranscribing to false (reset)');
                 return;
               }
 
@@ -189,6 +192,8 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
                   console.log('Updating input with:', cleanTranscript);
                   setInput(cleanTranscript);
                 }
+              } else {
+                console.log('Not transcribing because isTranscribing is false');
               }
             }
           };
@@ -249,7 +254,7 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
         }
       }
     }
-  }, [isRecording, isOpen, onOpenChange, isTranscribing, input]);
+  }, [isRecording, isOpen, onOpenChange, isTranscribing, input, setIsTranscribing]);
 
   // Cleanup on unmount
   useEffect(() => {
