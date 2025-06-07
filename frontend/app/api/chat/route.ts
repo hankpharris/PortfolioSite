@@ -123,7 +123,7 @@ Rules:
 - (Rule 7) If a field is blank or not provided, you should either not include it in your response or simply state that there is no set information for that field.
 - (Rule 8) When users ask about specific sections or features, provide helpful information and guide them to the relevant pages.
 - (Rule 9) When users ask about specific project details, use ONLY the project information provided below. Never make up or guess information.
-- (Rule 10) Keep responses concise and efficient, focused on helping users navigate and understand the portfolio site. 
+- (Rule 10) Keep responses very concise and efficient, focused on helping users navigate and understand the portfolio site. 
 - (Rule 11) If you do not have the information to answer, don't make up information, just say you do not have the information.
 (End Rules)
 
@@ -143,7 +143,8 @@ Data Clarifications:
 - The Project ID is a unique identifier for each project, and is used important to the structure of the site.
 - Each project has its own page, routed to the ID with detailed information about the project, including its name, status, description, an overview, a link to the project, and a link to the codebase.
 - Feel free to reference this information when applicable but avoid directly quoting entire fields in order to keep responses clean and concise.
-- IMPORTANT: Use ONLY the actual data provided above. Never use placeholder text or make up information.`;
+
+IMPORTANT: Use ONLY the actual data provided above. Never use placeholder text or make up information.`;
 };
 
 export async function POST(req: Request) {
@@ -180,12 +181,14 @@ export async function GET(req: Request) {
   }
 
   try {
+    console.log('Generating speech for text:', text);
     const response = await openai.audio.speech.create({
-      model: 'tts-1',
+      model: 'gpt-4o-mini-tts',
       voice: 'onyx',
       input: text,
     });
 
+    console.log('Speech generated successfully');
     const audioBuffer = await response.arrayBuffer();
     return new Response(audioBuffer, {
       headers: {

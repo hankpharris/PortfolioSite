@@ -101,16 +101,23 @@ export function ChatBot() {
       const message = customEvent.detail;
       if (message.role === 'assistant') {
         try {
+          console.log('Sending TTS request for:', message.content);
           const response = await fetch(`/api/chat?text=${encodeURIComponent(message.content)}`);
 
-          if (!response.ok) throw new Error('TTS request failed');
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('TTS request failed:', errorText);
+            throw new Error(`TTS request failed: ${errorText}`);
+          }
           
           const audioBlob = await response.blob();
+          console.log('Received audio blob:', audioBlob.size, 'bytes');
           const audioUrl = URL.createObjectURL(audioBlob);
           
           if (audioRef.current) {
             audioRef.current.src = audioUrl;
-            audioRef.current.play();
+            await audioRef.current.play();
+            console.log('Playing audio');
           }
         } catch (error) {
           console.error('Error playing TTS:', error);
