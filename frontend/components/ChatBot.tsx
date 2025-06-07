@@ -142,7 +142,11 @@ export function ChatBot() {
                 // Use setTimeout to ensure the input is set before submitting
                 setTimeout(() => {
                   const form = document.querySelector('form');
-                  if (form) form.requestSubmit();
+                  if (form) {
+                    form.requestSubmit();
+                    // Clear the input after submitting
+                    setInput('');
+                  }
                 }, 0);
               }
             } else {
