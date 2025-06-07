@@ -6968,6 +6968,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "portfolio-monorepo@workspace:."
   dependencies:
+    "@headlessui/react": "npm:^2.2.4"
+    "@heroicons/react": "npm:^2.2.0"
     "@prisma/client": "npm:^6.8.2"
     "@radix-ui/react-dialog": "npm:^1.1.14"
     "@radix-ui/react-label": "npm:^2.1.7"
@@ -6988,6 +6990,7 @@ __metadata:
     frontend: "workspace:^"
     husky: "npm:^9.1.7"
     lucide-react: "npm:^0.511.0"
+    openai: "npm:^5.1.1"
     prettier: "npm:^3.1.0"
     prettier-config-custom: "workspace:*"
     prisma: "npm:^6.8.2"
