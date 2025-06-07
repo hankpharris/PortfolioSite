@@ -108,11 +108,16 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const isClosingRef = useRef(false);
   const isTranscribingRef = useRef(false);
+  const isRecordingRef = useRef(false);
 
-  // Sync ref with state
+  // Sync refs with state
   useEffect(() => {
     isTranscribingRef.current = isTranscribing;
   }, [isTranscribing]);
+
+  useEffect(() => {
+    isRecordingRef.current = isRecording;
+  }, [isRecording]);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -127,10 +132,10 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
 
   // Handle recording toggle
   const toggleRecording = useCallback(() => {
-    console.log('Toggle recording clicked, current state:', isRecording);
+    console.log('Toggle recording clicked, current state:', isRecordingRef.current);
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     
-    if (!isRecording) {
+    if (!isRecordingRef.current) {
       // Starting recording
       if (SpeechRecognition) {
         try {
@@ -147,7 +152,7 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
               .join('')
               .toLowerCase();
 
-            console.log('Speech recognized:', transcript, 'Recording:', isRecording, 'Transcribing:', isTranscribingRef.current);
+            console.log('Speech recognized:', transcript, 'Recording:', isRecordingRef.current, 'Transcribing:', isTranscribingRef.current);
 
             // Handle wake words and commands
             if (transcript.includes('hey bueller') || transcript.includes('hello bueller')) {
@@ -208,7 +213,7 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
 
           recognitionRef.current.onerror = (event) => {
             console.error('Speech recognition error:', event.error);
-            if (isRecording && recognitionRef.current) {
+            if (isRecordingRef.current && recognitionRef.current) {
               try {
                 recognitionRef.current.start();
               } catch (error) {
@@ -218,7 +223,7 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
           };
 
           recognitionRef.current.onend = () => {
-            if (isRecording && recognitionRef.current) {
+            if (isRecordingRef.current && recognitionRef.current) {
               try {
                 recognitionRef.current.start();
               } catch (error) {
@@ -273,7 +278,7 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
         setIsTranscribing(false);
       }
     }
-  }, [isRecording, isOpen, onOpenChange, isTranscribing, input, setIsTranscribing]);
+  }, [isOpen, onOpenChange, input, setIsTranscribing]);
 
   // Cleanup on unmount
   useEffect(() => {
