@@ -14,7 +14,9 @@
     },
     "globalEnv": [
         "OPENAI_API_KEY",
-        "DATABASE_URL"
+        "DATABASE_URL",
+        "NEXT_PUBLIC_OPENAI_API_KEY",
+        "NEXT_PUBLIC_DATABASE_URL"
     ],
     "ui": "stream",
     "tasks": {
@@ -54,7 +56,8 @@
                 "POSTGRES_PORT",
                 "POSTGRES_HOST",
                 "POSTGRES_URL",
-                "OPENAI_API_KEY"
+                "OPENAI_API_KEY",
+                "NEXT_PUBLIC_OPENAI_API_KEY"
             ],
             "dependsOn": ["^dependencies"],
             "outputs": ["build/**"]

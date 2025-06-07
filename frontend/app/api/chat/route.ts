@@ -165,7 +165,7 @@ export async function POST(req: Request) {
   });
 
   // Convert the response into a friendly text-stream
-  const stream = OpenAIStream(response as unknown as ChatCompletionChunk);
+  const stream = OpenAIStream(response as any);
   
   // Return a StreamingTextResponse, which can be consumed by the client
   return new StreamingTextResponse(stream);

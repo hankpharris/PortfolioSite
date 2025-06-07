@@ -14,7 +14,10 @@
     },
     "globalEnv": [
         "OPENAI_API_KEY",
-        "DATABASE_URL"
+        "DATABASE_URL",
+        "RESEND_API_KEY",
+        "NEXT_PUBLIC_OPENAI_API_KEY",
+        "NEXT_PUBLIC_DATABASE_URL"
     ],
     "extends": ["//"],
     "tasks": {
@@ -23,11 +26,18 @@
                 "FRONTEND_PORT",
                 "BACKEND_PORT",
                 "BACKEND_SOURCE",
-                "BACKEND_URL"
+                "BACKEND_URL",
+                "OPENAI_API_KEY",
+                "NEXT_PUBLIC_OPENAI_API_KEY"
             ]
         },
         "deploy": {
-            "env": ["FRONTEND_PORT", "BACKEND_URL"]
+            "env": [
+                "FRONTEND_PORT",
+                "BACKEND_URL",
+                "OPENAI_API_KEY",
+                "NEXT_PUBLIC_OPENAI_API_KEY"
+            ]
         }
     }
 }
