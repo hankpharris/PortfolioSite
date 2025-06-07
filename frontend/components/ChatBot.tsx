@@ -225,13 +225,27 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
       // Stopping recording
       if (recognitionRef.current) {
         try {
+          // Remove all event listeners
+          recognitionRef.current.onresult = null;
+          recognitionRef.current.onerror = null;
+          recognitionRef.current.onend = null;
+          
+          // Stop the recognition
           recognitionRef.current.stop();
+          
+          // Clear the instance
           recognitionRef.current = null;
+          
+          // Update state
           setIsRecording(false);
           setIsTranscribing(false);
           console.log('Stopped recording');
         } catch (error) {
           console.error('Failed to stop speech recognition:', error);
+          // Force cleanup even if stop fails
+          recognitionRef.current = null;
+          setIsRecording(false);
+          setIsTranscribing(false);
         }
       }
     }
