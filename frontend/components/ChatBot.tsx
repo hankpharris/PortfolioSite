@@ -283,7 +283,7 @@ export function ChatBot() {
   }, [isTTSEnabled]);
 
   return (
-    <Dialog.Root open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog.Root open={isOpen} onOpenChange={setIsOpen} modal={false}>
       <Dialog.Trigger asChild>
         <Button variant="nav">
           <MessageSquare className="w-5 h-5 mr-2" />
