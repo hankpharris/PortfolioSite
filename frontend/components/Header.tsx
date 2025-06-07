@@ -1,10 +1,13 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { useState } from 'react';
 import { Button } from './buttons/Button';
 import { ContactForm } from './ContactForm';
 import { ChatBot } from './ChatBot';
 
 export function Header() {
+    const [isChatOpen, setIsChatOpen] = useState(false);
+
     return (
         <header className="fixed top-0 left-0 right-0 z-50 bg-white/30 backdrop-blur-md shadow-lg">
             <nav className="container mx-auto px-4 py-4">
@@ -34,7 +37,7 @@ export function Header() {
                             Admin
                         </Button>
                         <ContactForm />
-                        <ChatBot />
+                        <ChatBot isOpen={isChatOpen} onOpenChange={setIsChatOpen} />
                     </div>
                 </div>
             </nav>

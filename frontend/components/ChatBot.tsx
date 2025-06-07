@@ -88,8 +88,12 @@ type Message = {
   content: string;
 };
 
-export function ChatBot() {
-  const [isOpen, setIsOpen] = useState(false);
+type ChatBotProps = {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+};
+
+export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
   const [showNavigationConfirm, setShowNavigationConfirm] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
   const [isTTSEnabled, setIsTTSEnabled] = useState(false);
@@ -110,8 +114,8 @@ export function ChatBot() {
 
   // Handle chat open/close
   const handleOpenChange = useCallback((open: boolean) => {
-    setIsOpen(open);
-  }, []);
+    onOpenChange(open);
+  }, [onOpenChange]);
 
   // Initialize speech recognition
   useEffect(() => {
@@ -131,7 +135,7 @@ export function ChatBot() {
           if (!isClosingRef.current && transcript.toLowerCase().includes('hey bueller')) {
             // Open chat if closed
             if (!isOpen) {
-              setIsOpen(true);
+              onOpenChange(true);
             }
 
             // Extract message content after wake word
@@ -192,7 +196,7 @@ export function ChatBot() {
         recognitionRef.current.stop();
       }
     };
-  }, [isSTTEnabled, isOpen]);
+  }, [isSTTEnabled, isOpen, onOpenChange]);
 
   // Handle STT toggle
   const toggleSTT = useCallback(() => {
@@ -365,7 +369,7 @@ export function ChatBot() {
 
   const handleNavigation = () => {
     if (pendingNavigation) {
-      setIsOpen(false);
+      onOpenChange(false);
       setShowNavigationConfirm(false);
       setPendingNavigation(null);
       router.push(pendingNavigation);
