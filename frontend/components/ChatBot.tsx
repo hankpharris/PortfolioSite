@@ -126,43 +126,59 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
         recognitionRef.current = new SpeechRecognition();
         recognitionRef.current.continuous = true;
         recognitionRef.current.interimResults = true;
+        recognitionRef.current.lang = 'en-US';
 
         recognitionRef.current.onresult = (event) => {
           const transcript = Array.from(event.results)
             .map(result => result[0].transcript)
-            .join('');
+            .join('')
+            .toLowerCase();
 
-          // Check for wake word and commands, but only if we're not currently closing
-          if (!isClosingRef.current && transcript.toLowerCase().includes('hey bueller')) {
-            // Open chat if closed
-            if (!isOpen) {
-              onOpenChange(true);
+          console.log('Speech recognized:', transcript);
+
+          // Handle wake words and commands
+          if (transcript.includes('hey bueller')) {
+            onOpenChange(true);
+            return;
+          }
+
+          if (transcript.includes('bye bueller')) {
+            onOpenChange(false);
+            return;
+          }
+
+          // Only process message commands if chat is open
+          if (isOpen) {
+            if (transcript.includes('start message')) {
+              // Clear any existing input
+              setInput('');
+              return;
             }
 
-            // Extract message content after wake word
-            const messageContent = transcript
-              .toLowerCase()
-              .replace('hey bueller', '')
+            if (transcript.includes('send message') || transcript.includes('send a message')) {
+              if (input.trim()) {
+                const form = document.querySelector('form');
+                if (form) {
+                  form.requestSubmit();
+                  setInput('');
+                }
+              }
+              return;
+            }
+
+            if (transcript.includes('reset message')) {
+              setInput('');
+              return;
+            }
+
+            // If no command matched and we're in message input mode, update the input
+            // Remove any wake words or commands from the transcript
+            const cleanTranscript = transcript
+              .replace(/hey bueller|bye bueller|start message|send message|send a message|reset message/gi, '')
               .trim();
 
-            // If "send message" is detected, send the current input
-            if (messageContent.includes('send message')) {
-              const finalMessage = messageContent.replace('send message', '').trim();
-              if (finalMessage) {
-                setInput(finalMessage);
-                // Use setTimeout to ensure the input is set before submitting
-                setTimeout(() => {
-                  const form = document.querySelector('form');
-                  if (form) {
-                    form.requestSubmit();
-                    // Clear the input after submitting
-                    setInput('');
-                  }
-                }, 0);
-              }
-            } else {
-              // Update input with current transcript
-              setInput(messageContent);
+            if (cleanTranscript) {
+              setInput(cleanTranscript);
             }
           }
         };
@@ -189,6 +205,15 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
             }
           }
         };
+
+        // Start recognition if STT is enabled
+        if (isSTTEnabled) {
+          try {
+            recognitionRef.current.start();
+          } catch (error) {
+            console.error('Failed to start speech recognition:', error);
+          }
+        }
       }
     }
 
