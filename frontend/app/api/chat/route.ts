@@ -21,10 +21,10 @@ async function getAllProjects() {
         name,
         status,
         description,
-        overview,
-        projectLink,
-        githubLink
-      FROM projects
+        "overviewText" as overview,
+        link as "projectLink",
+        "gitHubLink" as "githubLink"
+      FROM "Project"
       ORDER BY id
     `;
     console.log('Projects fetched:', JSON.stringify(projects, null, 2));
@@ -44,10 +44,10 @@ async function getProjectById(id: number) {
         name,
         status,
         description,
-        overview,
-        projectLink,
-        githubLink
-      FROM projects
+        "overviewText" as overview,
+        link as "projectLink",
+        "gitHubLink" as "githubLink"
+      FROM "Project"
       WHERE id = ${id}
     `;
     return project;
