@@ -152,8 +152,6 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
               .join('')
               .toLowerCase();
 
-            console.log('Speech recognized:', transcript, 'Recording:', isRecordingRef.current, 'Transcribing:', isTranscribingRef.current);
-
             // Handle wake words and commands
             if (transcript.includes('hey bueller') || transcript.includes('hello bueller')) {
               onOpenChange(true);
@@ -169,10 +167,8 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
             if (isOpen) {
               // Check for start message command first
               if (!isTranscribingRef.current && (transcript.includes('start message') || transcript.includes('start a message') || transcript.includes('begin message'))) {
-                console.log('Start message command detected, current transcribing state:', isTranscribingRef.current);
                 setInput('');
                 setIsTranscribing(true);
-                console.log('Set isTranscribing to true');
                 return;
               }
 
@@ -181,7 +177,8 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
                 if (input.trim()) {
                   const form = document.querySelector('form');
                   if (form) {
-                    form.requestSubmit();
+                    const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+                    form.dispatchEvent(submitEvent);
                     setInput('');
                   }
                 }
@@ -204,7 +201,6 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
                   .trim();
 
                 if (cleanTranscript) {
-                  console.log('Updating input with:', cleanTranscript);
                   setInput(cleanTranscript);
                 }
               }
@@ -235,7 +231,6 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
           // Start recognition and update state
           recognitionRef.current.start();
           setIsRecording(true);
-          console.log('Started recording, new state:', true);
         } catch (error) {
           console.error('Failed to start speech recognition:', error);
           // Reset state if start fails
@@ -245,7 +240,6 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
       }
     } else {
       // Stopping recording
-      console.log('Attempting to stop recording');
       if (recognitionRef.current) {
         try {
           // Remove all event listeners
@@ -262,18 +256,15 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
           // Update state
           setIsRecording(false);
           setIsTranscribing(false);
-          console.log('Stopped recording, new state:', false);
         } catch (error) {
           console.error('Failed to stop speech recognition:', error);
           // Force cleanup even if stop fails
           recognitionRef.current = null;
           setIsRecording(false);
           setIsTranscribing(false);
-          console.log('Forced state reset after error');
         }
       } else {
         // If no recognition instance but state is true, force reset
-        console.log('No recognition instance found, forcing state reset');
         setIsRecording(false);
         setIsTranscribing(false);
       }
