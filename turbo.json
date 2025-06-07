@@ -1,5 +1,21 @@
 {
     "$schema": "https://turbo.build/schema.json",
+    "globalDependencies": ["**/.env.*local"],
+    "pipeline": {
+        "build": {
+            "dependsOn": ["^build"],
+            "outputs": [".next/**", "!.next/cache/**"]
+        },
+        "lint": {},
+        "dev": {
+            "cache": false,
+            "persistent": true
+        }
+    },
+    "globalEnv": [
+        "OPENAI_API_KEY",
+        "DATABASE_URL"
+    ],
     "ui": "stream",
     "tasks": {
         "dependencies": {

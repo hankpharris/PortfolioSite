@@ -1,31 +1,58 @@
 import { OpenAIStream, StreamingTextResponse } from 'ai';
+import { neon } from '@neondatabase/serverless';
 import OpenAI from 'openai';
-import { NextResponse } from 'next/server';
-import { getProjects } from '@/lib/db';
+import { ChatCompletionChunk } from 'openai/resources/chat/completions';
 
 // Create an OpenAI API client (that's edge friendly!)
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || '',
 });
 
-// IMPORTANT! Set the runtime to edge
-export const runtime = 'edge';
+// Initialize the database connection
+const sql = neon(process.env.DATABASE_URL!);
 
-// Function to fetch all projects from the database
+// Function to get all projects from the database
 async function getAllProjects() {
-  const sql = neon(process.env.DATABASE_URL!);
-  const result = await sql`
-    SELECT 
-      id,
-      name,
-      status,
-      description,
-      "overviewText",
-      link,
-      "gitHubLink"
-    FROM "Project"
-  `;
-  return result;
+  try {
+    const projects = await sql`
+      SELECT 
+        id,
+        name,
+        status,
+        description,
+        overview,
+        projectLink,
+        githubLink
+      FROM projects
+      ORDER BY id
+    `;
+    return projects;
+  } catch (error) {
+    console.error('Error fetching projects:', error);
+    return [];
+  }
+}
+
+// Function to get a specific project by ID
+async function getProjectById(id: number) {
+  try {
+    const [project] = await sql`
+      SELECT 
+        id,
+        name,
+        status,
+        description,
+        overview,
+        projectLink,
+        githubLink
+      FROM projects
+      WHERE id = ${id}
+    `;
+    return project;
+  } catch (error) {
+    console.error(`Error fetching project ${id}:`, error);
+    return null;
+  }
 }
 
 // System message that helps guide the AI's responses
@@ -36,9 +63,9 @@ const getSystemMessage = async () => {
     name: project.name,
     status: project.status,
     description: project.description,
-    overview: project.overviewText,
-    link: project.link,
-    githubLink: project.gitHubLink
+    overview: project.overview,
+    link: project.projectLink,
+    githubLink: project.githubLink
   }));
 
   return `You are "Bueller", a helpful assistant for a portfolio website. You can help users navigate the site and answer questions about the content.
@@ -112,68 +139,72 @@ Data Calrifications:
 };
 
 export async function POST(req: Request) {
-  try {
-    const { messages, useTTS } = await req.json();
+  const { messages, useTTS } = await req.json();
+  const projects = await getAllProjects();
 
-    // Get projects from the database
-    const projects = await getProjects();
+  const systemMessage = {
+    role: 'system',
+    content: `You are a helpful AI assistant for a portfolio website. You have access to the following projects:
 
-    // Create a system message with project information
-    const systemMessage = await getSystemMessage();
+${projects.map(p => `
+Project ${p.id}:
+- Name: ${p.name}
+- Status: ${p.status}
+- Description: ${p.description}
+- Overview: ${p.overview}
+- Links: ${p.projectLink ? `Project: ${p.projectLink}` : ''} ${p.githubLink ? `GitHub: ${p.githubLink}` : ''}
+`).join('\n')}
 
-    // Create the chat completion
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      stream: true,
-      messages: [systemMessage, ...messages],
-    });
+When users ask about projects, provide detailed information about the specific project they're interested in.
+If they ask about multiple projects, you can compare them.
+If they ask about technologies or features, mention which projects use them.
 
-    // Convert the response into a friendly text-stream
-    const stream = OpenAIStream(response);
+For navigation requests, use these exact phrases:
+- For main pages: "Navigating you to [page]" (e.g., "Navigating you to about", "Navigating you to projects")
+- For specific projects: "Navigating you to project [id]" (e.g., "Navigating you to project 1")
 
-    // Return a StreamingTextResponse, which can be consumed by the client
-    return new StreamingTextResponse(stream);
-  } catch (error) {
-    console.error('Error in chat API:', error);
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500 }
-    );
-  }
+Keep responses concise and efficient. Use bullet points and line breaks for better readability.
+${useTTS ? 'Keep responses brief and conversational for better text-to-speech experience.' : ''}`
+  };
+
+  // Create a new chat completion
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4',
+    stream: true,
+    messages: [systemMessage, ...messages],
+  });
+
+  // Convert the response into a friendly text-stream
+  const stream = OpenAIStream(response as AsyncIterable<ChatCompletionChunk>);
+  
+  // Return a StreamingTextResponse, which can be consumed by the client
+  return new StreamingTextResponse(stream);
 }
 
 // Add a new endpoint for TTS
 export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const text = searchParams.get('text');
+
+  if (!text) {
+    return new Response('Text parameter is required', { status: 400 });
+  }
+
   try {
-    const { searchParams } = new URL(req.url);
-    const text = searchParams.get('text');
-
-    if (!text) {
-      return NextResponse.json(
-        { error: 'Text parameter is required' },
-        { status: 400 }
-      );
-    }
-
-    const mp3 = await openai.audio.speech.create({
+    const response = await openai.audio.speech.create({
       model: 'tts-1',
       voice: 'alloy',
       input: text,
     });
 
-    const buffer = Buffer.from(await mp3.arrayBuffer());
-    
-    return new NextResponse(buffer, {
+    const audioBuffer = await response.arrayBuffer();
+    return new Response(audioBuffer, {
       headers: {
         'Content-Type': 'audio/mpeg',
-        'Content-Length': buffer.length.toString(),
       },
     });
   } catch (error) {
-    console.error('Error in TTS API:', error);
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500 }
-    );
+    console.error('Error generating speech:', error);
+    return new Response('Error generating speech', { status: 500 });
   }
 } 

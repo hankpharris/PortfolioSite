@@ -17,7 +17,7 @@ const welcomeMessage = {
 How can I help you today?`
 };
 
-export default function ChatBot() {
+export function ChatBot() {
   const [isOpen, setIsOpen] = useState(false);
   const [isTTSEnabled, setIsTTSEnabled] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
