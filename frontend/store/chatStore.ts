@@ -31,6 +31,7 @@ export const useChatStore = create<ChatState>()(
     }),
     {
       name: 'chat-storage',
+      partialize: (state) => ({ isOpen: state.isOpen }), // Only persist isOpen state
     }
   )
 ); 
