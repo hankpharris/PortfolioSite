@@ -119,6 +119,30 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
     onOpenChange(open);
   }, [onOpenChange]);
 
+  // Handle recording toggle
+  const toggleRecording = useCallback(() => {
+    if (recognitionRef.current) {
+      if (!isRecording) {
+        try {
+          recognitionRef.current.start();
+          setIsRecording(true);
+          console.log('Started recording');
+        } catch (error) {
+          console.error('Failed to start speech recognition:', error);
+        }
+      } else {
+        try {
+          recognitionRef.current.stop();
+          setIsRecording(false);
+          setIsTranscribing(false); // Also stop transcribing when recording stops
+          console.log('Stopped recording');
+        } catch (error) {
+          console.error('Failed to stop speech recognition:', error);
+        }
+      }
+    }
+  }, [isRecording, setIsRecording, setIsTranscribing]);
+
   // Initialize speech recognition
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -137,54 +161,57 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
 
           console.log('Speech recognized:', transcript, 'Recording:', isRecording, 'Transcribing:', isTranscribing);
 
-          // Handle wake words and commands
-          if (transcript.includes('hey bueller') || transcript.includes('hello bueller')) {
-            onOpenChange(true);
-            return;
-          }
-
-          if (transcript.includes('goodbye bueller') || transcript.includes('bye bueller') || transcript.includes('close bueller')) {
-            onOpenChange(false);
-            return;
-          }
-
-          // Only process message commands if chat is open
-          if (isOpen) {
-            if (transcript.includes('start message') || transcript.includes('start a message') || transcript.includes('begin message')) {
-              console.log('Starting message transcription');
-              setInput('');
-              setIsTranscribing(true);
+          // Only process commands if we're recording
+          if (isRecording) {
+            // Handle wake words and commands
+            if (transcript.includes('hey bueller') || transcript.includes('hello bueller')) {
+              onOpenChange(true);
               return;
             }
 
-            if (transcript.includes('send message') || transcript.includes('send a message')) {
-              if (input.trim()) {
-                const form = document.querySelector('form');
-                if (form) {
-                  form.requestSubmit();
-                  setInput('');
-                }
+            if (transcript.includes('goodbye bueller') || transcript.includes('bye bueller') || transcript.includes('close bueller')) {
+              onOpenChange(false);
+              return;
+            }
+
+            // Only process message commands if chat is open
+            if (isOpen) {
+              if (transcript.includes('start message') || transcript.includes('start a message') || transcript.includes('begin message')) {
+                console.log('Starting message transcription');
+                setInput('');
+                setIsTranscribing(true);
+                return;
               }
-              setIsTranscribing(false);
-              return;
-            }
 
-            if (transcript.includes('reset message') || transcript.includes('clear message')) {
-              setInput('');
-              setIsTranscribing(false);
-              return;
-            }
+              if (transcript.includes('send message') || transcript.includes('send a message')) {
+                if (input.trim()) {
+                  const form = document.querySelector('form');
+                  if (form) {
+                    form.requestSubmit();
+                    setInput('');
+                  }
+                }
+                setIsTranscribing(false);
+                return;
+              }
 
-            // Only update input if we're in transcribing mode
-            if (isTranscribing) {
-              // Remove any wake words or commands from the transcript
-              const cleanTranscript = transcript
-                .replace(/hey bueller| hello bueller| goodbye bueller| bye bueller| close bueller|start message|send message|send a message|reset message|clear message/gi, '')
-                .trim();
+              if (transcript.includes('reset message') || transcript.includes('clear message')) {
+                setInput('');
+                setIsTranscribing(false);
+                return;
+              }
 
-              if (cleanTranscript) {
-                console.log('Updating input with:', cleanTranscript);
-                setInput(cleanTranscript);
+              // Only update input if we're in transcribing mode
+              if (isTranscribing) {
+                // Remove any wake words or commands from the transcript
+                const cleanTranscript = transcript
+                  .replace(/hey bueller|hello bueller|goodbye bueller|bye bueller|close bueller|start message|send message|send a message|reset message|clear message/gi, '')
+                  .trim();
+
+                if (cleanTranscript) {
+                  console.log('Updating input with:', cleanTranscript);
+                  setInput(cleanTranscript);
+                }
               }
             }
           }
@@ -192,7 +219,7 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
 
         recognitionRef.current.onerror = (event) => {
           console.error('Speech recognition error:', event.error);
-          // Restart recognition if it stops due to an error
+          // Only restart if we're supposed to be recording
           if (isRecording && recognitionRef.current) {
             try {
               recognitionRef.current.start();
@@ -203,7 +230,7 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
         };
 
         recognitionRef.current.onend = () => {
-          // Restart recognition if it was enabled
+          // Only restart if we're supposed to be recording
           if (isRecording && recognitionRef.current) {
             try {
               recognitionRef.current.start();
@@ -230,24 +257,6 @@ export function ChatBot({ isOpen, onOpenChange }: ChatBotProps) {
       }
     };
   }, [isRecording, isOpen, onOpenChange, isTranscribing]);
-
-  // Handle recording toggle
-  const toggleRecording = useCallback(() => {
-    if (recognitionRef.current) {
-      if (!isRecording) {
-        try {
-          recognitionRef.current.start();
-          setIsRecording(true);
-        } catch (error) {
-          console.error('Failed to start speech recognition:', error);
-        }
-      } else {
-        recognitionRef.current.stop();
-        setIsRecording(false);
-        setIsTranscribing(false);
-      }
-    }
-  }, [isRecording, setIsRecording, setIsTranscribing]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
