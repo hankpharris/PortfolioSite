@@ -165,6 +165,28 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
     }
   }, [isOpen]);
 
+  // Add a function to handle recognition reset
+  const resetRecognition = useCallback(async () => {
+    if (!recognitionRef.current) return;
+    
+    try {
+      isResettingRef.current = true;
+      recognitionRef.current.stop();
+      
+      // Wait for recognition to fully stop
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Only start if we're still supposed to be recording
+      if (isRecordingRef.current) {
+        recognitionRef.current.start();
+      }
+    } catch (error) {
+      console.error('Error resetting recognition:', error);
+    } finally {
+      isResettingRef.current = false;
+    }
+  }, []);
+
   // Handle recording toggle
   const toggleRecording = useCallback(() => {
     console.log('Toggle recording clicked, current state:', isRecordingRef.current);
@@ -229,22 +251,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
                   if (form) {
                     form.dispatchEvent(new Event('submit', { bubbles: true }));
                   }
-                  // Reset recognition state
-                  if (recognitionRef.current) {
-                    try {
-                      isResettingRef.current = true;
-                      recognitionRef.current.stop();
-                      setTimeout(() => {
-                        if (recognitionRef.current) {
-                          recognitionRef.current.start();
-                        }
-                        isResettingRef.current = false;
-                      }, 100);
-                    } catch (error) {
-                      console.error('Error resetting recognition:', error);
-                      isResettingRef.current = false;
-                    }
-                  }
+                  resetRecognition();
                   setTranscript('');
                   setTrimmedTranscript('');
                   return;
@@ -253,22 +260,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
                 // Check for reset message command
                 if (isTranscribingRef.current && (allResults.includes('reset message') || allResults.includes('clear message'))) {
                   setInput('');
-                  // Reset recognition state
-                  if (recognitionRef.current) {
-                    try {
-                      isResettingRef.current = true;
-                      recognitionRef.current.stop();
-                      setTimeout(() => {
-                        if (recognitionRef.current) {
-                          recognitionRef.current.start();
-                        }
-                        isResettingRef.current = false;
-                      }, 100);
-                    } catch (error) {
-                      console.error('Error resetting recognition:', error);
-                      isResettingRef.current = false;
-                    }
-                  }
+                  resetRecognition();
                   setTranscript('');
                   setTrimmedTranscript('');
                   isTranscribingRef.current = false;
