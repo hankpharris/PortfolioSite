@@ -322,13 +322,29 @@ export function ChatBot() {
   // Handle navigation with confirmation
   const handleNavigation = useCallback((path: string) => {
     if (messages.length > 1) {
-      setShowNavigationConfirm(true);
-      setPendingNavigation(path);
+      // Reset countdown before showing dialog
       setCountdown(10);
+      setPendingNavigation(path);
+      setShowNavigationConfirm(true);
     } else {
       router.push(path);
     }
   }, [messages.length, router]);
+
+  const handleConfirmNavigation = useCallback(() => {
+    if (pendingNavigation) {
+      router.push(pendingNavigation);
+      setShowNavigationConfirm(false);
+      setPendingNavigation(null);
+      setCountdown(10); // Reset countdown after navigation
+    }
+  }, [pendingNavigation, router]);
+
+  const handleCancelNavigation = useCallback(() => {
+    setShowNavigationConfirm(false);
+    setPendingNavigation(null);
+    setCountdown(10); // Reset countdown on cancel
+  }, []);
 
   // Countdown effect
   useEffect(() => {
@@ -343,21 +359,7 @@ export function ChatBot() {
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, [showNavigationConfirm, countdown]);
-
-  const handleConfirmNavigation = useCallback(() => {
-    if (pendingNavigation) {
-      router.push(pendingNavigation);
-      setShowNavigationConfirm(false);
-      setPendingNavigation(null);
-    }
-  }, [pendingNavigation, router]);
-
-  const handleCancelNavigation = useCallback(() => {
-    setShowNavigationConfirm(false);
-    setPendingNavigation(null);
-    setCountdown(10);
-  }, []);
+  }, [showNavigationConfirm, countdown, handleConfirmNavigation]);
 
   // Add welcome message when chat is first opened
   useEffect(() => {
@@ -526,7 +528,7 @@ export function ChatBot() {
                     Stay
                   </Button>
                   <Button variant="nav" onClick={handleConfirmNavigation}>
-                    Leave
+                    Navigate
                   </Button>
                 </div>
               </Dialog.Content>
