@@ -308,12 +308,6 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
           };
 
           recognitionRef.current.onresult = (event) => {
-            // If we get a result after a no-speech error, restore recording state
-            if (!isRecordingRef.current) {
-              isRecordingRef.current = true;
-              setIsRecording(true);
-            }
-
             // Get all results for the base transcript
             const allResults = Array.from(event.results)
               .map(result => result[0].transcript)
