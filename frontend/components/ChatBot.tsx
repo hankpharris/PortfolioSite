@@ -81,6 +81,7 @@ export function ChatBot() {
   const [messages, setMessages] = useState<Message[]>([welcomeMessage]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [chatPosition, setChatPosition] = useState({ top: 0 });
   const audioRef = useRef<HTMLAudioElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -91,6 +92,24 @@ export function ChatBot() {
     resetTranscript,
     browserSupportsSpeechRecognition
   } = useSpeechRecognition();
+
+  // Update chat position when header height changes
+  useEffect(() => {
+    const updatePosition = () => {
+      const header = document.querySelector('header');
+      if (header) {
+        const headerHeight = header.getBoundingClientRect().height;
+        setChatPosition({ top: headerHeight + 8 }); // 8px padding
+      }
+    };
+
+    // Initial position
+    updatePosition();
+
+    // Update on resize
+    window.addEventListener('resize', updatePosition);
+    return () => window.removeEventListener('resize', updatePosition);
+  }, []);
 
   // Handle speech recognition commands
   useEffect(() => {
@@ -444,7 +463,10 @@ export function ChatBot() {
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="hidden" />
-        <Dialog.Content className="fixed top-16 right-4 w-full max-w-md h-[600px] bg-white/30 backdrop-blur-md rounded-xl shadow-xl z-[101] flex flex-col overflow-hidden">
+        <Dialog.Content 
+          className="fixed right-4 w-full max-w-md h-[600px] bg-white/30 backdrop-blur-md rounded-xl shadow-xl z-[101] flex flex-col overflow-hidden"
+          style={{ top: `${chatPosition.top}px` }}
+        >
           <div className="p-4 border-b border-gray-200/50">
             <div className="flex items-center justify-between">
               <Dialog.Title className="text-lg font-semibold">Chat with Bueller</Dialog.Title>
