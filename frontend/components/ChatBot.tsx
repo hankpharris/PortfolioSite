@@ -159,20 +159,14 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
             // Update base transcript
             setTranscript(allResults);
 
-            // Get final result for commands
-            const finalResult = Array.from(event.results)
-              .find(result => result.isFinal);
-            
-            const finalTranscript = finalResult ? finalResult[0].transcript.toLowerCase() : '';
-
-            // Handle wake words and commands (only on final results)
-            if (finalTranscript) {
-              if (finalTranscript.includes('hey bueller') || finalTranscript.includes('hello bueller')) {
+            // Handle wake words and commands using the full transcript
+            if (allResults) {
+              if (allResults.includes('hey bueller') || allResults.includes('hello bueller')) {
                 onOpenChange(true);
                 return;
               }
 
-              if (finalTranscript.includes('goodbye bueller') || finalTranscript.includes('bye bueller') || finalTranscript.includes('close bueller')) {
+              if (allResults.includes('goodbye bueller') || allResults.includes('bye bueller') || allResults.includes('close bueller')) {
                 onOpenChange(false);
                 return;
               }
@@ -180,7 +174,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
               // Process message commands if chat is open
               if (isOpen) {
                 // Check for start message command first
-                if (!isTranscribingRef.current && (finalTranscript.includes('start message') || finalTranscript.includes('start a message') || finalTranscript.includes('begin message'))) {
+                if (!isTranscribingRef.current && (allResults.includes('start message') || allResults.includes('start a message') || allResults.includes('begin message'))) {
                   setInput('');
                   setTranscript('');
                   setTrimmedTranscript('');
@@ -190,7 +184,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
                 }
 
                 // Check for send message command
-                if (isTranscribingRef.current && (finalTranscript.includes('send message') || finalTranscript.includes('send a message'))) {
+                if (isTranscribingRef.current && (allResults.includes('send message') || allResults.includes('send a message'))) {
                   const form = document.querySelector('form');
                   if (form) {
                     form.dispatchEvent(new Event('submit', { bubbles: true }));
@@ -201,7 +195,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
                 }
 
                 // Check for reset message command
-                if (isTranscribingRef.current && (finalTranscript.includes('reset message') || finalTranscript.includes('clear message'))) {
+                if (isTranscribingRef.current && (allResults.includes('reset message') || allResults.includes('clear message'))) {
                   setInput('');
                   setTranscript('');
                   setTrimmedTranscript('');
