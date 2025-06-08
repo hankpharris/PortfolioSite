@@ -128,10 +128,39 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
   }, [messages]);
 
   // Handle chat open/close
-  const handleOpenChange = useCallback((open: boolean) => {
-    console.log('Dialog onOpenChange called with:', open);
-    onOpenChange(open);
-  }, [onOpenChange]);
+  useEffect(() => {
+    if (isOpen) {
+      // Reset states when opening chat
+      setTranscript('');
+      setTrimmedTranscript('');
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+          setTimeout(() => {
+            if (recognitionRef.current) {
+              recognitionRef.current.start();
+            }
+          }, 100);
+        } catch (error) {
+          console.error('Error resetting recognition on chat open:', error);
+        }
+      }
+    } else {
+      // Reset states when closing chat
+      setTranscript('');
+      setTrimmedTranscript('');
+      setInput('');
+      isTranscribingRef.current = false;
+      setIsTranscribing(false);
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (error) {
+          console.error('Error stopping recognition on chat close:', error);
+        }
+      }
+    }
+  }, [isOpen]);
 
   // Handle recording toggle
   const toggleRecording = useCallback(() => {
@@ -163,11 +192,15 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
             if (allResults) {
               if (allResults.includes('hey bueller') || allResults.includes('hello bueller')) {
                 onOpenChange(true);
+                setTranscript('');
+                setTrimmedTranscript('');
                 return;
               }
 
               if (allResults.includes('goodbye bueller') || allResults.includes('bye bueller') || allResults.includes('close bueller')) {
                 onOpenChange(false);
+                setTranscript('');
+                setTrimmedTranscript('');
                 return;
               }
 
