@@ -111,69 +111,94 @@ export function ChatBot() {
     return () => window.removeEventListener('resize', updatePosition);
   }, []);
 
+  // Handle navigation with confirmation
+  const handleNavigation = useCallback((path: string) => {
+    if (messages.length > 1) {
+      // Reset countdown before showing dialog
+      setCountdown(10);
+      setPendingNavigation(path);
+      setShowNavigationConfirm(true);
+    } else {
+      router.push(path);
+    }
+  }, [messages.length, router]);
+
   // Handle speech recognition commands
   useEffect(() => {
-    if (!listening) return;
-
-    const lowerTranscript = transcript.toLowerCase();
-    console.log('Current transcript:', lowerTranscript);
-    console.log('Is messaging:', isMessaging);
-
-    // Handle commands
-    if (lowerTranscript.includes('hey bueller') || lowerTranscript.includes('hi bueller') || lowerTranscript.includes('hello bueller') || lowerTranscript.includes('open bueller')) {
-      console.log('Hey Bueller command detected');
-      setIsOpen(true);
-      resetTranscript();
-      return;
-    }
-
-    if (lowerTranscript.includes('close bueller') || lowerTranscript.includes('goodbye bueller') || lowerTranscript.includes('bye bueller')) {
-      console.log('Close Bueller command detected');
-      setIsOpen(false);
-      resetTranscript();
-      return;
-    }
-
-    if (lowerTranscript.includes('start message') || lowerTranscript.includes('begin message')) {
-      console.log('Start message command detected');
-      setIsMessaging(true);
-      resetTranscript();
-      return;
-    }
-
-    if (lowerTranscript.includes('reset message')) {
-      console.log('Reset message command detected');
-      setIsMessaging(false);
-      setInput('');
-      resetTranscript();
-      return;
-    }
-
-    if ((lowerTranscript.includes('send message') || lowerTranscript.includes('send')) && isMessaging && input.trim()) {
-      console.log('Send message command detected');
-      const form = document.querySelector('form');
-      if (form) {
-        form.dispatchEvent(new Event('submit', { bubbles: true }));
-      }
-      setIsMessaging(false);
-      setInput('');
-      resetTranscript();
-      return;
-    }
-
-    // Update input if in messaging mode
-    if (isMessaging) {
-      console.log('In messaging mode, updating input');
-      const cleanTranscript = lowerTranscript
-        .replace(/hey bueller|close bueller|start message|reset message|send message|send/gi, '')
-        .trim();
+    if (isListening && transcript) {
+      const lowerTranscript = transcript.toLowerCase();
       
-      if (cleanTranscript) {
-        console.log('Setting input to:', cleanTranscript);
-        setInput(cleanTranscript);
+      // Check for navigation commands
+      if (lowerTranscript.includes('go to about')) {
+        handleNavigation('/about');
+        resetTranscript();
+        return;
+      }
+      if (lowerTranscript.includes('go to projects')) {
+        handleNavigation('/projects');
+        resetTranscript();
+        return;
+      }
+      if (lowerTranscript.includes('go to home')) {
+        handleNavigation('/');
+        resetTranscript();
+        return;
+      }
+      if (lowerTranscript.includes('go to github')) {
+        handleNavigation('https://github.com/hankpharris');
+        resetTranscript();
+        return;
+      }
+      if (lowerTranscript.includes('go to admin')) {
+        handleNavigation('/admin');
+        resetTranscript();
+        return;
+      }
+
+      // Check for messaging commands
+      if (lowerTranscript.includes('start message')) {
+        setIsMessaging(true);
+        resetTranscript();
+        return;
+      }
+      if (lowerTranscript.includes('send message') && isMessaging) {
+        const messageContent = input.trim();
+        if (messageContent) {
+          // Remove "send" from the message if it's at the start
+          const cleanMessage = messageContent.replace(/^send\s+/i, '');
+          if (cleanMessage) {
+            const form = document.querySelector('form');
+            if (form) {
+              form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+            }
+          }
+        }
+        setIsMessaging(false);
+        setInput('');
+        resetTranscript();
+        return;
+      }
+      if (lowerTranscript.includes('cancel message')) {
+        setIsMessaging(false);
+        setInput('');
+        resetTranscript();
+        return;
+      }
+
+      // If in messaging mode, update input
+      if (isMessaging) {
+        // Remove command words from transcript
+        const cleanTranscript = transcript
+          .replace(/start message/i, '')
+          .replace(/send message/i, '')
+          .replace(/cancel message/i, '')
+          .trim();
+        if (cleanTranscript) {
+          setInput(cleanTranscript);
+        }
       }
     }
-  }, [transcript, listening, isMessaging, setIsMessaging, resetTranscript, setIsOpen, input]);
+  }, [isListening, transcript, isMessaging, input, handleNavigation, resetTranscript]);
 
   // Toggle speech recognition
   const toggleListening = useCallback(() => {
@@ -337,18 +362,6 @@ export function ChatBot() {
     }
     return null;
   };
-
-  // Handle navigation with confirmation
-  const handleNavigation = useCallback((path: string) => {
-    if (messages.length > 1) {
-      // Reset countdown before showing dialog
-      setCountdown(10);
-      setPendingNavigation(path);
-      setShowNavigationConfirm(true);
-    } else {
-      router.push(path);
-    }
-  }, [messages.length, router]);
 
   const handleConfirmNavigation = useCallback(() => {
     if (pendingNavigation) {
