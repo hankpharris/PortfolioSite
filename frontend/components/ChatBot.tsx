@@ -500,31 +500,38 @@ export function ChatBot() {
             ))}
             <div ref={messagesEndRef} />
           </div>
-          {showNavigationConfirm && (
-            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center rounded-xl">
-              <div className="bg-white/90 p-6 rounded-xl shadow-xl max-w-sm mx-4">
-                <h3 className="text-lg font-semibold mb-2">Confirm Navigation</h3>
+          {/* Navigation Confirmation Dialog */}
+          <Dialog.Root 
+            open={showNavigationConfirm} 
+            onOpenChange={(open) => {
+              if (!open) {
+                setShowNavigationConfirm(false);
+                setPendingNavigation(null);
+                setCountdown(10);
+              }
+            }}
+          >
+            <Dialog.Portal>
+              <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
+              <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/30 backdrop-blur-md p-6 rounded-xl shadow-xl max-w-md w-full">
+                <Dialog.Title className="text-lg font-semibold mb-4">
+                  Confirm Navigation
+                </Dialog.Title>
                 <p className="mb-4">
-                  You have an active chat session. Are you sure you want to navigate away?
+                  Are you sure you want to navigate to {pendingNavigation}?
                   You will be redirected in {countdown} seconds.
                 </p>
-                <div className="flex justify-end gap-2">
-                  <button
-                    onClick={handleCancelNavigation}
-                    className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition-colors"
-                  >
+                <div className="flex justify-end gap-4">
+                  <Button variant="nav" onClick={handleCancelNavigation}>
                     Stay
-                  </button>
-                  <button
-                    onClick={handleConfirmNavigation}
-                    className="px-4 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-900 transition-colors"
-                  >
+                  </Button>
+                  <Button variant="nav" onClick={handleConfirmNavigation}>
                     Leave
-                  </button>
+                  </Button>
                 </div>
-              </div>
-            </div>
-          )}
+              </Dialog.Content>
+            </Dialog.Portal>
+          </Dialog.Root>
           <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200/50 bg-white/30 backdrop-blur-md">
             <div className="flex gap-2">
               <input
