@@ -129,11 +129,23 @@ export function ChatBot() {
       return;
     }
 
+    if (lowerTranscript.includes('send message') && isMessaging && input.trim()) {
+      console.log('Send message command detected');
+      const form = document.querySelector('form');
+      if (form) {
+        form.dispatchEvent(new Event('submit', { bubbles: true }));
+      }
+      setIsMessaging(false);
+      setInput('');
+      resetTranscript();
+      return;
+    }
+
     // Update input if in messaging mode
     if (isMessaging) {
       console.log('In messaging mode, updating input');
       const cleanTranscript = lowerTranscript
-        .replace(/hey bueller|close bueller|start message|reset message/gi, '')
+        .replace(/hey bueller|close bueller|start message|reset message|send message/gi, '')
         .trim();
       
       if (cleanTranscript) {
@@ -141,7 +153,7 @@ export function ChatBot() {
         setInput(cleanTranscript);
       }
     }
-  }, [transcript, listening, isMessaging, setIsMessaging, resetTranscript, setIsOpen]);
+  }, [transcript, listening, isMessaging, setIsMessaging, resetTranscript, setIsOpen, input]);
 
   // Toggle speech recognition
   const toggleListening = useCallback(() => {
