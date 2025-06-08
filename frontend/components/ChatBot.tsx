@@ -186,6 +186,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
               if (transcript.includes('reset message') || transcript.includes('clear message')) {
                 setInput('');
                 setIsTranscribing(false);
+                isTranscribingRef.current = false;
                 return;
               }
 
@@ -193,7 +194,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
               if (isTranscribingRef.current) {
                 // Remove any wake words or commands from the transcript
                 const cleanTranscript = transcript
-                  .replace(/hey bueller|hello bueller|goodbye bueller|bye bueller|close bueller|start message|send message|send a message|reset message|clear message/gi, '')
+                  .replace(/hey bueller|hello bueller|goodbye bueller|bye bueller|close bueller|start message|send|send message|send a message|reset message|clear message/gi, '')
                   .trim();
 
                 if (cleanTranscript) {
@@ -286,7 +287,8 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
-    setIsTranscribing(false); // Reset transcribing state when sending
+    setIsTranscribing(false);
+    isTranscribingRef.current = false;
 
     try {
       // Get chat response
