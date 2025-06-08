@@ -114,6 +114,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
   const [trimmedTranscript, setTrimmedTranscript] = useState('');
   const [countdown, setCountdown] = useState(10);
   const countdownRef = useRef<NodeJS.Timeout>();
+  const isResettingRef = useRef(false);
 
   // Sync refs with state
   useEffect(() => {
@@ -181,6 +182,9 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
 
           // Set up event handlers
           recognitionRef.current.onresult = (event) => {
+            // Skip processing if we're resetting
+            if (isResettingRef.current) return;
+
             // Get all results for the base transcript
             const allResults = Array.from(event.results)
               .map(result => result[0].transcript)
@@ -228,14 +232,17 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
                   // Reset recognition state
                   if (recognitionRef.current) {
                     try {
+                      isResettingRef.current = true;
                       recognitionRef.current.stop();
                       setTimeout(() => {
                         if (recognitionRef.current) {
                           recognitionRef.current.start();
                         }
+                        isResettingRef.current = false;
                       }, 100);
                     } catch (error) {
                       console.error('Error resetting recognition:', error);
+                      isResettingRef.current = false;
                     }
                   }
                   setTranscript('');
@@ -249,14 +256,17 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
                   // Reset recognition state
                   if (recognitionRef.current) {
                     try {
+                      isResettingRef.current = true;
                       recognitionRef.current.stop();
                       setTimeout(() => {
                         if (recognitionRef.current) {
                           recognitionRef.current.start();
                         }
+                        isResettingRef.current = false;
                       }, 100);
                     } catch (error) {
                       console.error('Error resetting recognition:', error);
+                      isResettingRef.current = false;
                     }
                   }
                   setTranscript('');
