@@ -117,6 +117,8 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
   const isResettingRef = useRef(false);
   const transcriptionStartIndexRef = useRef<number>(0);
   const commandWindowRef = useRef(false);
+  const lastStateChangeRef = useRef<number>(0);
+  const STATE_CHANGE_DEBOUNCE = 500; // ms
 
   // Sync refs with state
   useEffect(() => {
@@ -166,6 +168,24 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
       }
     }
   }, [isOpen]);
+
+  // Add a function to safely update state
+  const safeSetState = useCallback((newState: boolean, stateType: 'recording' | 'transcribing') => {
+    const now = Date.now();
+    if (now - lastStateChangeRef.current < STATE_CHANGE_DEBOUNCE) {
+      console.log(`Skipping ${stateType} state change - too soon after last change`);
+      return;
+    }
+    
+    lastStateChangeRef.current = now;
+    if (stateType === 'recording') {
+      isRecordingRef.current = newState;
+      setIsRecording(newState);
+    } else {
+      isTranscribingRef.current = newState;
+      setIsTranscribing(newState);
+    }
+  }, []);
 
   // Add a function to handle recognition reset
   const resetRecognition = useCallback(async () => {
@@ -242,11 +262,10 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
                   setTranscript('');
                   setTrimmedTranscript('');
                   setInput('');
-                  isTranscribingRef.current = true;
-                  setIsTranscribing(true);
+                  safeSetState(true, 'transcribing');
                   transcriptionStartIndexRef.current = event.results.length;
                   
-                  // Set a command window to ignore the next 500ms of speech
+                  // Set a command window to ignore the next 250ms of speech
                   commandWindowRef.current = true;
                   setTimeout(() => {
                     commandWindowRef.current = false;
@@ -263,8 +282,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
                   }
                   setTranscript('');
                   setTrimmedTranscript('');
-                  isTranscribingRef.current = false;
-                  setIsTranscribing(false);
+                  safeSetState(false, 'transcribing');
                   return;
                 }
 
@@ -273,8 +291,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
                   setInput('');
                   setTranscript('');
                   setTrimmedTranscript('');
-                  isTranscribingRef.current = false;
-                  setIsTranscribing(false);
+                  safeSetState(false, 'transcribing');
                   return;
                 }
               }
