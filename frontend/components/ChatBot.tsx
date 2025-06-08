@@ -116,6 +116,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
   const countdownRef = useRef<NodeJS.Timeout>();
   const isResettingRef = useRef(false);
   const transcriptionStartIndexRef = useRef<number>(0);
+  const commandWindowRef = useRef(false);
 
   // Sync refs with state
   useEffect(() => {
@@ -244,6 +245,13 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
                   isTranscribingRef.current = true;
                   setIsTranscribing(true);
                   transcriptionStartIndexRef.current = event.results.length;
+                  
+                  // Set a command window to ignore the next 500ms of speech
+                  commandWindowRef.current = true;
+                  setTimeout(() => {
+                    commandWindowRef.current = false;
+                  }, 250);
+                  
                   return;
                 }
 
@@ -273,7 +281,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
             }
 
             // Update input if we're in transcribing mode
-            if (isTranscribingRef.current) {
+            if (isTranscribingRef.current && !commandWindowRef.current) {
               // Only process results that came after we started transcribing
               const relevantResults = Array.from(event.results)
                 .slice(transcriptionStartIndexRef.current)
@@ -284,7 +292,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
               if (relevantResults) {
                 // Clean commands and wake words from the transcript for input
                 const cleanTranscript = relevantResults
-                  .replace(/hey bueller|hello bueller|goodbye bueller|bye bueller|close bueller|start message|send message|send a message|reset message|clear message/gi, '')
+                  .replace(/hey bueller|hello bueller|goodbye bueller|bye bueller|close bueller|start message|start a message|begin message|send message|send a message|reset message|clear message/gi, '')
                   .trim();
 
                 if (cleanTranscript) {
