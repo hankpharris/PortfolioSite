@@ -108,14 +108,9 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
   const router = useRouter();
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const isClosingRef = useRef(false);
-  const isTranscribingRef = useRef(false);
   const isRecordingRef = useRef(false);
 
-  // Sync refs with state
-  useEffect(() => {
-    isTranscribingRef.current = isTranscribing;
-  }, [isTranscribing]);
-
+  // Sync ref with state
   useEffect(() => {
     isRecordingRef.current = isRecording;
   }, [isRecording]);
@@ -167,7 +162,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
             // Process message commands if chat is open
             if (isOpen) {
               // Check for start message command first
-              if (!isTranscribingRef.current && (transcript.includes('start message') || transcript.includes('start a message') || transcript.includes('begin message'))) {
+              if (!isTranscribing && (transcript.includes('start message') || transcript.includes('start a message') || transcript.includes('begin message'))) {
                 setInput('');
                 setIsTranscribing(true);
                 return;
@@ -186,12 +181,11 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
               if (transcript.includes('reset message') || transcript.includes('clear message')) {
                 setInput('');
                 setIsTranscribing(false);
-                isTranscribingRef.current = false;
                 return;
               }
 
               // Only update input if we're in transcribing mode
-              if (isTranscribingRef.current) {
+              if (isTranscribing) {
                 // Remove any wake words or commands from the transcript
                 const cleanTranscript = transcript
                   .replace(/hey bueller|hello bueller|goodbye bueller|bye bueller|close bueller|start message|send|send message|send a message|reset message|clear message/gi, '')
@@ -288,7 +282,6 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
     setInput('');
     setIsLoading(true);
     setIsTranscribing(false);
-    isTranscribingRef.current = false;
 
     try {
       // Get chat response
