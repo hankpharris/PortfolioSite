@@ -65,7 +65,7 @@ declare global {
 }
 
 export function ChatBot() {
-  const [isOpen, setIsOpen] = useState(false);
+  const { isMessaging, setIsMessaging, isListening, setIsListening, isOpen, setIsOpen } = useChatStore();
   const [showNavigationConfirm, setShowNavigationConfirm] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
   const [isTTSEnabled, setIsTTSEnabled] = useState(false);
@@ -75,7 +75,6 @@ export function ChatBot() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const { isMessaging, setIsMessaging, isListening, setIsListening } = useChatStore();
   const [browserSupportsSpeechRecognition, setBrowserSupportsSpeechRecognition] = useState(false);
   const [transcript, setTranscript] = useState('');
   const recognitionRef = useRef<SpeechRecognition | null>(null);
