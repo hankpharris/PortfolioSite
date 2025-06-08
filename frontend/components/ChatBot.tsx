@@ -370,6 +370,15 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
                   // Update transcribing state
                   isTranscribingRef.current = false;
                   setIsTranscribing(false);
+                  // Reset recognition to clear any pending results
+                  if (recognitionRef.current) {
+                    recognitionRef.current.stop();
+                    setTimeout(() => {
+                      if (isRecordingRef.current) {
+                        startRecognition();
+                      }
+                    }, 100);
+                  }
                   return;
                 }
               }
