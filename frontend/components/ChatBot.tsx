@@ -148,10 +148,13 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
 
           // Set up event handlers
           recognitionRef.current.onresult = (event) => {
-            const transcript = Array.from(event.results)
-              .map(result => result[0].transcript)
-              .join('')
-              .toLowerCase();
+            // Only process final results
+            const finalResult = Array.from(event.results)
+              .find(result => result.isFinal);
+            
+            if (!finalResult) return;
+
+            const transcript = finalResult[0].transcript.toLowerCase();
 
             // Handle wake words and commands
             if (transcript.includes('hey bueller') || transcript.includes('hello bueller')) {
