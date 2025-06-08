@@ -113,6 +113,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
   const [transcript, setTranscript] = useState('');
   const [trimmedTranscript, setTrimmedTranscript] = useState('');
   const [countdown, setCountdown] = useState(10);
+  const countdownRef = useRef<NodeJS.Timeout>();
 
   // Sync refs with state
   useEffect(() => {
@@ -602,24 +603,30 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
     };
   }, [isTTSEnabled]);
 
-  // Handle countdown for navigation
+  // Handle countdown timer
   useEffect(() => {
-    let timer: NodeJS.Timeout;
     if (showNavigationConfirm) {
       setCountdown(10);
-      timer = setInterval(() => {
-        setCountdown((prev) => {
+      countdownRef.current = setInterval(() => {
+        setCountdown(prev => {
           if (prev <= 1) {
-            clearInterval(timer);
+            clearInterval(countdownRef.current);
             handleNavigation();
             return 0;
           }
           return prev - 1;
         });
       }, 1000);
+    } else {
+      if (countdownRef.current) {
+        clearInterval(countdownRef.current);
+      }
     }
+
     return () => {
-      if (timer) clearInterval(timer);
+      if (countdownRef.current) {
+        clearInterval(countdownRef.current);
+      }
     };
   }, [showNavigationConfirm]);
 
@@ -644,33 +651,6 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
               className="fixed top-[88px] right-4 bottom-4 w-full max-w-md bg-gray-800/30 backdrop-blur-md shadow-xl z-[101] rounded-xl transform transition-all duration-500 ease-in-out translate-x-full data-[state=open]:translate-x-0 overflow-hidden"
               onPointerDownOutside={(e) => e.preventDefault()}
             >
-              {/* Navigation Confirmation Dialog */}
-              {showNavigationConfirm && (
-                <div className="fixed inset-0 z-[102] flex items-center justify-center bg-black/50">
-                  <div className="bg-gray-800 p-6 rounded-xl shadow-xl max-w-md w-full mx-4">
-                    <h3 className="text-xl font-bold text-white mb-4">Confirm Navigation</h3>
-                    <p className="text-gray-300 mb-4">
-                      Would you like to navigate to {pendingNavigation}?
-                      <br />
-                      Auto-navigating in {countdown} seconds...
-                    </p>
-                    <div className="flex justify-end gap-4">
-                      <button
-                        onClick={cancelNavigation}
-                        className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={handleNavigation}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                      >
-                        Navigate
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
               <div className="flex flex-col h-full">
                 <div className="flex items-center justify-between p-4 border-b border-gray-200/50 bg-gray-800 rounded-t-xl">
                   <Dialog.Title className="text-xl font-bold text-white">"Bueller" the AI Chat Assistant</Dialog.Title>
@@ -749,6 +729,35 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
                     </button>
                   </div>
                 </form>
+              </div>
+            </Dialog.Content>
+          </Dialog.Portal>
+        </Dialog.Root>
+      )}
+      {showNavigationConfirm && (
+        <Dialog.Root open={showNavigationConfirm} modal={true}>
+          <Dialog.Portal>
+            <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[102]" />
+            <Dialog.Content className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-800/90 backdrop-blur-md p-6 rounded-xl shadow-xl z-[103] w-full max-w-md">
+              <Dialog.Title className="text-xl font-bold text-white mb-4">
+                Navigate to {pendingNavigation}?
+              </Dialog.Title>
+              <p className="text-gray-300 mb-6">
+                Auto-navigating in {countdown} seconds...
+              </p>
+              <div className="flex justify-end gap-4">
+                <button
+                  onClick={cancelNavigation}
+                  className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleNavigation}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Navigate Now
+                </button>
               </div>
             </Dialog.Content>
           </Dialog.Portal>
