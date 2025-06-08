@@ -8,6 +8,8 @@ interface ButtonProps {
     variant?: ButtonVariant;
     isExternal?: boolean;
     onClick?: (e: React.MouseEvent) => void;
+    className?: string;
+    disabled?: boolean;
 }
 
 const baseButtonStyles = "inline-flex items-center px-4 py-2 text-white rounded transition-colors duration-200";
@@ -18,12 +20,20 @@ const variantStyles: Record<ButtonVariant, string> = {
     github: "bg-green-600 hover:bg-green-700"
 };
 
-export function Button({ href, children, variant = 'project', isExternal = false, onClick }: ButtonProps) {
-    const className = `${baseButtonStyles} ${variantStyles[variant]}`;
+export function Button({ 
+    href, 
+    children, 
+    variant = 'project', 
+    isExternal = false, 
+    onClick,
+    className = '',
+    disabled = false
+}: ButtonProps) {
+    const buttonClassName = `${baseButtonStyles} ${variantStyles[variant]} ${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`;
 
     if (onClick) {
         return (
-            <button onClick={onClick} className={className}>
+            <button onClick={onClick} className={buttonClassName} disabled={disabled}>
                 {children}
             </button>
         );
@@ -35,7 +45,7 @@ export function Button({ href, children, variant = 'project', isExternal = false
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={className}
+                className={buttonClassName}
             >
                 {children}
             </a>
@@ -43,7 +53,7 @@ export function Button({ href, children, variant = 'project', isExternal = false
     }
 
     return (
-        <Link href={href || '#'} className={className}>
+        <Link href={href || '#'} className={buttonClassName}>
             {children}
         </Link>
     );
