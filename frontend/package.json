@@ -33,6 +33,7 @@
         "@types/node": "*",
         "@types/react": "^18.2.0",
         "@types/react-dom": "^18.2.0",
+        "@types/react-speech-recognition": "^3.9.6",
         "@vercel/blob": "^1.1.1",
         "@vis.gl/react-google-maps": "^1.5.2",
         "ai": "^2.2.31",
@@ -60,6 +61,7 @@
         "react-hook-form": "^7.55.0",
         "react-icons": "^5.5.0",
         "react-responsive": "^10.0.1",
+        "react-speech-recognition": "^4.0.1",
         "resend": "^4.5.1",
         "sonner": "^2.0.3",
         "tailwind-merge": "^3.3.0",
@@ -70,6 +72,7 @@
         "zustand": "^5.0.3"
     },
     "devDependencies": {
+        "@types/react-speech-recognition": "^3.9.6",
         "eslint": "*",
         "eslint-plugin-react-compiler": "19.0.0-beta-aeaed83-20250323",
         "eslint-plugin-react-hooks": "^5.2.0",
