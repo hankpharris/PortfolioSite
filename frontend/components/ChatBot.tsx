@@ -148,62 +148,68 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
 
           // Set up event handlers
           recognitionRef.current.onresult = (event) => {
-            // Only process final results
+            // Get all results for input
+            const allResults = Array.from(event.results)
+              .map(result => result[0].transcript)
+              .join('')
+              .toLowerCase();
+
+            // Get final result for commands
             const finalResult = Array.from(event.results)
               .find(result => result.isFinal);
             
-            if (!finalResult) return;
+            const finalTranscript = finalResult ? finalResult[0].transcript.toLowerCase() : '';
 
-            const transcript = finalResult[0].transcript.toLowerCase();
+            // Handle wake words and commands (only on final results)
+            if (finalTranscript) {
+              if (finalTranscript.includes('hey bueller') || finalTranscript.includes('hello bueller')) {
+                onOpenChange(true);
+                return;
+              }
 
-            // Handle wake words and commands
-            if (transcript.includes('hey bueller') || transcript.includes('hello bueller')) {
-              onOpenChange(true);
-              return;
+              if (finalTranscript.includes('goodbye bueller') || finalTranscript.includes('bye bueller') || finalTranscript.includes('close bueller')) {
+                onOpenChange(false);
+                return;
+              }
+
+              // Process message commands if chat is open
+              if (isOpen) {
+                // Check for start message command first
+                if (!isTranscribingRef.current && (finalTranscript.includes('start message') || finalTranscript.includes('start a message') || finalTranscript.includes('begin message'))) {
+                  setInput('');
+                  isTranscribingRef.current = true;
+                  setIsTranscribing(true);
+                  return;
+                }
+
+                // Check for send message command
+                if (isTranscribingRef.current && (finalTranscript.includes('send message') || finalTranscript.includes('send a message'))) {
+                  const form = document.querySelector('form');
+                  if (form) {
+                    form.dispatchEvent(new Event('submit', { bubbles: true }));
+                  }
+                  return;
+                }
+
+                // Check for reset message command
+                if (isTranscribingRef.current && (finalTranscript.includes('reset message') || finalTranscript.includes('clear message'))) {
+                  setInput('');
+                  isTranscribingRef.current = false;
+                  setIsTranscribing(false);
+                  return;
+                }
+              }
             }
 
-            if (transcript.includes('goodbye bueller') || transcript.includes('bye bueller') || transcript.includes('close bueller')) {
-              onOpenChange(false);
-              return;
-            }
+            // Update input if we're in transcribing mode (use all results for better responsiveness)
+            if (isTranscribingRef.current) {
+              // Remove any wake words or commands from the transcript
+              const cleanTranscript = allResults
+                .replace(/hey bueller|hello bueller|goodbye bueller|bye bueller|close bueller|start message|send|send message|send a message|reset message|clear message/gi, '')
+                .trim();
 
-            // Process message commands if chat is open
-            if (isOpen) {
-              // Check for start message command first
-              if (!isTranscribingRef.current && (transcript.includes('start message') || transcript.includes('start a message') || transcript.includes('begin message'))) {
-                setInput('');
-                isTranscribingRef.current = true;
-                setIsTranscribing(true);
-                return;
-              }
-
-              // Check for send message command
-              if (isTranscribingRef.current && (transcript.includes('send message') || transcript.includes('send a message'))) {
-                const form = document.querySelector('form');
-                if (form) {
-                  form.dispatchEvent(new Event('submit', { bubbles: true }));
-                }
-                return;
-              }
-
-              // Check for reset message command
-              if (isTranscribingRef.current && (transcript.includes('reset message') || transcript.includes('clear message'))) {
-                setInput('');
-                isTranscribingRef.current = false;
-                setIsTranscribing(false);
-                return;
-              }
-
-              // Only update input if we're in transcribing mode
-              if (isTranscribingRef.current) {
-                // Remove any wake words or commands from the transcript
-                const cleanTranscript = transcript
-                  .replace(/hey bueller|hello bueller|goodbye bueller|bye bueller|close bueller|start message|send|send message|send a message|reset message|clear message/gi, '')
-                  .trim();
-
-                if (cleanTranscript) {
-                  setInput(cleanTranscript);
-                }
+              if (cleanTranscript) {
+                setInput(cleanTranscript);
               }
             }
           };
