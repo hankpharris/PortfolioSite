@@ -444,7 +444,7 @@ export function ChatBot() {
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="hidden" />
-        <Dialog.Content className="fixed bottom-4 right-4 w-full max-w-md h-[600px] bg-white/30 backdrop-blur-md rounded-xl shadow-xl z-[101] flex flex-col overflow-hidden">
+        <Dialog.Content className="fixed top-16 right-4 w-full max-w-md h-[600px] bg-white/30 backdrop-blur-md rounded-xl shadow-xl z-[101] flex flex-col overflow-hidden">
           <div className="p-4 border-b border-gray-200/50">
             <div className="flex items-center justify-between">
               <Dialog.Title className="text-lg font-semibold">Chat with Bueller</Dialog.Title>
