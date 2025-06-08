@@ -357,7 +357,11 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
                   if (form) {
                     form.dispatchEvent(new Event('submit', { bubbles: true }));
                   }
-                  resetRecognition();
+                  // Clear input and transcripts
+                  setInput('');
+                  setTranscript('');
+                  setTrimmedTranscript('');
+                  // Update transcribing state
                   isTranscribingRef.current = false;
                   setIsTranscribing(false);
                   return;
@@ -365,7 +369,11 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
 
                 // Check for reset message command
                 if (isTranscribingRef.current && (allResults.includes('reset message') || allResults.includes('clear message'))) {
-                  resetRecognition();
+                  // Clear input and transcripts
+                  setInput('');
+                  setTranscript('');
+                  setTrimmedTranscript('');
+                  // Update transcribing state
                   isTranscribingRef.current = false;
                   setIsTranscribing(false);
                   return;
