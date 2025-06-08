@@ -112,6 +112,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
   const isRecordingRef = useRef(false);
   const [transcript, setTranscript] = useState('');
   const [trimmedTranscript, setTrimmedTranscript] = useState('');
+  const [countdown, setCountdown] = useState(10);
 
   // Sync refs with state
   useEffect(() => {
@@ -514,11 +515,26 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
     return null;
   };
 
+  // Handle countdown for navigation
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (showNavigationConfirm && countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown(prev => prev - 1);
+      }, 1000);
+    } else if (countdown === 0) {
+      handleNavigation();
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [showNavigationConfirm, countdown]);
+
   const handleNavigation = () => {
     if (pendingNavigation) {
-      onOpenChange(false);
       setShowNavigationConfirm(false);
       setPendingNavigation(null);
+      setCountdown(10);
       router.push(pendingNavigation);
     }
   };
@@ -526,6 +542,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
   const cancelNavigation = () => {
     setShowNavigationConfirm(false);
     setPendingNavigation(null);
+    setCountdown(10);
   };
 
   // Add welcome message when chat is first opened
@@ -700,6 +717,32 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
                     </button>
                   </div>
                 </form>
+              </div>
+            </Dialog.Content>
+          </Dialog.Portal>
+        </Dialog.Root>
+      )}
+      {showNavigationConfirm && (
+        <Dialog.Root open={showNavigationConfirm} modal={true}>
+          <Dialog.Portal>
+            <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
+            <Dialog.Content className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-6 shadow-xl">
+              <Dialog.Title className="text-xl font-bold mb-4">Confirm Navigation</Dialog.Title>
+              <p className="mb-2">Would you like to navigate to {pendingNavigation}?</p>
+              <p className="mb-6 text-sm text-gray-600">Auto-navigating in {countdown} seconds...</p>
+              <div className="flex justify-end gap-4">
+                <button
+                  onClick={cancelNavigation}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleNavigation}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  Navigate Now
+                </button>
               </div>
             </Dialog.Content>
           </Dialog.Portal>
