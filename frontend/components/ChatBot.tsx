@@ -191,8 +191,16 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
                   }
                   // Reset recognition state
                   if (recognitionRef.current) {
-                    recognitionRef.current.abort();
-                    recognitionRef.current.start();
+                    try {
+                      recognitionRef.current.stop();
+                      setTimeout(() => {
+                        if (recognitionRef.current) {
+                          recognitionRef.current.start();
+                        }
+                      }, 100);
+                    } catch (error) {
+                      console.error('Error resetting recognition:', error);
+                    }
                   }
                   setTranscript('');
                   setTrimmedTranscript('');
@@ -204,8 +212,16 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
                   setInput('');
                   // Reset recognition state
                   if (recognitionRef.current) {
-                    recognitionRef.current.abort();
-                    recognitionRef.current.start();
+                    try {
+                      recognitionRef.current.stop();
+                      setTimeout(() => {
+                        if (recognitionRef.current) {
+                          recognitionRef.current.start();
+                        }
+                      }, 100);
+                    } catch (error) {
+                      console.error('Error resetting recognition:', error);
+                    }
                   }
                   setTranscript('');
                   setTrimmedTranscript('');
