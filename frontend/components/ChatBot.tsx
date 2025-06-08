@@ -203,9 +203,9 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
 
             // Update input if we're in transcribing mode (use all results for better responsiveness)
             if (isTranscribingRef.current) {
-              // Remove any wake words or commands from the transcript
+              // Only clean wake words, not commands
               const cleanTranscript = allResults
-                .replace(/hey bueller|hello bueller|goodbye bueller|bye bueller|close bueller|start message|send|send message|send a message|reset message|clear message/gi, '')
+                .replace(/hey bueller|hello bueller|goodbye bueller|bye bueller|close bueller/gi, '')
                 .trim();
 
               if (cleanTranscript) {
