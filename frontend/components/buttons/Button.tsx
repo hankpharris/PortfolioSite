@@ -7,7 +7,7 @@ interface ButtonProps {
     children: React.ReactNode;
     variant?: ButtonVariant;
     isExternal?: boolean;
-    onClick?: () => void;
+    onClick?: (e: React.MouseEvent) => void;
 }
 
 const baseButtonStyles = "inline-flex items-center px-4 py-2 text-white rounded transition-colors duration-200";

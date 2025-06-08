@@ -1,10 +1,15 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from './buttons/Button';
 import { ContactForm } from './ContactForm';
 import { ChatBot } from './ChatBot';
+import { useChatStore } from '../store/chatStore';
 
 export function Header() {
+    const { isOpen, setIsOpen } = useChatStore();
+
     return (
         <header className="fixed top-0 left-0 right-0 z-50 bg-white/30 backdrop-blur-md shadow-lg">
             <nav className="container mx-auto px-4 py-4">
@@ -34,7 +39,7 @@ export function Header() {
                             Admin
                         </Button>
                         <ContactForm />
-                        <ChatBot />
+                        <ChatBot isOpen={isOpen} onOpenChange={setIsOpen} />
                     </div>
                 </div>
             </nav>
