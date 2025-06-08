@@ -7,68 +7,7 @@ import { Button } from './buttons/Button';
 import { useChat } from 'ai/react';
 import { useRouter } from 'next/navigation';
 import { useChatStore } from '../store/chatStore';
-
-// Add type declarations for Web Speech API
-interface SpeechRecognitionEvent extends Event {
-  results: SpeechRecognitionResultList;
-  resultIndex: number;
-  interpretation: unknown;
-}
-
-interface SpeechRecognitionResultList {
-  length: number;
-  item(index: number): SpeechRecognitionResult;
-  [index: number]: SpeechRecognitionResult;
-}
-
-interface SpeechRecognitionResult {
-  isFinal: boolean;
-  length: number;
-  item(index: number): SpeechRecognitionAlternative;
-  [index: number]: SpeechRecognitionAlternative;
-}
-
-interface SpeechRecognitionAlternative {
-  transcript: string;
-  confidence: number;
-}
-
-interface SpeechRecognitionError extends Event {
-  error: string;
-  message: string;
-}
-
-type SpeechRecognitionEventHandler = (this: SpeechRecognition, ev: Event) => void;
-type SpeechRecognitionErrorEventHandler = (this: SpeechRecognition, ev: SpeechRecognitionError) => void;
-type SpeechRecognitionResultEventHandler = (this: SpeechRecognition, ev: SpeechRecognitionEvent) => void;
-
-interface SpeechRecognition extends EventTarget {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  maxAlternatives: number;
-  onaudioend: SpeechRecognitionEventHandler | null;
-  onaudiostart: SpeechRecognitionEventHandler | null;
-  onend: SpeechRecognitionEventHandler | null;
-  onerror: SpeechRecognitionErrorEventHandler | null;
-  onnomatch: SpeechRecognitionEventHandler | null;
-  onresult: SpeechRecognitionResultEventHandler | null;
-  onsoundend: SpeechRecognitionEventHandler | null;
-  onsoundstart: SpeechRecognitionEventHandler | null;
-  onspeechend: SpeechRecognitionEventHandler | null;
-  onspeechstart: SpeechRecognitionEventHandler | null;
-  onstart: SpeechRecognitionEventHandler | null;
-  start(): void;
-  stop(): void;
-  abort(): void;
-}
-
-declare global {
-  interface Window {
-    SpeechRecognition: new () => SpeechRecognition;
-    webkitSpeechRecognition: new () => SpeechRecognition;
-  }
-}
+import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 
 const welcomeMessage = {
   id: 'welcome',
@@ -89,349 +28,86 @@ type Message = {
   content: string;
 };
 
-interface ChatBotProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSubmit?: (e: React.FormEvent<HTMLFormElement>) => void;
-}
-
-export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
+export function ChatBot() {
+  const [isOpen, setIsOpen] = useState(false);
   const [showNavigationConfirm, setShowNavigationConfirm] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
   const [isTTSEnabled, setIsTTSEnabled] = useState(false);
-  const { isRecording, setIsRecording, isTranscribing, setIsTranscribing } = useChatStore();
   const [messages, setMessages] = useState<Message[]>([welcomeMessage]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const isClosingRef = useRef(false);
-  const isTranscribingRef = useRef(false);
-  const isRecordingRef = useRef(false);
-  const [transcript, setTranscript] = useState('');
-  const [trimmedTranscript, setTrimmedTranscript] = useState('');
-  const [countdown, setCountdown] = useState(10);
-  const countdownRef = useRef<NodeJS.Timeout>();
-  const isResettingRef = useRef(false);
-  const transcriptionStartIndexRef = useRef<number>(0);
-  const commandWindowRef = useRef(false);
-  const lastStateChangeRef = useRef<number>(0);
-  const STATE_CHANGE_DEBOUNCE = 500; // ms
-  const isRecognitionActiveRef = useRef(false);
+  const { isMessaging, setIsMessaging, isListening, setIsListening } = useChatStore();
 
-  // Sync refs with state
-  useEffect(() => {
-    isTranscribingRef.current = isTranscribing;
-  }, [isTranscribing]);
-
-  useEffect(() => {
-    isRecordingRef.current = isRecording;
-  }, [isRecording]);
+  const {
+    transcript,
+    listening,
+    resetTranscript,
+    browserSupportsSpeechRecognition
+  } = useSpeechRecognition();
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Handle chat open/close
+  // Handle speech recognition commands
   useEffect(() => {
-    if (isOpen) {
-      // Reset states when opening chat
-      setTranscript('');
-      setTrimmedTranscript('');
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-          setTimeout(() => {
-            if (recognitionRef.current) {
-              recognitionRef.current.start();
-            }
-          }, 100);
-        } catch (error) {
-          console.error('Error resetting recognition on chat open:', error);
-        }
-      }
-    } else {
-      // Reset states when closing chat
-      setTranscript('');
-      setTrimmedTranscript('');
-      setInput('');
-      isTranscribingRef.current = false;
-      setIsTranscribing(false);
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-        } catch (error) {
-          console.error('Error stopping recognition on chat close:', error);
-        }
-      }
-    }
-  }, [isOpen]);
+    if (!listening) return;
 
-  // Add a function to safely update state
-  const safeSetState = useCallback((newState: boolean, stateType: 'recording' | 'transcribing') => {
-    const now = Date.now();
-    if (now - lastStateChangeRef.current < STATE_CHANGE_DEBOUNCE) {
-      console.log(`Skipping ${stateType} state change - too soon after last change`);
+    const lowerTranscript = transcript.toLowerCase();
+    
+    // Handle wake words
+    if (lowerTranscript.includes('hey bueller')) {
+      setIsOpen(true);
+      resetTranscript();
       return;
     }
-    
-    lastStateChangeRef.current = now;
-    if (stateType === 'recording') {
-      isRecordingRef.current = newState;
-      setIsRecording(newState);
-    } else {
-      isTranscribingRef.current = newState;
-      setIsTranscribing(newState);
-    }
-  }, []);
 
-  // Add a function to safely start recognition
-  const startRecognition = useCallback(() => {
-    if (!recognitionRef.current || isRecordingRef.current) return;
-    
-    try {
-      recognitionRef.current.start();
-      isRecordingRef.current = true;
-      setIsRecording(true);
-    } catch (error) {
-      console.error('Error starting recognition:', error);
-      isRecordingRef.current = false;
-      setIsRecording(false);
+    if (lowerTranscript.includes('close bueller')) {
+      setIsOpen(false);
+      resetTranscript();
+      return;
     }
-  }, []);
 
-  // Add a function to safely stop recognition
-  const stopRecognition = useCallback(() => {
-    if (!recognitionRef.current || !isRecordingRef.current) return;
-    
-    try {
-      recognitionRef.current.stop();
-      isRecordingRef.current = false;
-      setIsRecording(false);
-      isTranscribingRef.current = false;
-      setIsTranscribing(false);
-    } catch (error) {
-      console.error('Error stopping recognition:', error);
+    // Handle message commands
+    if (lowerTranscript.includes('start message')) {
+      setIsMessaging(true);
+      resetTranscript();
+      return;
     }
-  }, []);
 
-  // Add a function to reset recognition
-  const resetRecognition = useCallback(() => {
-    if (!recognitionRef.current) return;
-    
-    try {
-      // Stop recognition if it's active
-      if (isRecordingRef.current) {
-        recognitionRef.current.stop();
-        isRecordingRef.current = false;
-        setIsRecording(false);
-      }
-      
-      // Clear all transcripts
-      setTranscript('');
-      setTrimmedTranscript('');
+    if (lowerTranscript.includes('reset message')) {
+      setIsMessaging(false);
       setInput('');
+      resetTranscript();
+      return;
+    }
+
+    // Update input if in messaging mode
+    if (isMessaging) {
+      const cleanTranscript = lowerTranscript
+        .replace(/hey bueller|close bueller|start message|reset message/gi, '')
+        .trim();
       
-      // Start recognition again
-      setTimeout(() => {
-        try {
-          recognitionRef.current?.start();
-          isRecordingRef.current = true;
-          setIsRecording(true);
-        } catch (error) {
-          console.error('Error restarting recognition:', error);
-        }
-      }, 100);
-    } catch (error) {
-      console.error('Error resetting recognition:', error);
-    }
-  }, []);
-
-  // Add a function to send system message
-  const sendSystemMessage = useCallback((message: string) => {
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      content: message,
-      role: 'assistant'
-    };
-    setMessages(prev => [...prev, newMessage]);
-  }, []);
-
-  // Handle recording toggle
-  const toggleRecording = useCallback(() => {
-    console.log('Toggle recording clicked, current state:', isRecordingRef.current);
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    
-    if (!isRecordingRef.current) {
-      // Starting recording
-      if (SpeechRecognition) {
-        try {
-          // Create new recognition instance
-          recognitionRef.current = new SpeechRecognition();
-          recognitionRef.current.continuous = true;
-          recognitionRef.current.interimResults = true;
-          recognitionRef.current.lang = 'en-US';
-
-          // Set up event handlers
-          recognitionRef.current.onend = () => {
-            // Restart recognition if we're still supposed to be recording
-            if (isRecordingRef.current) {
-              startRecognition();
-            }
-          };
-
-          recognitionRef.current.onerror = (event) => {
-            console.error('Speech recognition error:', event.error);
-            
-            // Handle no-speech errors by syncing UI state
-            if (event.error === 'no-speech') {
-              // Only update UI state if we're still supposed to be recording
-              if (isRecordingRef.current) {
-                // Keep recording but update UI to reflect the pause
-                isRecordingRef.current = false;
-                setIsRecording(false);
-                // If we were transcribing, keep that state
-                if (isTranscribingRef.current) {
-                  isTranscribingRef.current = false;
-                  setIsTranscribing(false);
-                }
-                // Send system message about timeout
-                sendSystemMessage("Speech recognition timed out due to inactivity. I'm still listening - just start speaking again to continue.");
-              }
-            } else if (isRecordingRef.current) {
-              // For other errors, try to restart if we're still supposed to be recording
-              startRecognition();
-            }
-          };
-
-          recognitionRef.current.onresult = (event) => {
-            // Get all results for the base transcript
-            const allResults = Array.from(event.results)
-              .map(result => result[0].transcript)
-              .join('')
-              .toLowerCase();
-
-            // Update base transcript
-            setTranscript(allResults);
-
-            // Handle wake words and commands using the full transcript
-            if (allResults) {
-              if (allResults.includes('hey bueller') || allResults.includes('hello bueller')) {
-                onOpenChange(true);
-                resetRecognition();
-                return;
-              }
-
-              if (allResults.includes('goodbye bueller') || allResults.includes('bye bueller') || allResults.includes('close bueller')) {
-                onOpenChange(false);
-                resetRecognition();
-                return;
-              }
-
-              // Process message commands if chat is open
-              if (isOpen) {
-                // Check for start message command first
-                if (!isTranscribingRef.current && (allResults.includes('start message') || allResults.includes('start a message') || allResults.includes('begin message'))) {
-                  // Clear input and transcripts
-                  setInput('');
-                  setTranscript('');
-                  setTrimmedTranscript('');
-                  // Update transcribing state
-                  isTranscribingRef.current = true;
-                  setIsTranscribing(true);
-                  return;
-                }
-
-                // Check for send message command
-                if (isTranscribingRef.current && (allResults.includes('send message') || allResults.includes('send a message'))) {
-                  const form = document.querySelector('form');
-                  if (form) {
-                    form.dispatchEvent(new Event('submit', { bubbles: true }));
-                  }
-                  // Clear input and transcripts
-                  setInput('');
-                  setTranscript('');
-                  setTrimmedTranscript('');
-                  // Update transcribing state
-                  isTranscribingRef.current = false;
-                  setIsTranscribing(false);
-                  return;
-                }
-
-                // Check for reset message command
-                if (isTranscribingRef.current && (allResults.includes('reset message') || allResults.includes('clear message'))) {
-                  // Clear input and transcripts
-                  setInput('');
-                  setTranscript('');
-                  setTrimmedTranscript('');
-                  // Update transcribing state
-                  isTranscribingRef.current = false;
-                  setIsTranscribing(false);
-                  // Reset recognition to clear any pending results
-                  if (recognitionRef.current) {
-                    recognitionRef.current.stop();
-                    setTimeout(() => {
-                      if (isRecordingRef.current) {
-                        startRecognition();
-                      }
-                    }, 100);
-                  }
-                  return;
-                }
-              }
-            }
-
-            // Update input if we're in transcribing mode
-            if (isTranscribingRef.current) {
-              // Get all results since we started transcribing
-              const relevantResults = Array.from(event.results)
-                .map(result => result[0].transcript)
-                .join('')
-                .toLowerCase();
-
-              if (relevantResults) {
-                // Clean commands and wake words from the transcript for input
-                const cleanTranscript = relevantResults
-                  .replace(/hey bueller|hello bueller|goodbye bueller|bye bueller|close bueller|start message|start a message|begin message|send message|send a message|reset message|clear message/gi, '')
-                  .trim();
-
-                if (cleanTranscript) {
-                  setTrimmedTranscript(cleanTranscript);
-                  setInput(cleanTranscript);
-                }
-              }
-            }
-          };
-
-          // Start recognition
-          startRecognition();
-        } catch (error) {
-          console.error('Error setting up speech recognition:', error);
-          isRecordingRef.current = false;
-          setIsRecording(false);
-        }
+      if (cleanTranscript) {
+        setInput(cleanTranscript);
       }
+    }
+  }, [transcript, listening, isMessaging, setIsMessaging, resetTranscript]);
+
+  // Toggle speech recognition
+  const toggleListening = useCallback(() => {
+    if (listening) {
+      SpeechRecognition.stopListening();
+      setIsListening(false);
     } else {
-      // Stopping recording
-      stopRecognition();
+      SpeechRecognition.startListening({ continuous: true });
+      setIsListening(true);
     }
-  }, [isOpen, onOpenChange, resetRecognition, startRecognition, stopRecognition, sendSystemMessage]);
-
-  // Add cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-        } catch (error) {
-          console.error('Error stopping recognition on cleanup:', error);
-        }
-      }
-    };
-  }, []);
+  }, [listening]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -442,8 +118,6 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
-    isTranscribingRef.current = false;
-    setIsTranscribing(false);
 
     try {
       // Get chat response
@@ -535,6 +209,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
             
             try {
               await audioRef.current.play();
+              console.log('Playing audio');
             } catch (playError) {
               console.error('Error playing audio:', playError);
             }
@@ -588,7 +263,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
 
   const handleNavigation = () => {
     if (pendingNavigation) {
-      onOpenChange(false);
+      setIsOpen(false);
       setShowNavigationConfirm(false);
       setPendingNavigation(null);
       router.push(pendingNavigation);
@@ -673,167 +348,119 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
     };
   }, [isTTSEnabled]);
 
-  // Handle countdown timer
-  useEffect(() => {
-    if (showNavigationConfirm) {
-      setCountdown(10);
-      countdownRef.current = setInterval(() => {
-        setCountdown(prev => {
-          if (prev <= 1) {
-            clearInterval(countdownRef.current);
-            handleNavigation();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else {
-      if (countdownRef.current) {
-        clearInterval(countdownRef.current);
-      }
-    }
-
-    return () => {
-      if (countdownRef.current) {
-        clearInterval(countdownRef.current);
-      }
-    };
-  }, [showNavigationConfirm]);
-
   return (
-    <>
-      <Button 
-        variant="nav" 
-        onClick={(e: React.MouseEvent) => {
-          console.log('Button clicked, current state:', isOpen);
-          e.preventDefault();
-          e.stopPropagation();
-          onOpenChange(!isOpen);
-        }}
-      >
-        <MessageSquare className="h-5 w-5" />
-      </Button>
-      {isOpen && (
-        <Dialog.Root open={isOpen} modal={false}>
-          <Dialog.Portal>
-            <Dialog.Overlay className="hidden" />
-            <Dialog.Content 
-              className="fixed top-[88px] right-4 bottom-4 w-full max-w-md bg-gray-800/30 backdrop-blur-md shadow-xl z-[101] rounded-xl transform transition-all duration-500 ease-in-out translate-x-full data-[state=open]:translate-x-0 overflow-hidden"
-              onPointerDownOutside={(e) => e.preventDefault()}
-            >
-              <div className="flex flex-col h-full">
-                <div className="flex items-center justify-between p-4 border-b border-gray-200/50 bg-gray-800 rounded-t-xl">
-                  <Dialog.Title className="text-xl font-bold text-white">"Bueller" the AI Chat Assistant</Dialog.Title>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setIsTTSEnabled(!isTTSEnabled)}
-                      className={`p-2 rounded-lg transition-colors ${
-                        isTTSEnabled
-                          ? 'bg-gray-700 text-white hover:bg-gray-600'
-                          : 'text-gray-300 hover:text-white'
-                      }`}
-                      title={isTTSEnabled ? 'Disable TTS' : 'Enable TTS'}
-                    >
-                      {isTTSEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={toggleRecording}
-                      className={`p-2 rounded-lg transition-colors ${
-                        isRecording
-                          ? 'bg-gray-700 text-white hover:bg-gray-600'
-                          : 'text-gray-300 hover:text-white'
-                      }`}
-                      title={isRecording ? 'Disable Voice Input' : 'Enable Voice Input'}
-                    >
-                      {isRecording ? <Mic size={20} /> : <MicOff size={20} />}
-                    </button>
-                    <button
-                      onClick={() => {
-                        console.log('Close button clicked');
-                        onOpenChange(false);
-                      }}
-                      className="text-gray-300 hover:text-white"
-                    >
-                      <X size={20} />
-                    </button>
-                  </div>
-                </div>
-                <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white/30 backdrop-blur-md">
-                  {messages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`flex ${
-                        message.role === 'assistant' ? 'justify-start' : 'justify-end'
-                      }`}
-                    >
-                      <div
-                        className={`max-w-[80%] rounded-lg p-3 ${
-                          message.role === 'assistant'
-                            ? 'bg-gray-700 text-white'
-                            : 'bg-blue-600 text-white'
-                        }`}
-                      >
-                        {message.content}
-                      </div>
-                    </div>
-                  ))}
-                  <div ref={messagesEndRef} />
-                </div>
-                <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200/50 bg-gray-800 rounded-b-xl">
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      placeholder="Type your message..."
-                      className="flex-1 px-4 py-2 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <button
-                      type="submit"
-                      disabled={!input.trim()}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Send size={20} />
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </Dialog.Content>
-          </Dialog.Portal>
-        </Dialog.Root>
-      )}
-      {showNavigationConfirm && (
-        <Dialog.Root open={showNavigationConfirm} modal={true}>
-          <Dialog.Portal>
-            <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[102]" />
-            <Dialog.Content className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-800/90 backdrop-blur-md p-6 rounded-xl shadow-xl z-[103] w-full max-w-md">
-              <Dialog.Title className="text-xl font-bold text-white mb-4">
-                Navigate to {pendingNavigation}?
-              </Dialog.Title>
-              <p className="text-gray-300 mb-6">
-                Auto-navigating in {countdown} seconds...
-              </p>
-              <div className="flex justify-end gap-4">
+    <Dialog.Root open={isOpen} onOpenChange={setIsOpen} modal={false}>
+      <Dialog.Trigger asChild>
+        <Button variant="nav">
+          <MessageSquare className="w-5 h-5 mr-2" />
+          Chat
+        </Button>
+      </Dialog.Trigger>
+      <Dialog.Portal>
+        <Dialog.Overlay className="hidden" />
+        <Dialog.Content className="fixed bottom-4 right-4 w-full max-w-md h-[600px] bg-white/30 backdrop-blur-md rounded-xl shadow-xl z-[101] flex flex-col">
+          <div className="p-4 border-b border-gray-200/50">
+            <div className="flex items-center justify-between">
+              <Dialog.Title className="text-lg font-semibold">Chat with Bueller</Dialog.Title>
+              <div className="flex items-center gap-2">
                 <button
-                  onClick={cancelNavigation}
-                  className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                  type="button"
+                  onClick={() => setIsTTSEnabled(!isTTSEnabled)}
+                  className={`p-2 rounded-lg transition-colors ${
+                    isTTSEnabled
+                      ? 'bg-gray-700 text-white hover:bg-gray-600'
+                      : 'text-gray-300 hover:text-white'
+                  }`}
+                  title={isTTSEnabled ? 'Disable Text-to-Speech' : 'Enable Text-to-Speech'}
                 >
-                  Cancel
+                  {isTTSEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
                 </button>
-                <button
-                  onClick={handleNavigation}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Navigate Now
-                </button>
+                {browserSupportsSpeechRecognition && (
+                  <button
+                    type="button"
+                    onClick={toggleListening}
+                    className={`p-2 rounded-lg transition-colors ${
+                      isListening
+                        ? 'bg-gray-700 text-white hover:bg-gray-600'
+                        : 'text-gray-300 hover:text-white'
+                    }`}
+                    title={isListening ? 'Disable Voice Input' : 'Enable Voice Input'}
+                  >
+                    {isListening ? <Mic size={20} /> : <MicOff size={20} />}
+                  </button>
+                )}
+                <Dialog.Close className="text-gray-300 hover:text-white">
+                  <X size={20} />
+                </Dialog.Close>
               </div>
-            </Dialog.Content>
-          </Dialog.Portal>
-        </Dialog.Root>
-      )}
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white/30 backdrop-blur-md">
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={`flex ${
+                  message.role === 'assistant' ? 'justify-start' : 'justify-end'
+                }`}
+              >
+                <div
+                  className={`max-w-[80%] rounded-2xl p-3 ${
+                    message.role === 'assistant'
+                      ? 'bg-gray-700 text-white'
+                      : 'bg-white text-gray-700'
+                  }`}
+                >
+                  {message.content}
+                </div>
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+          {showNavigationConfirm && (
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center rounded-xl">
+              <div className="bg-white/90 p-6 rounded-xl shadow-xl max-w-sm mx-4">
+                <h3 className="text-lg font-semibold mb-2">Confirm Navigation</h3>
+                <p className="mb-4">Would you like to navigate to {pendingNavigation}?</p>
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={cancelNavigation}
+                    className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleNavigation}
+                    className="px-4 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-900 transition-colors"
+                  >
+                    Navigate
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200/50 bg-white/30 backdrop-blur-md">
+            <div className="flex gap-2">
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask me anything..."
+                className="flex-1 rounded-lg border border-gray-300/50 bg-white/50 backdrop-blur-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={isLoading}
+              />
+              <button
+                type="submit"
+                className={`bg-gray-800 text-white p-2 rounded-lg hover:bg-gray-900 transition-colors ${
+                  isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+                disabled={isLoading}
+              >
+                <Send size={20} />
+              </button>
+            </div>
+          </form>
+        </Dialog.Content>
+      </Dialog.Portal>
       <audio ref={audioRef} className="hidden" />
-    </>
+    </Dialog.Root>
   );
 } 
