@@ -210,9 +210,10 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
               if (isOpen) {
                 // Check for start message command first
                 if (!isTranscribingRef.current && (allResults.includes('start message') || allResults.includes('start a message') || allResults.includes('begin message'))) {
-                  setInput('');
+                  // Clear all transcripts and input before starting
                   setTranscript('');
                   setTrimmedTranscript('');
+                  setInput('');
                   isTranscribingRef.current = true;
                   setIsTranscribing(true);
                   return;
