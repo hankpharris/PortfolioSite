@@ -47,11 +47,18 @@ interface SpeechRecognitionAlternative {
   confidence: number;
 }
 
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+  message: string;
+}
+
 interface SpeechRecognition extends EventTarget {
   continuous: boolean;
   interimResults: boolean;
   lang: string;
   onresult: (event: SpeechRecognitionEvent) => void;
+  onerror: (event: SpeechRecognitionErrorEvent) => void;
+  onend: () => void;
   start: () => void;
   stop: () => void;
   abort: () => void;
@@ -83,6 +90,7 @@ export function ChatBot() {
     if (typeof window !== 'undefined') {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (SpeechRecognition) {
+        console.log('Speech recognition is supported');
         setBrowserSupportsSpeechRecognition(true);
         recognitionRef.current = new SpeechRecognition();
         recognitionRef.current.continuous = true;
@@ -94,28 +102,35 @@ export function ChatBot() {
             .join('')
             .toLowerCase();
 
+          console.log('Current transcript:', currentTranscript);
+          console.log('Is messaging:', isMessaging);
+
           setTranscript(currentTranscript);
 
           // Handle commands
           if (currentTranscript.includes('hey bueller')) {
+            console.log('Hey Bueller command detected');
             setIsOpen(true);
             setTranscript('');
             return;
           }
 
           if (currentTranscript.includes('close bueller')) {
+            console.log('Close Bueller command detected');
             setIsOpen(false);
             setTranscript('');
             return;
           }
 
           if (currentTranscript.includes('start message')) {
+            console.log('Start message command detected');
             setIsMessaging(true);
             setTranscript('');
             return;
           }
 
           if (currentTranscript.includes('reset message')) {
+            console.log('Reset message command detected');
             setIsMessaging(false);
             setInput('');
             setTranscript('');
@@ -124,27 +139,48 @@ export function ChatBot() {
 
           // Update input if in messaging mode
           if (isMessaging) {
+            console.log('In messaging mode, updating input');
             const cleanTranscript = currentTranscript
               .replace(/hey bueller|close bueller|start message|reset message/gi, '')
               .trim();
             
             if (cleanTranscript) {
+              console.log('Setting input to:', cleanTranscript);
               setInput(cleanTranscript);
             }
           }
         };
+
+        recognitionRef.current.onerror = (event: SpeechRecognitionErrorEvent) => {
+          console.error('Speech recognition error:', event.error);
+        };
+
+        recognitionRef.current.onend = () => {
+          console.log('Speech recognition ended');
+          if (isListening) {
+            console.log('Restarting speech recognition');
+            recognitionRef.current?.start();
+          }
+        };
+      } else {
+        console.log('Speech recognition is not supported');
       }
     }
-  }, [isMessaging, setIsMessaging]);
+  }, [isMessaging, setIsMessaging, isListening]);
 
   // Toggle speech recognition
   const toggleListening = useCallback(() => {
-    if (!recognitionRef.current) return;
+    if (!recognitionRef.current) {
+      console.log('Speech recognition not initialized');
+      return;
+    }
 
     if (isListening) {
+      console.log('Stopping speech recognition');
       recognitionRef.current.stop();
       setIsListening(false);
     } else {
+      console.log('Starting speech recognition');
       recognitionRef.current.start();
       setIsListening(true);
     }
