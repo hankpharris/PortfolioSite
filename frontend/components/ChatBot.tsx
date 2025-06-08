@@ -250,6 +250,16 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
     }
   }, []);
 
+  // Add a function to send system message
+  const sendSystemMessage = useCallback((message: string) => {
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      content: message,
+      role: 'assistant'
+    };
+    setMessages(prev => [...prev, newMessage]);
+  }, []);
+
   // Handle recording toggle
   const toggleRecording = useCallback(() => {
     console.log('Toggle recording clicked, current state:', isRecordingRef.current);
@@ -288,6 +298,8 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
                   isTranscribingRef.current = false;
                   setIsTranscribing(false);
                 }
+                // Send system message about timeout
+                sendSystemMessage("Speech recognition timed out due to inactivity. I'm still listening - just start speaking again to continue.");
               }
             } else if (isRecordingRef.current) {
               // For other errors, try to restart if we're still supposed to be recording
@@ -391,7 +403,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
       // Stopping recording
       stopRecognition();
     }
-  }, [isOpen, onOpenChange, resetRecognition, startRecognition, stopRecognition]);
+  }, [isOpen, onOpenChange, resetRecognition, startRecognition, stopRecognition, sendSystemMessage]);
 
   // Add cleanup on unmount
   useEffect(() => {
