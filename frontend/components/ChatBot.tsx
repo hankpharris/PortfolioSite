@@ -120,6 +120,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
   const lastStateChangeRef = useRef<number>(0);
   const STATE_CHANGE_DEBOUNCE = 500; // ms
   const isRecognitionActiveRef = useRef(false);
+  const transcriptionStartTimeRef = useRef<number>(0);
 
   // Sync refs with state
   useEffect(() => {
@@ -341,7 +342,11 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
               if (isOpen) {
                 // Check for start message command first
                 if (!isTranscribingRef.current && (allResults.includes('start message') || allResults.includes('start a message') || allResults.includes('begin message'))) {
-                  resetRecognition();
+                  // Clear transcripts and set start index
+                  setTranscript('');
+                  setTrimmedTranscript('');
+                  setInput('');
+                  transcriptionStartIndexRef.current = event.results.length;
                   isTranscribingRef.current = true;
                   setIsTranscribing(true);
                   return;
@@ -373,6 +378,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
             if (isTranscribingRef.current) {
               // Get all results since we started transcribing
               const relevantResults = Array.from(event.results)
+                .slice(transcriptionStartIndexRef.current)
                 .map(result => result[0].transcript)
                 .join('')
                 .toLowerCase();
