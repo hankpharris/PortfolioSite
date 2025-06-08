@@ -464,7 +464,7 @@ export function ChatBot() {
       <Dialog.Portal>
         <Dialog.Overlay className="hidden" />
         <Dialog.Content 
-          className="fixed w-[95%] max-w-[95%] h-[80vh] bg-white/30 backdrop-blur-md rounded-xl shadow-xl z-[101] flex flex-col overflow-hidden
+          className="fixed w-[95%] max-w-[95%] h-[50vh] bg-white/30 backdrop-blur-md rounded-xl shadow-xl z-[101] flex flex-col overflow-hidden
             left-1/2 -translate-x-1/2
             md:left-auto md:translate-x-0 md:right-4 md:w-full md:max-w-md md:h-[600px]"
           style={{ top: `${chatPosition.top}px` }}
