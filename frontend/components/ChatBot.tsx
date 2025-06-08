@@ -187,25 +187,21 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
     }
   }, []);
 
-  // Add a function to handle recognition reset
-  const resetRecognition = useCallback(async () => {
+  // Add a function to reset recognition
+  const resetRecognition = useCallback(() => {
     if (!recognitionRef.current) return;
     
     try {
-      isResettingRef.current = true;
-      recognitionRef.current.stop();
-      
-      // Wait for recognition to fully stop
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Only start if we're still supposed to be recording
-      if (isRecordingRef.current) {
-        recognitionRef.current.start();
-      }
+      // Abort current recognition to reset it
+      recognitionRef.current.abort();
+      // Clear all transcripts
+      setTranscript('');
+      setTrimmedTranscript('');
+      setInput('');
+      // Reset the start index
+      transcriptionStartIndexRef.current = 0;
     } catch (error) {
       console.error('Error resetting recognition:', error);
-    } finally {
-      isResettingRef.current = false;
     }
   }, []);
 
@@ -226,9 +222,6 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
 
           // Set up event handlers
           recognitionRef.current.onresult = (event) => {
-            // Skip processing if we're resetting
-            if (isResettingRef.current) return;
-
             // Get all results for the base transcript
             const allResults = Array.from(event.results)
               .map(result => result[0].transcript)
@@ -242,15 +235,13 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
             if (allResults) {
               if (allResults.includes('hey bueller') || allResults.includes('hello bueller')) {
                 onOpenChange(true);
-                setTranscript('');
-                setTrimmedTranscript('');
+                resetRecognition();
                 return;
               }
 
               if (allResults.includes('goodbye bueller') || allResults.includes('bye bueller') || allResults.includes('close bueller')) {
                 onOpenChange(false);
-                setTranscript('');
-                setTrimmedTranscript('');
+                resetRecognition();
                 return;
               }
 
@@ -258,19 +249,9 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
               if (isOpen) {
                 // Check for start message command first
                 if (!isTranscribingRef.current && (allResults.includes('start message') || allResults.includes('start a message') || allResults.includes('begin message'))) {
-                  // Clear all transcripts and input before starting
-                  setTranscript('');
-                  setTrimmedTranscript('');
-                  setInput('');
-                  safeSetState(true, 'transcribing');
-                  transcriptionStartIndexRef.current = event.results.length;
-                  
-                  // Set a command window to ignore the next 250ms of speech
-                  commandWindowRef.current = true;
-                  setTimeout(() => {
-                    commandWindowRef.current = false;
-                  }, 250);
-                  
+                  resetRecognition();
+                  isTranscribingRef.current = true;
+                  setIsTranscribing(true);
                   return;
                 }
 
@@ -280,28 +261,26 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
                   if (form) {
                     form.dispatchEvent(new Event('submit', { bubbles: true }));
                   }
-                  setTranscript('');
-                  setTrimmedTranscript('');
-                  safeSetState(false, 'transcribing');
+                  resetRecognition();
+                  isTranscribingRef.current = false;
+                  setIsTranscribing(false);
                   return;
                 }
 
                 // Check for reset message command
                 if (isTranscribingRef.current && (allResults.includes('reset message') || allResults.includes('clear message'))) {
-                  setInput('');
-                  setTranscript('');
-                  setTrimmedTranscript('');
-                  safeSetState(false, 'transcribing');
+                  resetRecognition();
+                  isTranscribingRef.current = false;
+                  setIsTranscribing(false);
                   return;
                 }
               }
             }
 
             // Update input if we're in transcribing mode
-            if (isTranscribingRef.current && !commandWindowRef.current) {
-              // Only process results that came after we started transcribing
+            if (isTranscribingRef.current) {
+              // Get all results since we started transcribing
               const relevantResults = Array.from(event.results)
-                .slice(transcriptionStartIndexRef.current)
                 .map(result => result[0].transcript)
                 .join('')
                 .toLowerCase();
