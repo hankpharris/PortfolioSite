@@ -512,8 +512,8 @@ export function ChatBot() {
             }}
           >
             <Dialog.Portal>
-              <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
-              <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/30 backdrop-blur-md p-6 rounded-xl shadow-xl max-w-md w-full">
+              <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[200]" />
+              <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/30 backdrop-blur-md p-6 rounded-xl shadow-xl max-w-md w-full z-[201]">
                 <Dialog.Title className="text-lg font-semibold mb-4">
                   Confirm Navigation
                 </Dialog.Title>
