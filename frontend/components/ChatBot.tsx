@@ -110,6 +110,8 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
   const isClosingRef = useRef(false);
   const isTranscribingRef = useRef(false);
   const isRecordingRef = useRef(false);
+  const [transcript, setTranscript] = useState('');
+  const [trimmedTranscript, setTrimmedTranscript] = useState('');
 
   // Sync refs with state
   useEffect(() => {
@@ -148,11 +150,14 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
 
           // Set up event handlers
           recognitionRef.current.onresult = (event) => {
-            // Get all results for input
+            // Get all results for the base transcript
             const allResults = Array.from(event.results)
               .map(result => result[0].transcript)
               .join('')
               .toLowerCase();
+
+            // Update base transcript
+            setTranscript(allResults);
 
             // Get final result for commands
             const finalResult = Array.from(event.results)
@@ -177,6 +182,8 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
                 // Check for start message command first
                 if (!isTranscribingRef.current && (finalTranscript.includes('start message') || finalTranscript.includes('start a message') || finalTranscript.includes('begin message'))) {
                   setInput('');
+                  setTranscript('');
+                  setTrimmedTranscript('');
                   isTranscribingRef.current = true;
                   setIsTranscribing(true);
                   return;
@@ -188,12 +195,16 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
                   if (form) {
                     form.dispatchEvent(new Event('submit', { bubbles: true }));
                   }
+                  setTranscript('');
+                  setTrimmedTranscript('');
                   return;
                 }
 
                 // Check for reset message command
                 if (isTranscribingRef.current && (finalTranscript.includes('reset message') || finalTranscript.includes('clear message'))) {
                   setInput('');
+                  setTranscript('');
+                  setTrimmedTranscript('');
                   isTranscribingRef.current = false;
                   setIsTranscribing(false);
                   return;
@@ -203,12 +214,13 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
 
             // Update input if we're in transcribing mode (use all results for better responsiveness)
             if (isTranscribingRef.current) {
-              // Only clean wake words, not commands
+              // Clean commands and wake words from the transcript for input
               const cleanTranscript = allResults
-                .replace(/hey bueller|hello bueller|goodbye bueller|bye bueller|close bueller/gi, '')
+                .replace(/hey bueller|hello bueller|goodbye bueller|bye bueller|close bueller|start message|send message|send a message|reset message|clear message/gi, '')
                 .trim();
 
               if (cleanTranscript) {
+                setTrimmedTranscript(cleanTranscript);
                 setInput(cleanTranscript);
               }
             }
