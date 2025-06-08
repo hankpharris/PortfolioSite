@@ -7,7 +7,6 @@ import { Button } from './buttons/Button';
 import { useChat } from 'ai/react';
 import { useRouter } from 'next/navigation';
 import { useChatStore } from '../store/chatStore';
-import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 
 const welcomeMessage = {
   id: 'welcome',
@@ -28,6 +27,43 @@ type Message = {
   content: string;
 };
 
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionResultList {
+  [index: number]: SpeechRecognitionResult;
+  length: number;
+}
+
+interface SpeechRecognitionResult {
+  [index: number]: SpeechRecognitionAlternative;
+  isFinal: boolean;
+  length: number;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: (event: SpeechRecognitionEvent) => void;
+  start: () => void;
+  stop: () => void;
+  abort: () => void;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition: new () => SpeechRecognition;
+    webkitSpeechRecognition: new () => SpeechRecognition;
+  }
+}
+
 export function ChatBot() {
   const [isOpen, setIsOpen] = useState(false);
   const [showNavigationConfirm, setShowNavigationConfirm] = useState(false);
@@ -40,74 +76,80 @@ export function ChatBot() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { isMessaging, setIsMessaging, isListening, setIsListening } = useChatStore();
+  const [browserSupportsSpeechRecognition, setBrowserSupportsSpeechRecognition] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
-  const {
-    transcript,
-    listening,
-    resetTranscript,
-    browserSupportsSpeechRecognition
-  } = useSpeechRecognition();
-
-  // Auto-scroll to bottom when messages change
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        setBrowserSupportsSpeechRecognition(true);
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = true;
+        recognitionRef.current.interimResults = true;
 
-  // Handle speech recognition commands
-  useEffect(() => {
-    if (!listening) return;
+        recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
+          const currentTranscript = Array.from(event.results)
+            .map((result) => result[0].transcript)
+            .join('')
+            .toLowerCase();
 
-    const lowerTranscript = transcript.toLowerCase();
-    
-    // Handle wake words
-    if (lowerTranscript.includes('hey bueller')) {
-      setIsOpen(true);
-      resetTranscript();
-      return;
-    }
+          setTranscript(currentTranscript);
 
-    if (lowerTranscript.includes('close bueller')) {
-      setIsOpen(false);
-      resetTranscript();
-      return;
-    }
+          // Handle commands
+          if (currentTranscript.includes('hey bueller')) {
+            setIsOpen(true);
+            setTranscript('');
+            return;
+          }
 
-    // Handle message commands
-    if (lowerTranscript.includes('start message')) {
-      setIsMessaging(true);
-      resetTranscript();
-      return;
-    }
+          if (currentTranscript.includes('close bueller')) {
+            setIsOpen(false);
+            setTranscript('');
+            return;
+          }
 
-    if (lowerTranscript.includes('reset message')) {
-      setIsMessaging(false);
-      setInput('');
-      resetTranscript();
-      return;
-    }
+          if (currentTranscript.includes('start message')) {
+            setIsMessaging(true);
+            setTranscript('');
+            return;
+          }
 
-    // Update input if in messaging mode
-    if (isMessaging) {
-      const cleanTranscript = lowerTranscript
-        .replace(/hey bueller|close bueller|start message|reset message/gi, '')
-        .trim();
-      
-      if (cleanTranscript) {
-        setInput(cleanTranscript);
+          if (currentTranscript.includes('reset message')) {
+            setIsMessaging(false);
+            setInput('');
+            setTranscript('');
+            return;
+          }
+
+          // Update input if in messaging mode
+          if (isMessaging) {
+            const cleanTranscript = currentTranscript
+              .replace(/hey bueller|close bueller|start message|reset message/gi, '')
+              .trim();
+            
+            if (cleanTranscript) {
+              setInput(cleanTranscript);
+            }
+          }
+        };
       }
     }
-  }, [transcript, listening, isMessaging, setIsMessaging, resetTranscript]);
+  }, [isMessaging, setIsMessaging]);
 
   // Toggle speech recognition
   const toggleListening = useCallback(() => {
-    if (listening) {
-      SpeechRecognition.stopListening();
+    if (!recognitionRef.current) return;
+
+    if (isListening) {
+      recognitionRef.current.stop();
       setIsListening(false);
     } else {
-      SpeechRecognition.startListening({ continuous: true });
+      recognitionRef.current.start();
       setIsListening(true);
     }
-  }, [listening]);
+  }, [isListening]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

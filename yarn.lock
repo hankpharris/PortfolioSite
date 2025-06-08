@@ -7005,7 +7005,7 @@ __metadata:
     prettier: "npm:^3.1.0"
     prettier-config-custom: "workspace:*"
     prisma: "npm:^6.8.2"
-    react-speech-recognition: "npm:^4.0.0"
+    react-speech-recognition: "npm:^4.0.1"
     resend: "npm:^4.5.1"
     tailwind-merge: "npm:^3.3.0"
     ts-config-custom: "workspace:*"
@@ -7438,7 +7438,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-speech-recognition@npm:^4.0.0":
+"react-speech-recognition@npm:^4.0.1":
   version: 4.0.1
   resolution: "react-speech-recognition@npm:4.0.1"
   dependencies:
