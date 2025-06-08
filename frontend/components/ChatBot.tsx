@@ -76,6 +76,7 @@ export function ChatBot() {
   const { isMessaging, setIsMessaging, isListening, setIsListening, isOpen, setIsOpen } = useChatStore();
   const [showNavigationConfirm, setShowNavigationConfirm] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState(10);
   const [isTTSEnabled, setIsTTSEnabled] = useState(false);
   const [messages, setMessages] = useState<Message[]>([welcomeMessage]);
   const [input, setInput] = useState('');
@@ -318,19 +319,45 @@ export function ChatBot() {
     return null;
   };
 
-  const handleNavigation = () => {
+  // Handle navigation with confirmation
+  const handleNavigation = useCallback((path: string) => {
+    if (messages.length > 1) {
+      setShowNavigationConfirm(true);
+      setPendingNavigation(path);
+      setCountdown(10);
+    } else {
+      router.push(path);
+    }
+  }, [messages.length, router]);
+
+  // Countdown effect
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (showNavigationConfirm && countdown > 0) {
+      timer = setTimeout(() => {
+        setCountdown(prev => prev - 1);
+      }, 1000);
+    } else if (showNavigationConfirm && countdown === 0) {
+      handleConfirmNavigation();
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [showNavigationConfirm, countdown]);
+
+  const handleConfirmNavigation = useCallback(() => {
     if (pendingNavigation) {
-      setIsOpen(false);
+      router.push(pendingNavigation);
       setShowNavigationConfirm(false);
       setPendingNavigation(null);
-      router.push(pendingNavigation);
     }
-  };
+  }, [pendingNavigation, router]);
 
-  const cancelNavigation = () => {
+  const handleCancelNavigation = useCallback(() => {
     setShowNavigationConfirm(false);
     setPendingNavigation(null);
-  };
+    setCountdown(10);
+  }, []);
 
   // Add welcome message when chat is first opened
   useEffect(() => {
@@ -477,19 +504,22 @@ export function ChatBot() {
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center rounded-xl">
               <div className="bg-white/90 p-6 rounded-xl shadow-xl max-w-sm mx-4">
                 <h3 className="text-lg font-semibold mb-2">Confirm Navigation</h3>
-                <p className="mb-4">Would you like to navigate to {pendingNavigation}?</p>
+                <p className="mb-4">
+                  You have an active chat session. Are you sure you want to navigate away?
+                  You will be redirected in {countdown} seconds.
+                </p>
                 <div className="flex justify-end gap-2">
                   <button
-                    onClick={cancelNavigation}
+                    onClick={handleCancelNavigation}
                     className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition-colors"
                   >
-                    Cancel
+                    Stay
                   </button>
                   <button
-                    onClick={handleNavigation}
+                    onClick={handleConfirmNavigation}
                     className="px-4 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-900 transition-colors"
                   >
-                    Navigate
+                    Leave
                   </button>
                 </div>
               </div>
