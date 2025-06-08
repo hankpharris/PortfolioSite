@@ -169,8 +169,8 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
               // Check for start message command first
               if (!isTranscribingRef.current && (transcript.includes('start message') || transcript.includes('start a message') || transcript.includes('begin message'))) {
                 setInput('');
-                setIsTranscribing(true);
                 isTranscribingRef.current = true;
+                setIsTranscribing(true);
                 return;
               }
 
@@ -186,8 +186,8 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
               // Check for reset message command
               if (isTranscribingRef.current && (transcript.includes('reset message') || transcript.includes('clear message'))) {
                 setInput('');
-                setIsTranscribing(false);
                 isTranscribingRef.current = false;
+                setIsTranscribing(false);
                 return;
               }
 
@@ -228,10 +228,12 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
 
           // Start recognition and update state
           recognitionRef.current.start();
+          isRecordingRef.current = true;
           setIsRecording(true);
         } catch (error) {
           console.error('Failed to start speech recognition:', error);
           // Reset state if start fails
+          isRecordingRef.current = false;
           setIsRecording(false);
           recognitionRef.current = null;
         }
@@ -252,17 +254,23 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
           recognitionRef.current = null;
           
           // Update state
+          isRecordingRef.current = false;
+          isTranscribingRef.current = false;
           setIsRecording(false);
           setIsTranscribing(false);
         } catch (error) {
           console.error('Failed to stop speech recognition:', error);
           // Force cleanup even if stop fails
           recognitionRef.current = null;
+          isRecordingRef.current = false;
+          isTranscribingRef.current = false;
           setIsRecording(false);
           setIsTranscribing(false);
         }
       } else {
         // If no recognition instance but state is true, force reset
+        isRecordingRef.current = false;
+        isTranscribingRef.current = false;
         setIsRecording(false);
         setIsTranscribing(false);
       }
@@ -288,8 +296,8 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
-    setIsTranscribing(false);
     isTranscribingRef.current = false;
+    setIsTranscribing(false);
 
     try {
       // Get chat response
