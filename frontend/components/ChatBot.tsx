@@ -190,24 +190,29 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
 
   // Add a function to safely start recognition
   const startRecognition = useCallback(() => {
-    if (!recognitionRef.current || isRecognitionActiveRef.current) return;
+    if (!recognitionRef.current || isRecordingRef.current) return;
     
     try {
       recognitionRef.current.start();
-      isRecognitionActiveRef.current = true;
+      isRecordingRef.current = true;
+      setIsRecording(true);
     } catch (error) {
       console.error('Error starting recognition:', error);
-      isRecognitionActiveRef.current = false;
+      isRecordingRef.current = false;
+      setIsRecording(false);
     }
   }, []);
 
   // Add a function to safely stop recognition
   const stopRecognition = useCallback(() => {
-    if (!recognitionRef.current || !isRecognitionActiveRef.current) return;
+    if (!recognitionRef.current || !isRecordingRef.current) return;
     
     try {
       recognitionRef.current.stop();
-      isRecognitionActiveRef.current = false;
+      isRecordingRef.current = false;
+      setIsRecording(false);
+      isTranscribingRef.current = false;
+      setIsTranscribing(false);
     } catch (error) {
       console.error('Error stopping recognition:', error);
     }
@@ -219,9 +224,10 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
     
     try {
       // Stop recognition if it's active
-      if (isRecognitionActiveRef.current) {
+      if (isRecordingRef.current) {
         recognitionRef.current.stop();
-        isRecognitionActiveRef.current = false;
+        isRecordingRef.current = false;
+        setIsRecording(false);
       }
       
       // Clear all transcripts
@@ -233,7 +239,8 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
       setTimeout(() => {
         try {
           recognitionRef.current?.start();
-          isRecognitionActiveRef.current = true;
+          isRecordingRef.current = true;
+          setIsRecording(true);
         } catch (error) {
           console.error('Error restarting recognition:', error);
         }
@@ -260,7 +267,6 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
 
           // Set up event handlers
           recognitionRef.current.onend = () => {
-            isRecognitionActiveRef.current = false;
             // Restart recognition if we're still supposed to be recording
             if (isRecordingRef.current) {
               startRecognition();
@@ -269,7 +275,6 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
 
           recognitionRef.current.onerror = (event) => {
             console.error('Speech recognition error:', event.error);
-            isRecognitionActiveRef.current = false;
             // Only restart if it's not a no-speech error and we're still recording
             if (event.error !== 'no-speech' && isRecordingRef.current) {
               startRecognition();
@@ -356,8 +361,6 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
 
           // Start recognition
           startRecognition();
-          isRecordingRef.current = true;
-          setIsRecording(true);
         } catch (error) {
           console.error('Error setting up speech recognition:', error);
           isRecordingRef.current = false;
@@ -366,17 +369,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
       }
     } else {
       // Stopping recording
-      if (recognitionRef.current) {
-        try {
-          stopRecognition();
-          isRecordingRef.current = false;
-          setIsRecording(false);
-          isTranscribingRef.current = false;
-          setIsTranscribing(false);
-        } catch (error) {
-          console.error('Error stopping speech recognition:', error);
-        }
-      }
+      stopRecognition();
     }
   }, [isOpen, onOpenChange, resetRecognition, startRecognition, stopRecognition]);
 
