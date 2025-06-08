@@ -270,17 +270,13 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
             // Restart recognition if we're still supposed to be recording
             if (isRecordingRef.current) {
               startRecognition();
-            } else {
-              // Ensure UI is in sync if we're not supposed to be recording
-              setIsRecording(false);
-              setIsTranscribing(false);
             }
           };
 
           recognitionRef.current.onerror = (event) => {
             console.error('Speech recognition error:', event.error);
             
-            // For no-speech errors, we should stop recording and update UI
+            // For no-speech errors, stop recording and update UI
             if (event.error === 'no-speech') {
               isRecordingRef.current = false;
               setIsRecording(false);
@@ -292,10 +288,6 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
             // For other errors, try to restart if we're still supposed to be recording
             if (isRecordingRef.current) {
               startRecognition();
-            } else {
-              // Ensure UI is in sync if we're not supposed to be recording
-              setIsRecording(false);
-              setIsTranscribing(false);
             }
           };
 
