@@ -187,20 +187,31 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
     }
   }, []);
 
-  // Add a function to reset recognition
-  const resetRecognition = useCallback(() => {
+  // Add a function to safely handle recognition state
+  const safeRecognitionReset = useCallback(() => {
     if (!recognitionRef.current) return;
     
     try {
-      // Abort current recognition to reset it
+      // First stop the recognition
+      recognitionRef.current.stop();
+      
+      // Then abort it to clear any pending state
       recognitionRef.current.abort();
+      
       // Clear all transcripts
       setTranscript('');
       setTrimmedTranscript('');
       setInput('');
+      
       // Reset the start index
       transcriptionStartIndexRef.current = 0;
     } catch (error) {
+      // Ignore specific errors that are expected
+      if (error instanceof Error && 
+          (error.name === 'InvalidStateError' || 
+           error.message.includes('recognition has already started'))) {
+        return;
+      }
       console.error('Error resetting recognition:', error);
     }
   }, []);
@@ -235,13 +246,13 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
             if (allResults) {
               if (allResults.includes('hey bueller') || allResults.includes('hello bueller')) {
                 onOpenChange(true);
-                resetRecognition();
+                safeRecognitionReset();
                 return;
               }
 
               if (allResults.includes('goodbye bueller') || allResults.includes('bye bueller') || allResults.includes('close bueller')) {
                 onOpenChange(false);
-                resetRecognition();
+                safeRecognitionReset();
                 return;
               }
 
@@ -249,7 +260,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
               if (isOpen) {
                 // Check for start message command first
                 if (!isTranscribingRef.current && (allResults.includes('start message') || allResults.includes('start a message') || allResults.includes('begin message'))) {
-                  resetRecognition();
+                  safeRecognitionReset();
                   isTranscribingRef.current = true;
                   setIsTranscribing(true);
                   return;
@@ -261,7 +272,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
                   if (form) {
                     form.dispatchEvent(new Event('submit', { bubbles: true }));
                   }
-                  resetRecognition();
+                  safeRecognitionReset();
                   isTranscribingRef.current = false;
                   setIsTranscribing(false);
                   return;
@@ -269,7 +280,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
 
                 // Check for reset message command
                 if (isTranscribingRef.current && (allResults.includes('reset message') || allResults.includes('clear message'))) {
-                  resetRecognition();
+                  safeRecognitionReset();
                   isTranscribingRef.current = false;
                   setIsTranscribing(false);
                   return;
@@ -299,77 +310,44 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
             }
           };
 
+          // Add error handler
           recognitionRef.current.onerror = (event) => {
+            // Ignore expected errors
+            if (event.error === 'no-speech' || 
+                event.error === 'aborted' ||
+                (event.error === 'network' && event.message?.includes('recognition has already started'))) {
+              return;
+            }
             console.error('Speech recognition error:', event.error);
-            if (isRecordingRef.current && recognitionRef.current) {
-              try {
-                recognitionRef.current.start();
-              } catch (error) {
-                console.error('Failed to restart speech recognition:', error);
-              }
-            }
           };
 
-          recognitionRef.current.onend = () => {
-            if (isRecordingRef.current && recognitionRef.current) {
-              try {
-                recognitionRef.current.start();
-              } catch (error) {
-                console.error('Failed to restart speech recognition:', error);
-              }
-            }
-          };
-
-          // Start recognition and update state
+          // Start recognition
           recognitionRef.current.start();
           isRecordingRef.current = true;
           setIsRecording(true);
         } catch (error) {
-          console.error('Failed to start speech recognition:', error);
-          // Reset state if start fails
-          isRecordingRef.current = false;
-          setIsRecording(false);
-          recognitionRef.current = null;
+          console.error('Error starting recognition:', error);
         }
       }
     } else {
       // Stopping recording
       if (recognitionRef.current) {
         try {
-          // Remove all event listeners
-          recognitionRef.current.onresult = null;
-          recognitionRef.current.onerror = null;
-          recognitionRef.current.onend = null;
-          
-          // Stop the recognition
           recognitionRef.current.stop();
-          
-          // Clear the instance
           recognitionRef.current = null;
-          
-          // Update state
           isRecordingRef.current = false;
-          isTranscribingRef.current = false;
           setIsRecording(false);
+          isTranscribingRef.current = false;
           setIsTranscribing(false);
+          setTranscript('');
+          setTrimmedTranscript('');
+          setInput('');
         } catch (error) {
-          console.error('Failed to stop speech recognition:', error);
-          // Force cleanup even if stop fails
-          recognitionRef.current = null;
-          isRecordingRef.current = false;
-          isTranscribingRef.current = false;
-          setIsRecording(false);
-          setIsTranscribing(false);
+          console.error('Error stopping recognition:', error);
         }
-      } else {
-        // If no recognition instance but state is true, force reset
-        isRecordingRef.current = false;
-        isTranscribingRef.current = false;
-        setIsRecording(false);
-        setIsTranscribing(false);
       }
     }
-  }, [isOpen, onOpenChange, input, setIsTranscribing]);
+  }, [isOpen, onOpenChange, safeRecognitionReset]);
 
   // Cleanup on unmount
   useEffect(() => {
