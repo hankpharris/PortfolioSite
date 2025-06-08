@@ -2,10 +2,12 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { MessageSquare, X, Send, Volume2, VolumeX } from 'lucide-react';
+import { MessageSquare, X, Send, Volume2, VolumeX, Mic, MicOff } from 'lucide-react';
 import { Button } from './buttons/Button';
 import { useChat } from 'ai/react';
 import { useRouter } from 'next/navigation';
+import { useChatStore } from '../store/chatStore';
+import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 
 const welcomeMessage = {
   id: 'welcome',
@@ -34,14 +36,78 @@ export function ChatBot() {
   const [messages, setMessages] = useState<Message[]>([welcomeMessage]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const { isMessaging, setIsMessaging, isListening, setIsListening } = useChatStore();
+
+  const {
+    transcript,
+    listening,
+    resetTranscript,
+    browserSupportsSpeechRecognition
+  } = useSpeechRecognition();
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Handle speech recognition commands
+  useEffect(() => {
+    if (!listening) return;
+
+    const lowerTranscript = transcript.toLowerCase();
+    
+    // Handle wake words
+    if (lowerTranscript.includes('hey bueller')) {
+      setIsOpen(true);
+      resetTranscript();
+      return;
+    }
+
+    if (lowerTranscript.includes('close bueller')) {
+      setIsOpen(false);
+      resetTranscript();
+      return;
+    }
+
+    // Handle message commands
+    if (lowerTranscript.includes('start message')) {
+      setIsMessaging(true);
+      resetTranscript();
+      return;
+    }
+
+    if (lowerTranscript.includes('reset message')) {
+      setIsMessaging(false);
+      setInput('');
+      resetTranscript();
+      return;
+    }
+
+    // Update input if in messaging mode
+    if (isMessaging) {
+      const cleanTranscript = lowerTranscript
+        .replace(/hey bueller|close bueller|start message|reset message/gi, '')
+        .trim();
+      
+      if (cleanTranscript) {
+        setInput(cleanTranscript);
+      }
+    }
+  }, [transcript, listening, isMessaging, setIsMessaging, resetTranscript]);
+
+  // Toggle speech recognition
+  const toggleListening = useCallback(() => {
+    if (listening) {
+      SpeechRecognition.stopListening();
+      setIsListening(false);
+    } else {
+      SpeechRecognition.startListening({ continuous: true });
+      setIsListening(true);
+    }
+  }, [listening]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -292,13 +358,10 @@ export function ChatBot() {
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="hidden" />
-        <Dialog.Content 
-          className="fixed top-[88px] right-4 bottom-4 w-full max-w-md bg-gray-800/30 backdrop-blur-md shadow-xl z-[101] rounded-xl transform transition-all duration-500 ease-in-out translate-x-full data-[state=open]:translate-x-0 overflow-hidden"
-          onPointerDownOutside={(e) => e.preventDefault()}
-        >
-          <div className="flex flex-col h-full">
-            <div className="flex items-center justify-between p-4 border-b border-gray-200/50 bg-gray-800 rounded-t-xl">
-              <Dialog.Title className="text-xl font-bold text-white">"Bueller" the AI Chat Assistant</Dialog.Title>
+        <Dialog.Content className="fixed bottom-4 right-4 w-full max-w-md h-[600px] bg-white/30 backdrop-blur-md rounded-xl shadow-xl z-[101] flex flex-col">
+          <div className="p-4 border-b border-gray-200/50">
+            <div className="flex items-center justify-between">
+              <Dialog.Title className="text-lg font-semibold">Chat with Bueller</Dialog.Title>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
@@ -308,79 +371,93 @@ export function ChatBot() {
                       ? 'bg-gray-700 text-white hover:bg-gray-600'
                       : 'text-gray-300 hover:text-white'
                   }`}
-                  title={isTTSEnabled ? 'Disable TTS' : 'Enable TTS'}
+                  title={isTTSEnabled ? 'Disable Text-to-Speech' : 'Enable Text-to-Speech'}
                 >
                   {isTTSEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
                 </button>
+                {browserSupportsSpeechRecognition && (
+                  <button
+                    type="button"
+                    onClick={toggleListening}
+                    className={`p-2 rounded-lg transition-colors ${
+                      isListening
+                        ? 'bg-gray-700 text-white hover:bg-gray-600'
+                        : 'text-gray-300 hover:text-white'
+                    }`}
+                    title={isListening ? 'Disable Voice Input' : 'Enable Voice Input'}
+                  >
+                    {isListening ? <Mic size={20} /> : <MicOff size={20} />}
+                  </button>
+                )}
                 <Dialog.Close className="text-gray-300 hover:text-white">
                   <X size={20} />
                 </Dialog.Close>
               </div>
             </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white/30 backdrop-blur-md">
-              {messages.map((message, index) => (
-                <div
-                  key={index}
-                  className={`flex ${
-                    message.role === 'assistant' ? 'justify-start' : 'justify-end'
-                  }`}
-                >
-                  <div
-                    className={`max-w-[80%] rounded-2xl p-3 ${
-                      message.role === 'assistant'
-                        ? 'bg-gray-700 text-white'
-                        : 'bg-white text-gray-700'
-                    }`}
-                  >
-                    {message.content}
-                  </div>
-                </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
-            {showNavigationConfirm && (
-              <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center rounded-xl">
-                <div className="bg-white/90 p-6 rounded-xl shadow-xl max-w-sm mx-4">
-                  <h3 className="text-lg font-semibold mb-2">Confirm Navigation</h3>
-                  <p className="mb-4">Would you like to navigate to {pendingNavigation}?</p>
-                  <div className="flex justify-end gap-2">
-                    <button
-                      onClick={cancelNavigation}
-                      className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleNavigation}
-                      className="px-4 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-900 transition-colors"
-                    >
-                      Navigate
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-            <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200/50 bg-white/30 backdrop-blur-md">
-              <div className="flex gap-2">
-                <input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask me anything..."
-                  className="flex-1 rounded-lg border border-gray-300/50 bg-white/50 backdrop-blur-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={isLoading}
-                />
-                <button
-                  type="submit"
-                  className={`bg-gray-800 text-white p-2 rounded-lg hover:bg-gray-900 transition-colors ${
-                    isLoading ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                  disabled={isLoading}
-                >
-                  <Send size={20} />
-                </button>
-              </div>
-            </form>
           </div>
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white/30 backdrop-blur-md">
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={`flex ${
+                  message.role === 'assistant' ? 'justify-start' : 'justify-end'
+                }`}
+              >
+                <div
+                  className={`max-w-[80%] rounded-2xl p-3 ${
+                    message.role === 'assistant'
+                      ? 'bg-gray-700 text-white'
+                      : 'bg-white text-gray-700'
+                  }`}
+                >
+                  {message.content}
+                </div>
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+          {showNavigationConfirm && (
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center rounded-xl">
+              <div className="bg-white/90 p-6 rounded-xl shadow-xl max-w-sm mx-4">
+                <h3 className="text-lg font-semibold mb-2">Confirm Navigation</h3>
+                <p className="mb-4">Would you like to navigate to {pendingNavigation}?</p>
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={cancelNavigation}
+                    className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleNavigation}
+                    className="px-4 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-900 transition-colors"
+                  >
+                    Navigate
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200/50 bg-white/30 backdrop-blur-md">
+            <div className="flex gap-2">
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask me anything..."
+                className="flex-1 rounded-lg border border-gray-300/50 bg-white/50 backdrop-blur-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={isLoading}
+              />
+              <button
+                type="submit"
+                className={`bg-gray-800 text-white p-2 rounded-lg hover:bg-gray-900 transition-colors ${
+                  isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+                disabled={isLoading}
+              >
+                <Send size={20} />
+              </button>
+            </div>
+          </form>
         </Dialog.Content>
       </Dialog.Portal>
       <audio ref={audioRef} className="hidden" />
