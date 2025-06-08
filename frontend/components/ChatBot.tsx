@@ -276,22 +276,32 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
           recognitionRef.current.onerror = (event) => {
             console.error('Speech recognition error:', event.error);
             
-            // For no-speech errors, stop recording and update UI
+            // Handle no-speech errors by syncing UI state
             if (event.error === 'no-speech') {
-              isRecordingRef.current = false;
-              setIsRecording(false);
-              isTranscribingRef.current = false;
-              setIsTranscribing(false);
-              return;
-            }
-            
-            // For other errors, try to restart if we're still supposed to be recording
-            if (isRecordingRef.current) {
+              // Only update UI state if we're still supposed to be recording
+              if (isRecordingRef.current) {
+                // Keep recording but update UI to reflect the pause
+                isRecordingRef.current = false;
+                setIsRecording(false);
+                // If we were transcribing, keep that state
+                if (isTranscribingRef.current) {
+                  isTranscribingRef.current = false;
+                  setIsTranscribing(false);
+                }
+              }
+            } else if (isRecordingRef.current) {
+              // For other errors, try to restart if we're still supposed to be recording
               startRecognition();
             }
           };
 
           recognitionRef.current.onresult = (event) => {
+            // If we get a result after a no-speech error, restore recording state
+            if (!isRecordingRef.current) {
+              isRecordingRef.current = true;
+              setIsRecording(true);
+            }
+
             // Get all results for the base transcript
             const allResults = Array.from(event.results)
               .map(result => result[0].transcript)
