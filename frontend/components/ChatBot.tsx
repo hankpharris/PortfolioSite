@@ -7,6 +7,7 @@ import { Button } from './buttons/Button';
 import { useChat } from 'ai/react';
 import { useRouter } from 'next/navigation';
 import { useChatStore } from '../store/chatStore';
+import SpeechRecognitionLib, { useSpeechRecognition } from 'react-speech-recognition';
 
 const welcomeMessage = {
   id: 'welcome',
@@ -82,109 +83,76 @@ export function ChatBot() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const [browserSupportsSpeechRecognition, setBrowserSupportsSpeechRecognition] = useState(false);
-  const [transcript, setTranscript] = useState('');
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
+  const {
+    transcript,
+    listening,
+    resetTranscript,
+    browserSupportsSpeechRecognition
+  } = useSpeechRecognition();
+
+  // Handle speech recognition commands
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (SpeechRecognition) {
-        console.log('Speech recognition is supported');
-        setBrowserSupportsSpeechRecognition(true);
-        recognitionRef.current = new SpeechRecognition();
-        recognitionRef.current.continuous = true;
-        recognitionRef.current.interimResults = true;
+    if (!listening) return;
 
-        recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
-          const currentTranscript = Array.from(event.results)
-            .map((result) => result[0].transcript)
-            .join('')
-            .toLowerCase();
+    const lowerTranscript = transcript.toLowerCase();
+    console.log('Current transcript:', lowerTranscript);
+    console.log('Is messaging:', isMessaging);
 
-          console.log('Current transcript:', currentTranscript);
-          console.log('Is messaging:', isMessaging);
-
-          setTranscript(currentTranscript);
-
-          // Handle commands
-          if (currentTranscript.includes('hey bueller')) {
-            console.log('Hey Bueller command detected');
-            setIsOpen(true);
-            setTranscript('');
-            return;
-          }
-
-          if (currentTranscript.includes('close bueller')) {
-            console.log('Close Bueller command detected');
-            setIsOpen(false);
-            setTranscript('');
-            return;
-          }
-
-          if (currentTranscript.includes('start message')) {
-            console.log('Start message command detected');
-            setIsMessaging(true);
-            setTranscript('');
-            return;
-          }
-
-          if (currentTranscript.includes('reset message')) {
-            console.log('Reset message command detected');
-            setIsMessaging(false);
-            setInput('');
-            setTranscript('');
-            return;
-          }
-
-          // Update input if in messaging mode
-          if (isMessaging) {
-            console.log('In messaging mode, updating input');
-            const cleanTranscript = currentTranscript
-              .replace(/hey bueller|close bueller|start message|reset message/gi, '')
-              .trim();
-            
-            if (cleanTranscript) {
-              console.log('Setting input to:', cleanTranscript);
-              setInput(cleanTranscript);
-            }
-          }
-        };
-
-        recognitionRef.current.onerror = (event: SpeechRecognitionErrorEvent) => {
-          console.error('Speech recognition error:', event.error);
-        };
-
-        recognitionRef.current.onend = () => {
-          console.log('Speech recognition ended');
-          if (isListening) {
-            console.log('Restarting speech recognition');
-            recognitionRef.current?.start();
-          }
-        };
-      } else {
-        console.log('Speech recognition is not supported');
-      }
-    }
-  }, [isMessaging, setIsMessaging, isListening]);
-
-  // Toggle speech recognition
-  const toggleListening = useCallback(() => {
-    if (!recognitionRef.current) {
-      console.log('Speech recognition not initialized');
+    // Handle commands
+    if (lowerTranscript.includes('hey bueller')) {
+      console.log('Hey Bueller command detected');
+      setIsOpen(true);
+      resetTranscript();
       return;
     }
 
-    if (isListening) {
-      console.log('Stopping speech recognition');
-      recognitionRef.current.stop();
+    if (lowerTranscript.includes('close bueller')) {
+      console.log('Close Bueller command detected');
+      setIsOpen(false);
+      resetTranscript();
+      return;
+    }
+
+    if (lowerTranscript.includes('start message')) {
+      console.log('Start message command detected');
+      setIsMessaging(true);
+      resetTranscript();
+      return;
+    }
+
+    if (lowerTranscript.includes('reset message')) {
+      console.log('Reset message command detected');
+      setIsMessaging(false);
+      setInput('');
+      resetTranscript();
+      return;
+    }
+
+    // Update input if in messaging mode
+    if (isMessaging) {
+      console.log('In messaging mode, updating input');
+      const cleanTranscript = lowerTranscript
+        .replace(/hey bueller|close bueller|start message|reset message/gi, '')
+        .trim();
+      
+      if (cleanTranscript) {
+        console.log('Setting input to:', cleanTranscript);
+        setInput(cleanTranscript);
+      }
+    }
+  }, [transcript, listening, isMessaging, setIsMessaging, resetTranscript, setIsOpen]);
+
+  // Toggle speech recognition
+  const toggleListening = useCallback(() => {
+    if (listening) {
+      SpeechRecognitionLib.stopListening();
       setIsListening(false);
     } else {
-      console.log('Starting speech recognition');
-      recognitionRef.current.start();
+      SpeechRecognitionLib.startListening({ continuous: true });
       setIsListening(true);
     }
-  }, [isListening]);
+  }, [listening]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
