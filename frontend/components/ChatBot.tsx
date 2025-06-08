@@ -115,6 +115,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
   const [countdown, setCountdown] = useState(10);
   const countdownRef = useRef<NodeJS.Timeout>();
   const isResettingRef = useRef(false);
+  const transcriptionStartIndexRef = useRef<number>(0);
 
   // Sync refs with state
   useEffect(() => {
@@ -242,6 +243,7 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
                   setInput('');
                   isTranscribingRef.current = true;
                   setIsTranscribing(true);
+                  transcriptionStartIndexRef.current = event.results.length;
                   return;
                 }
 
@@ -251,16 +253,16 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
                   if (form) {
                     form.dispatchEvent(new Event('submit', { bubbles: true }));
                   }
-                  resetRecognition();
                   setTranscript('');
                   setTrimmedTranscript('');
+                  isTranscribingRef.current = false;
+                  setIsTranscribing(false);
                   return;
                 }
 
                 // Check for reset message command
                 if (isTranscribingRef.current && (allResults.includes('reset message') || allResults.includes('clear message'))) {
                   setInput('');
-                  resetRecognition();
                   setTranscript('');
                   setTrimmedTranscript('');
                   isTranscribingRef.current = false;
@@ -270,16 +272,25 @@ export function ChatBot({ isOpen, onOpenChange, onSubmit }: ChatBotProps) {
               }
             }
 
-            // Update input if we're in transcribing mode (use all results for better responsiveness)
+            // Update input if we're in transcribing mode
             if (isTranscribingRef.current) {
-              // Clean commands and wake words from the transcript for input
-              const cleanTranscript = allResults
-                .replace(/hey bueller|hello bueller|goodbye bueller|bye bueller|close bueller|start message|send message|send a message|reset message|clear message/gi, '')
-                .trim();
+              // Only process results that came after we started transcribing
+              const relevantResults = Array.from(event.results)
+                .slice(transcriptionStartIndexRef.current)
+                .map(result => result[0].transcript)
+                .join('')
+                .toLowerCase();
 
-              if (cleanTranscript) {
-                setTrimmedTranscript(cleanTranscript);
-                setInput(cleanTranscript);
+              if (relevantResults) {
+                // Clean commands and wake words from the transcript for input
+                const cleanTranscript = relevantResults
+                  .replace(/hey bueller|hello bueller|goodbye bueller|bye bueller|close bueller|start message|send message|send a message|reset message|clear message/gi, '')
+                  .trim();
+
+                if (cleanTranscript) {
+                  setTrimmedTranscript(cleanTranscript);
+                  setInput(cleanTranscript);
+                }
               }
             }
           };
