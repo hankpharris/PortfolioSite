@@ -39,7 +39,7 @@ export default async function ProjectPage({ params }: PageProps) {
     return (
         <div className="min-h-screen relative">
             <AnimatedBackground />
-            <div className="relative z-10 container mx-auto px-4 md:px-16 py-8 md:py-8 pt-[calc(var(--header-height)+1rem)] md:pt-8">
+            <div className="relative z-10 container mx-auto px-4 md:px-16 py-8 md:py-8 pt-[120px] md:pt-8">
                 <Suspense fallback={<div>Loading...</div>}>
                     <ProjectOverview {...formattedData} />
                 </Suspense>
