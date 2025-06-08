@@ -39,7 +39,7 @@ export function Header() {
                             Admin
                         </Button>
                         <ContactForm />
-                        <ChatBot isOpen={isOpen} onOpenChange={setIsOpen} />
+                        <ChatBot />
                     </div>
                 </div>
             </nav>
