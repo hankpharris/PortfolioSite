@@ -13,7 +13,7 @@ export const projectSchema = z.object({
     id: z.number().int().positive(),
     name: z.string().min(1).max(100),
     status: StatusEnum,
-    overviewText: z.string().max(2000).nullable(),
+    overviewText: z.string().max(3000).nullable(),
     description: z.string().max(5000).nullable(),
     overviewImage1: z.string().nullable(),
     overviewImage2: z.string().nullable(),
