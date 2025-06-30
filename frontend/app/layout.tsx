@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     creator: "Henry Pharris",
     publisher: "Henry Pharris",
     alternates: {
-        canonical: process.env.NEXT_PUBLIC_BASE_URL || 'https://henry-pharris.it.com',
+        canonical: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://henry-pharris.it.com'}/projects/1`,
     },
     robots: {
         index: true,
