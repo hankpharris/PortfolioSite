@@ -9,10 +9,13 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
     title: "Henry Pharris - Portfolio",
     description: "Henry Pharris is a senior at Worcester Polytechnic Institute studying Robotics Engineering with minors in Computer Science and Music. View my projects and get in touch.",
-    keywords: ["portfolio", "robotics engineering", "computer science", "music", "projects", "developer"],
+    keywords: ["Henry Pharris", "portfolio", "robotics engineering", "computer science", "music", "projects", "developer", "WPI", "Worcester Polytechnic Institute", "software engineer", "robotics engineer"],
     authors: [{ name: "Henry Pharris" }],
     creator: "Henry Pharris",
     publisher: "Henry Pharris",
+    alternates: {
+        canonical: process.env.NEXT_PUBLIC_BASE_URL || 'https://henry-pharris.it.com',
+    },
     robots: {
         index: true,
         follow: true,

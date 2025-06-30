@@ -6,6 +6,9 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
     title: "Projects - Henry Pharris",
     description: "Explore my portfolio of projects in robotics engineering, computer science, and software development.",
+    alternates: {
+        canonical: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://henry-pharris.it.com'}/projects`,
+    },
     openGraph: {
         title: "Projects - Henry Pharris",
         description: "Explore my portfolio of projects in robotics engineering, computer science, and software development.",

@@ -5,6 +5,9 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
     title: "About Me - Henry Pharris",
     description: "Learn more about Henry Pharris, a senior at Worcester Polytechnic Institute studying Robotics Engineering with minors in Computer Science and Music.",
+    alternates: {
+        canonical: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://henry-pharris.it.com'}/about`,
+    },
     openGraph: {
         title: "About Me - Henry Pharris",
         description: "Learn more about Henry Pharris, a senior at Worcester Polytechnic Institute studying Robotics Engineering with minors in Computer Science and Music.",
