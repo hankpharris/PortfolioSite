@@ -4,15 +4,36 @@ import { AnimatedBackground } from '@/components/AnimatedBackground';
 import { ProjectOverview } from '@/components/ProjectOverview';
 import { getProject } from '@/lib/db';
 import { Status } from '@/lib/validation';
-
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+import type { Metadata } from 'next';
 
 interface PageProps {
     params: {
         id: string;
     };
 }
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+    const project = await getProject(params.id);
+    
+    if (!project) {
+        return {
+            title: 'Project Not Found - Henry Pharris',
+            description: 'The requested project could not be found.',
+        };
+    }
+
+    return {
+        title: `${project.name} - Henry Pharris`,
+        description: project.overviewText || project.description || `View details about ${project.name} project.`,
+        openGraph: {
+            title: `${project.name} - Henry Pharris`,
+            description: project.overviewText || project.description || `View details about ${project.name} project.`,
+        },
+    };
+}
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function ProjectPage({ params }: PageProps) {
     try {

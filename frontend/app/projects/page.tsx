@@ -1,6 +1,16 @@
 import { getProjects } from '@/lib/db';
 import type { Project } from '@/lib/validation';
 import { ProjectCard } from '@/components/ProjectCard';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+    title: "Projects - Henry Pharris",
+    description: "Explore my portfolio of projects in robotics engineering, computer science, and software development.",
+    openGraph: {
+        title: "Projects - Henry Pharris",
+        description: "Explore my portfolio of projects in robotics engineering, computer science, and software development.",
+    },
+};
 
 export const dynamic = 'force-dynamic';
 
