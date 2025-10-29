@@ -271,7 +271,7 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
                                 <td className="px-4 py-2">
                                     <select
                                         value={newProject.status}
-                                        onChange={(e) => handleNewProjectChange('status', e.target.value)}
+                                        onChange={(e) => handleNewProjectChange('status', e.target.value as Status)}
                                         className="w-full p-1 border rounded dark:bg-gray-700 dark:border-gray-600"
                                     >
                                         <option value="InProgress">In Progress</option>
@@ -386,7 +386,7 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
                                     {editingId === project.id ? (
                                         <select
                                             value={editedProject?.status || ''}
-                                            onChange={(e) => handleChange('status', e.target.value)}
+                                            onChange={(e) => handleChange('status', e.target.value as Status)}
                                             className="w-full p-1 border rounded dark:bg-gray-700 dark:border-gray-600"
                                         >
                                             <option value="InProgress">In Progress</option>
