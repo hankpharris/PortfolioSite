@@ -24,6 +24,7 @@ async function getAllProjects() {
         link as "projectLink",
         "gitHubLink" as "githubLink"
       FROM "Project"
+      WHERE "isActive" = true
       ORDER BY id
     `;
     console.log('Projects fetched:', JSON.stringify(projects, null, 2));
@@ -47,7 +48,7 @@ async function getProjectById(id: number) {
         link as "projectLink",
         "gitHubLink" as "githubLink"
       FROM "Project"
-      WHERE id = ${id}
+      WHERE id = ${id} AND "isActive" = true
     `;
     return project;
   } catch (error) {

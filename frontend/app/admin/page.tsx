@@ -12,7 +12,7 @@ export default async function AdminPage() {
         redirect("/api/auth/signin");
     }
 
-    const projects = await getProjects();
+    const projects = await getProjects({ includeInactive: true });
 
     return (
         <div className="container mx-auto p-4">

@@ -21,25 +21,54 @@ if (missingEnvVars.length > 0) {
 // Type assertion after validation
 const DATABASE_URL = requiredEnvVars.DATABASE_URL as string;
 
-export async function getProject(id: string): Promise<Project | null> {
+interface ProjectQueryOptions {
+    includeInactive?: boolean;
+}
+
+export async function getProject(id: string, options: ProjectQueryOptions = {}): Promise<Project | null> {
     try {
         console.log('Fetching project with ID:', id);
         const sql = neon(DATABASE_URL);
-        const result = await sql`
-            SELECT 
-                id,
-                name,
-                status,
-                "overviewText",
-                description,
-                "overviewImage1",
-                "overviewImage2",
-                "overviewImage3",
-                link,
-                "gitHubLink"
-            FROM "Project" 
-            WHERE id = ${parseInt(id)}
-        `;
+        const includeInactive = options.includeInactive ?? false;
+        const numericId = parseInt(id);
+        if (Number.isNaN(numericId)) {
+            console.warn('Invalid project id supplied to getProject:', id);
+            return null;
+        }
+
+        const result = includeInactive
+            ? await sql`
+                SELECT 
+                    id,
+                    name,
+                    status,
+                    "overviewText",
+                    description,
+                    "overviewImage1",
+                    "overviewImage2",
+                    "overviewImage3",
+                    link,
+                    "gitHubLink",
+                    "isActive"
+                FROM "Project" 
+                WHERE id = ${numericId}
+            `
+            : await sql`
+                SELECT 
+                    id,
+                    name,
+                    status,
+                    "overviewText",
+                    description,
+                    "overviewImage1",
+                    "overviewImage2",
+                    "overviewImage3",
+                    link,
+                    "gitHubLink",
+                    "isActive"
+                FROM "Project" 
+                WHERE id = ${numericId} AND "isActive" = true
+            `;
         
         console.log('Query result:', result);
         
@@ -62,25 +91,45 @@ export async function getProject(id: string): Promise<Project | null> {
     }
 }
 
-export async function getProjects(): Promise<Project[]> {
+export async function getProjects(options: ProjectQueryOptions = {}): Promise<Project[]> {
     try {
         console.log('Fetching all projects');
         const sql = neon(DATABASE_URL);
-        const result = await sql`
-            SELECT 
-                id,
-                name,
-                status,
-                "overviewText",
-                description,
-                "overviewImage1",
-                "overviewImage2",
-                "overviewImage3",
-                link,
-                "gitHubLink"
-            FROM "Project" 
-            ORDER BY id ASC
-        `;
+        const includeInactive = options.includeInactive ?? false;
+        const result = includeInactive
+            ? await sql`
+                SELECT 
+                    id,
+                    name,
+                    status,
+                    "overviewText",
+                    description,
+                    "overviewImage1",
+                    "overviewImage2",
+                    "overviewImage3",
+                    link,
+                    "gitHubLink",
+                    "isActive"
+                FROM "Project" 
+                ORDER BY id ASC
+            `
+            : await sql`
+                SELECT 
+                    id,
+                    name,
+                    status,
+                    "overviewText",
+                    description,
+                    "overviewImage1",
+                    "overviewImage2",
+                    "overviewImage3",
+                    link,
+                    "gitHubLink",
+                    "isActive"
+                FROM "Project" 
+                WHERE "isActive" = true
+                ORDER BY id ASC
+            `;
         
         console.log('Query result:', result);
         
@@ -122,9 +171,10 @@ export async function updateProject(id: number, data: Partial<Project>) {
             "overviewImage2" = ${data.overviewImage2},
             "overviewImage3" = ${data.overviewImage3},
             link = ${data.link},
-            "gitHubLink" = ${data.gitHubLink}
+            "gitHubLink" = ${data.gitHubLink},
+            "isActive" = ${data.isActive}
         WHERE id = ${id}
-        RETURNING id, name, status, "overviewText", description, "overviewImage1", "overviewImage2", "overviewImage3", link, "gitHubLink"
+        RETURNING id, name, status, "overviewText", description, "overviewImage1", "overviewImage2", "overviewImage3", link, "gitHubLink", "isActive"
     `;
 
     if (!projects || projects.length === 0) {

@@ -66,11 +66,13 @@ export async function getProjects(): Promise<Project[]> {
         }
         
         const data = await res.json();
-        if (!Array.isArray(data)) {
-            throw new Error('Invalid response format');
-        }
-        
-        return data;
+        const projects = Array.isArray(data)
+            ? data
+            : Array.isArray(data?.projects)
+                ? data.projects
+                : [];
+
+        return projects;
     } catch (error) {
         console.error('Error fetching projects:', error);
         throw error;

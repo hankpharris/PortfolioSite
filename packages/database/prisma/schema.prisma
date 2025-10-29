@@ -27,4 +27,5 @@ model Project {
   overviewImage3 String?
   link          String?
   gitHubLink    String?
+  isActive      Boolean  @default(true)
 } 

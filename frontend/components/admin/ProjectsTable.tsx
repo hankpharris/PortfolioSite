@@ -14,6 +14,7 @@ interface Project {
     overviewImage3: string | null;
     link: string | null;
     gitHubLink: string | null;
+    isActive: boolean;
 }
 
 interface ProjectsTableProps {
@@ -35,7 +36,8 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
         overviewImage2: null,
         overviewImage3: null,
         link: null,
-        gitHubLink: null
+        gitHubLink: null,
+        isActive: true,
     });
 
     const handleEdit = (project: Project) => {
@@ -73,14 +75,14 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
         setEditedProject(null);
     };
 
-    const handleChange = (field: keyof Project, value: string) => {
+    function handleChange<K extends keyof Project>(field: K, value: Project[K]) {
         if (!editedProject) return;
         setEditedProject({ ...editedProject, [field]: value });
-    };
+    }
 
-    const handleNewProjectChange = (field: keyof Project, value: string) => {
+    function handleNewProjectChange<K extends keyof Project>(field: K, value: Project[K]) {
         setNewProject(prev => ({ ...prev, [field]: value }));
-    };
+    }
 
     const handleCreateProject = async () => {
         try {
@@ -94,8 +96,16 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
 
             if (!response.ok) throw new Error('Failed to create project');
 
-            const createdProject = await response.json();
-            setProjects([...projects, createdProject]);
+            const createdProjectResponse = await response.json();
+            const createdProject = Array.isArray(createdProjectResponse)
+                ? createdProjectResponse[0]
+                : createdProjectResponse;
+
+            if (!createdProject) {
+                throw new Error('Invalid project response');
+            }
+
+            setProjects([...projects, createdProject as Project]);
             setIsCreating(false);
             setNewProject({
                 name: '',
@@ -106,7 +116,8 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
                 overviewImage2: null,
                 overviewImage3: null,
                 link: null,
-                gitHubLink: null
+                gitHubLink: null,
+                isActive: true,
             });
         } catch (error) {
             console.error('Error creating project:', error);
@@ -238,6 +249,7 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
                             <th className="px-4 py-2">Description</th>
                             <th className="px-4 py-2">Images</th>
                             <th className="px-4 py-2">Links</th>
+                            <th className="px-4 py-2">Active</th>
                             <th className="px-4 py-2">Actions</th>
                         </tr>
                     </thead>
@@ -339,6 +351,14 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
                                             className="w-full p-1 border rounded dark:bg-gray-700 dark:border-gray-600"
                                         />
                                     </div>
+                                </td>
+                                <td className="px-4 py-2 text-center">
+                                    <input
+                                        type="checkbox"
+                                        checked={newProject.isActive ?? true}
+                                        onChange={(e) => handleNewProjectChange('isActive', e.target.checked)}
+                                        className="h-4 w-4"
+                                    />
                                 </td>
                                 <td className="px-4 py-2">
                                     {/* Actions are handled by the buttons above the table */}
@@ -479,6 +499,20 @@ export function ProjectsTable({ initialProjects }: ProjectsTableProps) {
                                             {project.link && <div className="truncate">Project: ✓</div>}
                                             {project.gitHubLink && <div className="truncate">GitHub: ✓</div>}
                                         </div>
+                                    )}
+                                </td>
+                                <td className="px-4 py-2 text-center">
+                                    {editingId === project.id ? (
+                                        <input
+                                            type="checkbox"
+                                            checked={editedProject?.isActive ?? project.isActive}
+                                            onChange={(e) => handleChange('isActive', e.target.checked)}
+                                            className="h-4 w-4"
+                                        />
+                                    ) : (
+                                        <span className={project.isActive ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}>
+                                            {project.isActive ? 'Visible' : 'Hidden'}
+                                        </span>
                                     )}
                                 </td>
                                 <td className="px-4 py-2">

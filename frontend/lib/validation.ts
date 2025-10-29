@@ -19,7 +19,8 @@ export const projectSchema = z.object({
     overviewImage2: z.string().nullable(),
     overviewImage3: z.string().nullable(),
     link: z.string().nullable(),
-    gitHubLink: z.string().nullable()
+    gitHubLink: z.string().nullable(),
+    isActive: z.boolean().default(true),
 });
 
 export const projectIdSchema = z.string().regex(/^\d+$/).transform(Number);

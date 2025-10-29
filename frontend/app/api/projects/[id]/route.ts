@@ -38,7 +38,8 @@ export async function GET(
                 "overviewImage2",
                 "overviewImage3",
                 link,
-                "gitHubLink"
+                "gitHubLink",
+                "isActive"
             FROM "Project" 
             WHERE id = ${id}
         `;

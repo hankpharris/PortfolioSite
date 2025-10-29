@@ -24,7 +24,8 @@ export async function GET() {
                 "overviewImage2",
                 "overviewImage3",
                 link,
-                "gitHubLink"
+                "gitHubLink",
+                "isActive"
             FROM "Project" 
             ORDER BY id ASC
         `;
@@ -57,9 +58,9 @@ export async function POST(request: Request) {
     try {
         const body = await request.json();
         const project = await sql`
-            INSERT INTO "Project" (name, status, "overviewText", description, "overviewImage1", "overviewImage2", "overviewImage3", link, "gitHubLink")
-            VALUES (${body.name}, ${body.status}, ${body.overviewText}, ${body.description}, ${body.overviewImage1}, ${body.overviewImage2}, ${body.overviewImage3}, ${body.link}, ${body.gitHubLink})
-            RETURNING id, name, status, "overviewText", description, "overviewImage1", "overviewImage2", "overviewImage3", link, "gitHubLink"
+            INSERT INTO "Project" (name, status, "overviewText", description, "overviewImage1", "overviewImage2", "overviewImage3", link, "gitHubLink", "isActive")
+            VALUES (${body.name}, ${body.status}, ${body.overviewText}, ${body.description}, ${body.overviewImage1}, ${body.overviewImage2}, ${body.overviewImage3}, ${body.link}, ${body.gitHubLink}, ${body.isActive ?? true})
+            RETURNING id, name, status, "overviewText", description, "overviewImage1", "overviewImage2", "overviewImage3", link, "gitHubLink", "isActive"
         `;
         return NextResponse.json(project);
     } catch (error) {
