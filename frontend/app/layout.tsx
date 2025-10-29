@@ -5,16 +5,28 @@ import { Header } from "@/components/Header";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 
 const inter = Inter({ subsets: ["latin"] });
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://henry-pharris.it.com';
 
 export const metadata: Metadata = {
-    title: "Henry Pharris - Portfolio",
+    metadataBase: new URL(baseUrl),
+    title: {
+        default: "Henry Pharris - Robotics, Software, and AI Engineer",
+        template: "%s | Henry Pharris - Robotics, Software, and AI Engineer",
+    },
     description: "Henry Pharris is a robotics engineering student at Worcester Polytechnic Institute, based in Midcoast Maine. Specializing in robotics, computer science, and software development. View my projects and get in touch.",
     keywords: ["Henry Pharris", "portfolio", "robotics engineering", "computer science", "music", "projects", "developer", "WPI", "Worcester Polytechnic Institute", "software engineer", "robotics engineer", "software engineer midcoast maine", "software engineer maine", "developer midcoast", "robotics engineer maine", "WPI graduate maine"],
     authors: [{ name: "Henry Pharris" }],
     creator: "Henry Pharris",
     publisher: "Henry Pharris",
+    icons: {
+        icon: [
+            { url: '/Logo(Resized).png', sizes: '500x500', type: 'image/png' },
+        ],
+        shortcut: '/Logo(Resized).png',
+        apple: '/Logo(Resized).png',
+    },
     alternates: {
-        canonical: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://henry-pharris.it.com'}/projects/1`,
+        canonical: '/',
     },
     robots: {
         index: true,
@@ -30,10 +42,10 @@ export const metadata: Metadata = {
     openGraph: {
         type: 'website',
         locale: 'en_US',
-        url: process.env.NEXT_PUBLIC_BASE_URL || 'https://henry-pharris.it.com',
-        title: "Henry Pharris - Portfolio",
+        url: baseUrl,
+        title: "Henry Pharris - Robotics, Software, and AI Engineer",
         description: "Henry Pharris is a software engineer and robotics engineering student at Worcester Polytechnic Institute, based in Midcoast Maine. Specializing in robotics, computer science, and software development. View my projects and get in touch.",
-        siteName: "Henry Pharris Portfolio",
+        siteName: "Henry Pharris - Robotics, Software, and AI Engineer",
     },
 };
 
@@ -46,7 +58,7 @@ export default function RootLayout({
         "@context": "https://schema.org",
         "@type": "Person",
         "name": "Henry Pharris",
-        "jobTitle": "Software Engineer",
+        "jobTitle": "Robotics, Software, and AI Engineer",
         "alumniOf": {
             "@type": "CollegeOrUniversity",
             "name": "Worcester Polytechnic Institute"
@@ -57,7 +69,7 @@ export default function RootLayout({
             "addressRegion": "Maine",
             "addressCountry": "US"
         },
-        "url": process.env.NEXT_PUBLIC_BASE_URL || 'https://henry-pharris.it.com',
+        "url": baseUrl,
         "sameAs": [
             // Add your LinkedIn, GitHub, etc. here
         ]

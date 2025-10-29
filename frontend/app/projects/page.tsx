@@ -4,13 +4,13 @@ import { ProjectCard } from '@/components/ProjectCard';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: "Projects - Henry Pharris",
+    title: "Projects",
     description: "Explore my portfolio of projects in robotics engineering, computer science, and software development.",
     alternates: {
-        canonical: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://henry-pharris.it.com'}/projects`,
+        canonical: '/projects',
     },
     openGraph: {
-        title: "Projects - Henry Pharris",
+        title: "Projects",
         description: "Explore my portfolio of projects in robotics engineering, computer science, and software development.",
     },
 };

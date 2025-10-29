@@ -10,12 +10,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static pages
   const staticPages = [
     {
-      url: `${baseUrl}/projects/1`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 1,
-    },
-    {
       url: baseUrl,
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,

@@ -17,19 +17,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     
     if (!project) {
         return {
-            title: 'Project Not Found - Henry Pharris',
+            title: 'Project Not Found',
             description: 'The requested project could not be found.',
         };
     }
 
     return {
-        title: `${project.name} - Henry Pharris`,
+        title: project.name,
         description: project.overviewText || project.description || `View details about ${project.name} project.`,
         alternates: {
-            canonical: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://henry-pharris.it.com'}/projects/${params.id}`,
+            canonical: `/projects/${params.id}`,
         },
         openGraph: {
-            title: `${project.name} - Henry Pharris`,
+            title: project.name,
             description: project.overviewText || project.description || `View details about ${project.name} project.`,
         },
     };
