@@ -14,7 +14,7 @@ export function AboutContent() {
                     When outdoors I enjoy activities like snowboarding and sailing, but I also love making music and tinkering with both hardware and software when inside.
                 </p>
                 <p>
-                    If you have any interest in hiring me in any capacity, or any questions about my work, don't hesitate to reach out to me via my "Contact Me" form, accessible in the top right of the header.
+                    If you have any interest in hiring me in any capacity, or any questions about my work, don't hesitate to reach out to me via my "Contact Me" form, accessible in the top right of the header. To see some of my work, check out my "Projects" page.
                 </p>
             </div>
         </div>
