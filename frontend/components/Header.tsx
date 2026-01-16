@@ -35,9 +35,6 @@ export function Header() {
                         <Button href="https://github.com/hankpharris" variant="nav" isExternal>
                             GitHub
                         </Button>
-                        <Button href="/admin" variant="nav">
-                            Admin
-                        </Button>
                         <ContactForm />
                         <ChatBot />
                     </div>
