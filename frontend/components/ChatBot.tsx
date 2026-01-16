@@ -12,7 +12,7 @@ import SpeechRecognitionLib, { useSpeechRecognition } from 'react-speech-recogni
 const welcomeMessage = {
   id: 'welcome',
   role: 'assistant' as const,
-  content: `Hi! I'm Bueller, an AI assistant for this portfolio site. I was built by Henry Pharris using and OpenAI's GPT 4o-mini and 4o-min-tts models. I can help you:
+  content: `Hi! I'm Bueller, an AI assistant for this portfolio site. I was built by Henry Pharris using and OpenAI's GPT 4o-mini and 4o-mini-tts models. I can help you:
 
 • Navigate through different sections (About, Projects, Contact, etc)
 • Find specific projects or information
