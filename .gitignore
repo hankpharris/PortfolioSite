@@ -8,6 +8,7 @@
 **/dist
 **.env.local
 **.env
+**.env.backup
 
 out
 
@@ -103,3 +104,4 @@ Thumbs.db
 
 # vercel
 .vercel
+.env*.local
