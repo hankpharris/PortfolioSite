@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { projectSchema, type Project } from '@/lib/validation';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../auth/[...nextauth]/auth';
 
 if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL is not defined');
@@ -55,6 +57,12 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+        return new NextResponse('Unauthorized', { status: 401 });
+    }
+
     try {
         const body = await request.json();
         const project = await sql`

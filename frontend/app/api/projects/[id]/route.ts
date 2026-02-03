@@ -96,6 +96,12 @@ export async function DELETE(
     request: Request,
     { params }: { params: { id: string } }
 ) {
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+        return new NextResponse('Unauthorized', { status: 401 });
+    }
+
     try {
         const id = parseInt(params.id);
         if (isNaN(id)) {

@@ -82,7 +82,7 @@ export const authOptions: NextAuthOptions = {
     pages: {
         signIn: "/auth/signin",
     },
-    debug: true, // Enable debug mode
+    debug: process.env.NODE_ENV === 'development',
     // Add support for multiple domains
     cookies: {
         sessionToken: {
