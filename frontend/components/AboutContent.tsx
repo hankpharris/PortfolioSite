@@ -7,7 +7,7 @@ export function AboutContent() {
             </div>
             <div className="text-lg text-gray-800 leading-relaxed space-y-4">
                 <p>
-                    Hello! My name is Henry Pharris. I'm a senior at Worcester Polytechnic Institute studying RBE (Robotics Engineering)
+                    Hello! My name is Henry Pharris. I recently graduated from Worcester Polytechnic Institute with a Bachelors of Science in RBE (Robotics Engineering)
                     with minors in Computer Science and Music.
                 </p>
                 <p>
