@@ -88,7 +88,7 @@ export default function RootLayout({
             <body className={inter.className}>
                 <AnimatedBackground />
                 <Header />
-                <main className="pt-[88px]">
+                <main id="main-content" className="pt-40 md:pt-[88px]">
                     {children}
                 </main>
             </body>

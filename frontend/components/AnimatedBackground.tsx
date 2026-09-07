@@ -41,6 +41,7 @@ export function AnimatedBackground() {
         }
 
         // Animation loop
+        let animationFrameId: number | null = null;
         const animate = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -60,13 +61,36 @@ export function AnimatedBackground() {
                 ctx.fill();
             });
 
-            requestAnimationFrame(animate);
+            animationFrameId = window.requestAnimationFrame(animate);
         };
 
-        animate();
+        const stopAnimation = () => {
+            if (animationFrameId !== null) {
+                window.cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        };
+
+        const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+        const syncMotionPreference = () => {
+            if (motionQuery.matches) {
+                stopAnimation();
+                return;
+            }
+
+            if (animationFrameId === null) {
+                animate();
+            }
+        };
+
+        motionQuery.addEventListener('change', syncMotionPreference);
+        syncMotionPreference();
 
         // Cleanup
         return () => {
+            stopAnimation();
+            motionQuery.removeEventListener('change', syncMotionPreference);
             window.removeEventListener('resize', resizeCanvas);
         };
     }, []);
@@ -74,6 +98,7 @@ export function AnimatedBackground() {
     return (
         <canvas
             ref={canvasRef}
+            aria-hidden="true"
             className="fixed top-0 left-0 w-full h-full -z-10"
             style={{ background: 'linear-gradient(45deg, #1a1a1a, #2a2a2a)' }}
         />

@@ -1,4 +1,3 @@
-import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { AboutContent } from "@/components/AboutContent";
 import type { Metadata } from "next";
 
@@ -17,7 +16,6 @@ export const metadata: Metadata = {
 export default function AboutMe() {
     return (
         <div className="min-h-screen w-full flex flex-col relative">
-            <AnimatedBackground />
             <div className="flex-grow flex items-center justify-center py-8">
                 <AboutContent />
             </div>

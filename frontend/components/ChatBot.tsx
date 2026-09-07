@@ -481,11 +481,12 @@ export function ChatBot() {
                 <button
                   type="button"
                   onClick={() => setIsTTSEnabled(!isTTSEnabled)}
-                  className={`p-2 rounded-lg transition-colors ${
+                  className={`p-2 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${
                     isTTSEnabled
                       ? 'bg-gray-700 text-white hover:bg-gray-600'
-                      : 'text-gray-300 hover:text-white'
+                      : 'text-gray-700 hover:text-gray-900'
                   }`}
+                  aria-label={isTTSEnabled ? 'Disable text-to-speech' : 'Enable text-to-speech'}
                   title={isTTSEnabled ? 'Disable Text-to-Speech' : 'Enable Text-to-Speech'}
                 >
                   {isTTSEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
@@ -494,23 +495,32 @@ export function ChatBot() {
                   <button
                     type="button"
                     onClick={toggleListening}
-                    className={`p-2 rounded-lg transition-colors ${
+                    className={`p-2 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${
                       isListening
                         ? 'bg-gray-700 text-white hover:bg-gray-600'
-                        : 'text-gray-300 hover:text-white'
+                        : 'text-gray-700 hover:text-gray-900'
                     }`}
+                    aria-label={isListening ? 'Disable voice input' : 'Enable voice input'}
                     title={isListening ? 'Disable Voice Input' : 'Enable Voice Input'}
                   >
                     {isListening ? <Mic size={20} /> : <MicOff size={20} />}
                   </button>
                 )}
-                <Dialog.Close className="text-gray-300 hover:text-white">
+                <Dialog.Close
+                  className="rounded text-gray-700 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                  aria-label="Close chat"
+                >
                   <X size={20} />
                 </Dialog.Close>
               </div>
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white/30 backdrop-blur-md">
+          <div
+            className="flex-1 overflow-y-auto p-4 space-y-4 bg-white/30 backdrop-blur-md"
+            role="log"
+            aria-live="polite"
+            aria-label="Chat messages"
+          >
             {messages.map((message, index) => (
               <div
                 key={index}
@@ -569,12 +579,14 @@ export function ChatBot() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask me anything..."
+                aria-label="Chat message"
                 className="flex-1 rounded-lg border border-gray-300/50 bg-white/50 backdrop-blur-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={isLoading}
               />
               <button
                 type="submit"
-                className={`bg-gray-800 text-white p-2 rounded-lg hover:bg-gray-900 transition-colors ${
+                aria-label="Send chat message"
+                className={`bg-gray-800 text-white p-2 rounded-lg hover:bg-gray-900 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${
                   isLoading ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
                 disabled={isLoading}
