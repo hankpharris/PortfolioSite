@@ -49,11 +49,14 @@ export function ContactForm() {
         <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] rounded-lg" />
         <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl p-6 w-full max-w-md shadow-xl z-[101]">
           <Dialog.Title className="text-xl font-bold mb-4">Contact Me</Dialog.Title>
-          <Dialog.Close className="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
+          <Dialog.Close
+            className="absolute top-4 right-4 rounded text-gray-500 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            aria-label="Close contact form"
+          >
             <X size={20} />
           </Dialog.Close>
           
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" aria-busy={status === 'loading'}>
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                 Name
@@ -64,6 +67,7 @@ export function ContactForm() {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                autoComplete="name"
                 required
               />
             </div>
@@ -78,6 +82,7 @@ export function ContactForm() {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                autoComplete="email"
                 required
               />
             </div>
@@ -92,21 +97,22 @@ export function ContactForm() {
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                 rows={4}
                 className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                autoComplete="off"
                 required
               />
             </div>
 
             {status === 'success' && (
-              <p className="text-green-600">Message sent successfully!</p>
+              <p className="text-green-700" role="status" aria-live="polite">Message sent successfully!</p>
             )}
             {status === 'error' && (
-              <p className="text-red-600">Failed to send message. Please try again.</p>
+              <p className="text-red-700" role="alert">Failed to send message. Please try again.</p>
             )}
 
             <button
               type="submit"
               disabled={status === 'loading'}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
             >
               {status === 'loading' ? 'Sending...' : 'Send Message'}
             </button>

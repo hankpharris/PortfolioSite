@@ -18,6 +18,33 @@ body {
     rgb(var(--background-start-rgb));
 }
 
+.project-card-reveal {
+    opacity: 0;
+    transform: translateY(12px);
+    animation: project-card-reveal 450ms ease-out forwards;
+}
+
+@keyframes project-card-reveal {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+    }
+
+    .project-card-reveal {
+        opacity: 1;
+        transform: none;
+        animation: none;
+    }
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
     width: 8px;

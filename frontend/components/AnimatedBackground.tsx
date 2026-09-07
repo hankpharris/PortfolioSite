@@ -20,6 +20,13 @@ export function AnimatedBackground() {
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
 
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reduceMotion) {
+            return () => {
+                window.removeEventListener('resize', resizeCanvas);
+            };
+        }
+
         // Particle settings
         const particles: Array<{
             x: number;
@@ -74,6 +81,7 @@ export function AnimatedBackground() {
     return (
         <canvas
             ref={canvasRef}
+            aria-hidden="true"
             className="fixed top-0 left-0 w-full h-full -z-10"
             style={{ background: 'linear-gradient(45deg, #1a1a1a, #2a2a2a)' }}
         />

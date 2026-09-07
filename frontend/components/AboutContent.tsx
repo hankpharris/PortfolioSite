@@ -1,14 +1,23 @@
+import Image from 'next/image';
+
 export function AboutContent() {
     return (
         <div className="container max-w-3xl mx-auto px-8 py-12 bg-white/90 rounded-2xl shadow-2xl backdrop-blur-md relative z-10">
             <h1 className="text-4xl font-bold mb-8 text-center text-black drop-shadow-lg">About Me</h1>
             <div className="flex justify-center mb-8">
-                <img src="/Logo(Resized).png" alt="Logo" className="w-64 h-64 rounded-full object-cover" />
+                <Image
+                    src="/Logo(Resized).png"
+                    alt="Henry Pharris portfolio logo"
+                    width={256}
+                    height={256}
+                    className="rounded-full object-cover"
+                    priority
+                />
             </div>
             <div className="text-lg text-gray-800 leading-relaxed space-y-4">
                 <p>
-                    Hello! My name is Henry Pharris. I recently graduated from Worcester Polytechnic Institute with a Bachelors of Science in RBE (Robotics Engineering)
-                    with minors in Computer Science and Music. I specialize in full stack web development, internal tooling/automation, and computer vision with machine lereaning.
+                    Hello! My name is Henry Pharris. I recently graduated from Worcester Polytechnic Institute with a Bachelor of Science in RBE (Robotics Engineering)
+                    with minors in Computer Science and Music. I specialize in full stack web development, internal tooling/automation, and computer vision with machine learning.
                     I am currently employed full time as a biomedical controls engineer at DEKA R&D but I am open to freelance work. 
                 </p>
                 <p>

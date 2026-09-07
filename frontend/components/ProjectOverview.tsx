@@ -50,12 +50,12 @@ export function ProjectOverview({
                     </div>
                     <div className="flex gap-4 justify-start">
                         {link && (
-                            <Button href={link} variant="project" isExternal>
+                            <Button href={link} variant="project" isExternal ariaLabel={`Open live project for ${title}`}>
                                 View Project
                             </Button>
                         )}
                         {gitHubLink && (
-                            <Button href={gitHubLink} variant="github" isExternal>
+                            <Button href={gitHubLink} variant="github" isExternal ariaLabel={`Open GitHub repository for ${title}`}>
                                 GitHub
                             </Button>
                         )}

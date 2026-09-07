@@ -12,12 +12,22 @@ export function Header() {
 
     return (
         <header className="fixed top-0 left-0 right-0 z-50 bg-white/30 backdrop-blur-md shadow-lg">
-            <nav className="container mx-auto px-4 py-4">
+            <a
+                href="#main-content"
+                className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[200] focus:rounded focus:bg-white focus:px-4 focus:py-2 focus:text-gray-900 focus:shadow-lg"
+            >
+                Skip to main content
+            </a>
+            <nav className="container mx-auto px-4 py-4" aria-label="Primary navigation">
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
-                    <Link href="/" className="flex items-center space-x-2">
+                    <Link
+                        href="/"
+                        className="flex items-center space-x-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                        aria-label="Henry Pharris portfolio home"
+                    >
                         <Image
                             src="/LogoNoBG.png"
-                            alt="Portfolio Logo"
+                            alt=""
                             width={40}
                             height={40}
                             priority
