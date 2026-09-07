@@ -20,13 +20,6 @@ export function AnimatedBackground() {
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
 
-        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        if (reduceMotion) {
-            return () => {
-                window.removeEventListener('resize', resizeCanvas);
-            };
-        }
-
         // Particle settings
         const particles: Array<{
             x: number;
@@ -48,6 +41,7 @@ export function AnimatedBackground() {
         }
 
         // Animation loop
+        let animationFrameId: number | null = null;
         const animate = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -67,13 +61,36 @@ export function AnimatedBackground() {
                 ctx.fill();
             });
 
-            requestAnimationFrame(animate);
+            animationFrameId = window.requestAnimationFrame(animate);
         };
 
-        animate();
+        const stopAnimation = () => {
+            if (animationFrameId !== null) {
+                window.cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        };
+
+        const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+        const syncMotionPreference = () => {
+            if (motionQuery.matches) {
+                stopAnimation();
+                return;
+            }
+
+            if (animationFrameId === null) {
+                animate();
+            }
+        };
+
+        motionQuery.addEventListener('change', syncMotionPreference);
+        syncMotionPreference();
 
         // Cleanup
         return () => {
+            stopAnimation();
+            motionQuery.removeEventListener('change', syncMotionPreference);
             window.removeEventListener('resize', resizeCanvas);
         };
     }, []);
