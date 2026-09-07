@@ -8,7 +8,8 @@ export function AboutContent() {
             <div className="text-lg text-gray-800 leading-relaxed space-y-4">
                 <p>
                     Hello! My name is Henry Pharris. I recently graduated from Worcester Polytechnic Institute with a Bachelors of Science in RBE (Robotics Engineering)
-                    with minors in Computer Science and Music.
+                    with minors in Computer Science and Music. I specialize in full stack web development, internal tooling/automation, and computer vision with machine lereaning.
+                    I am currently employed full time as a biomedical controls engineer at DEKA R&D but I am open to freelance work. 
                 </p>
                 <p>
                     When outdoors I enjoy activities like snowboarding and sailing, but I also love making music and tinkering with both hardware and software when inside.
