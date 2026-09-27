@@ -1,11 +1,43 @@
 import { OpenAI } from 'openai';
 import { neon } from '@neondatabase/serverless';
-import { ChatCompletionChunk } from 'openai/resources/chat/completions';
 
 // Create an OpenAI API client (that's edge friendly!)
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || '',
 });
+
+function getChatErrorResponse(error: unknown) {
+  if (error instanceof OpenAI.APIError) {
+    if (error.code === 'credit_balance_exhausted') {
+      return Response.json(
+        {
+          error:
+            'Chat is temporarily unavailable because its AI service quota is exhausted.',
+        },
+        { status: 503 },
+      );
+    }
+
+    if (error.status === 429) {
+      return Response.json(
+        { error: 'Chat is temporarily busy. Please try again shortly.' },
+        { status: 503 },
+      );
+    }
+
+    if (error.status === 401) {
+      return Response.json(
+        { error: 'Chat is temporarily unavailable due to an AI service configuration error.' },
+        { status: 503 },
+      );
+    }
+  }
+
+  return Response.json(
+    { error: 'Sorry, I encountered an error. Please try again.' },
+    { status: 500 },
+  );
+}
 
 // Initialize the database connection
 const sql = neon(process.env.DATABASE_URL!);
@@ -157,7 +189,7 @@ export async function POST(req: Request) {
     };
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4',
+      model: 'gpt-4o-mini',
       messages: [systemMessage, ...messages],
       stream: true,
     });
@@ -191,7 +223,7 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     console.error('Chat Error:', error);
-    return new Response('Error processing chat', { status: 500 });
+    return getChatErrorResponse(error);
   }
 }
 

@@ -4,7 +4,6 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { MessageSquare, X, Send, Volume2, VolumeX, Mic, MicOff } from 'lucide-react';
 import { Button } from './buttons/Button';
-import { useChat } from 'ai/react';
 import { useRouter } from 'next/navigation';
 import { useChatStore } from '../store/chatStore';
 import SpeechRecognitionLib, { useSpeechRecognition } from 'react-speech-recognition';
@@ -221,7 +220,20 @@ export function ChatBot() {
         body: JSON.stringify({ messages: [...messages, userMessage] }),
       });
 
-      if (!chatRes.ok) throw new Error('Chat request failed');
+      if (!chatRes.ok) {
+        let errorMessage = 'Sorry, I encountered an error. Please try again.';
+
+        try {
+          const errorBody = (await chatRes.json()) as { error?: unknown };
+          if (typeof errorBody.error === 'string') {
+            errorMessage = errorBody.error;
+          }
+        } catch {
+          // Keep the fallback message when the server did not return JSON.
+        }
+
+        throw new Error(errorMessage);
+      }
       
       // Add assistant message with empty content
       const assistantMessage = { role: 'assistant', content: '' };
@@ -326,7 +338,9 @@ export function ChatBot() {
       console.error('Error:', error);
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again.'
+        content: error instanceof Error
+          ? error.message
+          : 'Sorry, I encountered an error. Please try again.'
       }]);
     } finally {
       setIsLoading(false);
